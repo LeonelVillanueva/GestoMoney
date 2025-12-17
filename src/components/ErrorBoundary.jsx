@@ -1,5 +1,8 @@
 import React from 'react'
 
+// Detectar si estamos en modo desarrollo
+const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development'
+
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props)
@@ -12,8 +15,15 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // También puedes registrar el error en un servicio de reporte de errores
-    console.error('Error capturado por ErrorBoundary:', error, errorInfo)
+    // Registrar el error solo en desarrollo o en un servicio de reporte de errores
+    if (isDevelopment) {
+      console.error('Error capturado por ErrorBoundary:', error, errorInfo)
+    }
+    // En producción, podrías enviar el error a un servicio como Sentry
+    // if (!isDevelopment) {
+    //   // Enviar a servicio de reporte de errores
+    // }
+    
     this.setState({
       error,
       errorInfo
@@ -22,7 +32,9 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      // Puedes renderizar cualquier UI personalizada
+      // En producción, no mostrar detalles técnicos
+      const showDetails = isDevelopment
+      
       return (
         <div className="min-h-screen bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center p-6">
           <div className="bg-white rounded-xl p-8 max-w-2xl w-full shadow-2xl">
@@ -36,7 +48,8 @@ class ErrorBoundary extends React.Component {
               </p>
             </div>
             
-            {this.state.error && (
+            {/* Solo mostrar detalles en desarrollo */}
+            {showDetails && this.state.error && (
               <div className="bg-gray-100 rounded-lg p-4 mb-4">
                 <p className="text-sm font-mono text-red-600 mb-2">
                   {this.state.error.toString()}
@@ -44,7 +57,7 @@ class ErrorBoundary extends React.Component {
                 {this.state.errorInfo && (
                   <details className="mt-2">
                     <summary className="text-sm text-gray-700 cursor-pointer hover:text-gray-900">
-                      Detalles del error
+                      Detalles del error (solo en desarrollo)
                     </summary>
                     <pre className="mt-2 text-xs text-gray-600 overflow-auto max-h-40">
                       {this.state.errorInfo.componentStack}
