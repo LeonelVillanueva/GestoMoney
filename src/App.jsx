@@ -92,9 +92,9 @@ function AppContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex">
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col md:flex-row">
         <Sidebar currentPage={currentPage} onNavigate={handleNavigation} />
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
           <div className="max-w-7xl mx-auto">
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
