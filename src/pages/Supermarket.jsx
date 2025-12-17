@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import database from '../database/index.js'
 import notifications from '../utils/services/notifications'
-import DateInput from '../components/DateInput'
+import CustomDatePicker from '../components/CustomDatePicker'
 import { formatDateLocal, getTodayLocal } from '../utils/normalizers'
 
 const Supermarket = ({ onDataAdded }) => {
@@ -146,92 +146,157 @@ const Supermarket = ({ onDataAdded }) => {
     return iconMap[supermercado] || '🏪'
   }
 
+  // Calcular estadísticas
+  const totalGastado = purchases.reduce((sum, p) => sum + p.monto, 0)
+  const promedioCompra = purchases.length > 0 ? totalGastado / purchases.length : 0
+  const ultimaCompra = purchases.length > 0 ? purchases[0] : null
+  const comprasPorSupermercado = supermarkets.map(market => {
+    const compras = purchases.filter(p => p.supermercado === market)
+    return {
+      nombre: market,
+      total: compras.reduce((sum, p) => sum + p.monto, 0),
+      cantidad: compras.length
+    }
+  })
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="glass-card rounded-2xl p-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">🛒 Compras de Supermercado</h2>
-        <p className="text-gray-600">Registra tus compras en los supermercados configurados</p>
+    <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
+      {/* Header Compacto */}
+      <div className="glass-card rounded-xl p-4">
+        <h2 className="text-2xl font-bold text-slate-800">🛒 Compras de Supermercado</h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Formulario de Compra */}
-        <div className="glass-card rounded-2xl p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-6">➕ Nueva Compra</h3>
+      {/* Estadísticas Rápidas Compactas */}
+      {purchases.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-600 mb-1">Total Gastado</p>
+                <p className="text-lg font-bold text-blue-700">{formatCurrency(totalGastado)}</p>
+              </div>
+              <span className="text-2xl">💰</span>
+            </div>
+          </div>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Fecha */}
-            <DateInput
-              label="📅 Fecha de Compra"
-              value={formData.fecha}
-              onChange={(fecha) => setFormData(prev => ({ ...prev, fecha }))}
-              required
-            />
+          <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-600 mb-1">Promedio</p>
+                <p className="text-lg font-bold text-green-700">{formatCurrency(promedioCompra)}</p>
+              </div>
+              <span className="text-2xl">📊</span>
+            </div>
+          </div>
 
-            {/* Monto */}
+          <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-600 mb-1">Total Compras</p>
+                <p className="text-lg font-bold text-purple-700">{purchases.length}</p>
+              </div>
+              <span className="text-2xl">🛒</span>
+            </div>
+          </div>
+
+          {ultimaCompra && (
+            <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Última Compra</p>
+                  <p className="text-lg font-bold text-orange-700">{formatCurrency(ultimaCompra.monto)}</p>
+                </div>
+                <span className="text-2xl">{getSupermarketIcon(ultimaCompra.supermercado)}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Formulario de Compra Compacto */}
+        <div className="lg:col-span-1 glass-card rounded-xl p-4">
+          <h3 className="text-sm font-bold text-slate-800 mb-4">➕ Nueva Compra</h3>
+          
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {/* Fecha */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                💰 Monto Total
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                📅 Fecha
               </label>
-              <input
-                type="number"
-                name="monto"
-                value={formData.monto || ''}
-                onChange={handleInputChange}
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              <CustomDatePicker
+                value={formData.fecha}
+                onChange={(fecha) => setFormData(prev => ({ ...prev, fecha }))}
+                placeholder="Seleccionar fecha"
+                type="date"
               />
             </div>
 
-            {/* Supermercado */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                🏪 Supermercado
-              </label>
-              <select
-                name="supermercado"
-                value={formData.supermercado}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              >
-                {supermarkets.map((market, index) => (
-                  <option key={index} value={market}>
-                    {getSupermarketIcon(market)} {market}
-                  </option>
-                ))}
-              </select>
+            {/* Monto y Supermercado en fila */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  💰 Monto
+                </label>
+                <input
+                  type="number"
+                  name="monto"
+                  value={formData.monto || ''}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  required
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  🏪 Tienda
+                </label>
+                <select
+                  name="supermercado"
+                  value={formData.supermercado}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                >
+                  {supermarkets.map((market, index) => (
+                    <option key={index} value={market}>
+                      {getSupermarketIcon(market)} {market}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Descripción */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                📝 Descripción de la Compra
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                📝 Descripción
               </label>
               <textarea
                 name="descripcion"
                 value={formData.descripcion}
                 onChange={handleInputChange}
-                placeholder="Ej: Comida semanal, productos de limpieza, etc."
+                placeholder="Ej: Comida semanal..."
                 required
-                rows="3"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                rows="2"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
               />
             </div>
 
             {/* Botón de Guardar */}
             <button
               type="submit"
-              className="gradient-button text-white w-full py-3 rounded-lg text-lg font-semibold flex items-center justify-center space-x-2"
+              className="gradient-button text-white w-full py-2 rounded-lg text-sm font-semibold flex items-center justify-center space-x-2"
               disabled={loading}
             >
               {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               ) : (
                 <>
-                  <span>Registrar Compra</span>
+                  <span>Registrar</span>
                   <span>🛒</span>
                 </>
               )}
@@ -239,77 +304,83 @@ const Supermarket = ({ onDataAdded }) => {
           </form>
         </div>
 
-        {/* Lista de Compras Recientes */}
-        <div className="glass-card rounded-2xl p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-6">📋 Compras Recientes</h3>
+        {/* Lista de Compras Recientes Compacta */}
+        <div className="lg:col-span-2 glass-card rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-slate-800">📋 Compras Recientes</h3>
+            {purchases.length > 0 && (
+              <span className="text-xs text-gray-500">{purchases.length} compras</span>
+            )}
+          </div>
           
           {purchases.length > 0 ? (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {purchases.map((purchase) => (
-                <div key={purchase.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-white rounded-lg">
-                      <span className="text-xl">{getSupermarketIcon(purchase.supermercado)}</span>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {purchases.slice(0, 10).map((purchase) => (
+                <div key={purchase.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="p-1.5 bg-white rounded-lg flex-shrink-0">
+                      <span className="text-lg">{getSupermarketIcon(purchase.supermercado)}</span>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-gray-800">{purchase.descripcion}</h4>
-                      <p className="text-sm text-gray-600">{purchase.supermercado}</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-gray-800 truncate">{purchase.descripcion}</h4>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-gray-600">{purchase.supermercado}</p>
+                        <span className="text-gray-400">•</span>
+                        <p className="text-xs text-gray-600">{formatDate(purchase.fecha)}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gray-800">{formatCurrency(purchase.monto)}</p>
-                    <p className="text-sm text-gray-600">{formatDate(purchase.fecha)}</p>
+                  <div className="text-right flex-shrink-0 ml-3">
+                    <p className="text-sm font-bold text-gray-800">{formatCurrency(purchase.monto)}</p>
                   </div>
                 </div>
               ))}
+              {purchases.length > 10 && (
+                <div className="text-center pt-2">
+                  <p className="text-xs text-gray-500">Y {purchases.length - 10} compras más...</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="text-4xl mb-4">🛒</div>
-              <h3 className="text-lg font-medium text-gray-600 mb-2">No hay compras registradas</h3>
-              <p className="text-gray-500">Comienza registrando tu primera compra de supermercado</p>
+              <div className="text-4xl mb-3">🛒</div>
+              <h3 className="text-sm font-medium text-gray-600 mb-1">No hay compras registradas</h3>
+              <p className="text-xs text-gray-500">Registra tu primera compra usando el formulario</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Estadísticas Rápidas */}
-      <div className="glass-card rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-6">📊 Estadísticas Rápidas</h3>
-        
-        {purchases.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-3xl mb-2">💰</div>
-              <h4 className="text-lg font-bold text-gray-800">Total Gastado</h4>
-              <p className="text-2xl font-bold text-blue-600">
-                {formatCurrency(purchases.reduce((sum, p) => sum + p.monto, 0))}
-              </p>
-            </div>
-            
-            {supermarkets.map((market, index) => {
-              const total = purchases.filter(p => p.supermercado === market).reduce((sum, p) => sum + p.monto, 0)
-              const colors = ['text-green-600', 'text-orange-600', 'text-blue-600', 'text-purple-600', 'text-red-600']
+      {/* Estadísticas por Supermercado */}
+      {purchases.length > 0 && comprasPorSupermercado.some(c => c.cantidad > 0) && (
+        <div className="glass-card rounded-xl p-4">
+          <h3 className="text-sm font-bold text-slate-800 mb-3">📊 Por Supermercado</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {comprasPorSupermercado.map((item, index) => {
+              if (item.cantidad === 0) return null
+              const colors = [
+                'from-green-50 to-green-100 border-green-200 text-green-700',
+                'from-orange-50 to-orange-100 border-orange-200 text-orange-700',
+                'from-blue-50 to-blue-100 border-blue-200 text-blue-700',
+                'from-purple-50 to-purple-100 border-purple-200 text-purple-700',
+                'from-red-50 to-red-100 border-red-200 text-red-700'
+              ]
               const colorClass = colors[index % colors.length]
               
               return (
-                <div key={index} className="text-center">
-                  <div className="text-3xl mb-2">{getSupermarketIcon(market)}</div>
-                  <h4 className="text-lg font-bold text-gray-800">{market}</h4>
-                  <p className={`text-2xl font-bold ${colorClass}`}>
-                    {formatCurrency(total)}
-                  </p>
+                <div key={index} className={`bg-gradient-to-br ${colorClass} rounded-lg p-3 border`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xl">{getSupermarketIcon(item.nombre)}</span>
+                    <span className="text-xs font-medium">{item.cantidad} compras</span>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-1">{item.nombre}</p>
+                  <p className="text-base font-bold">{formatCurrency(item.total)}</p>
                 </div>
               )
             })}
           </div>
-        ) : (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-4">📊</div>
-            <p className="text-gray-500">Las estadísticas aparecerán cuando registres compras</p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

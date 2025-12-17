@@ -6,6 +6,7 @@ import { formatCurrency } from '../utils/chartFormatters'
  * Componente para análisis trimestral
  */
 const QuarterlyAnalysis = ({ quarterlyData, year, barOptions }) => {
+
   if (!quarterlyData) {
     return (
       <div className="text-center py-12">
@@ -17,40 +18,40 @@ const QuarterlyAnalysis = ({ quarterlyData, year, barOptions }) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Análisis Trimestral */}
-      <div className="glass-card rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-slate-800 mb-6">📅 Análisis Trimestral - {year}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-4 mt-4">
+      {/* Análisis Trimestral Compacto */}
+      <div className="glass-card rounded-xl p-4">
+        <h3 className="text-sm font-bold text-slate-800 mb-3">📅 Análisis Trimestral - {year}</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quarterlyData.map((quarter) => (
-            <div key={quarter.name} className="bg-white rounded-xl p-4 border border-gray-200">
-              <div className="text-center mb-4">
-                <h4 className="text-lg font-bold text-slate-800">{quarter.name}</h4>
-                <p className="text-sm text-slate-600">{quarter.label}</p>
+            <div key={quarter.name} className="bg-gradient-to-br from-gray-50 to-white rounded-lg p-3 border border-gray-200">
+              <div className="text-center mb-2">
+                <h4 className="text-sm font-bold text-slate-800">{quarter.name}</h4>
+                <p className="text-xs text-slate-500">{quarter.label}</p>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-red-600">💸 Gastos:</span>
-                  <span className="font-bold text-red-600">{formatCurrency(quarter.gastos)}</span>
+                  <span className="text-xs text-red-600">💸</span>
+                  <span className="text-xs font-bold text-red-600">{formatCurrency(quarter.gastos)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-green-600">💰 Ingresos:</span>
-                  <span className="font-bold text-green-600">{formatCurrency(quarter.ingresos)}</span>
+                  <span className="text-xs text-green-600">💰</span>
+                  <span className="text-xs font-bold text-green-600">{formatCurrency(quarter.ingresos)}</span>
                 </div>
                 
-                <div className="border-t pt-2">
+                <div className="border-t pt-1.5 mt-1.5">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-slate-700">📊 Neto:</span>
-                    <span className={`font-bold ${quarter.neto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className="text-xs font-medium text-slate-700">📊</span>
+                    <span className={`text-xs font-bold ${quarter.neto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(quarter.neto)}
                     </span>
                   </div>
                 </div>
                 
-                <div className="text-center">
-                  <span className="text-xs text-slate-500">{quarter.transacciones} transacciones</span>
+                <div className="text-center pt-1">
+                  <span className="text-xs text-slate-400">{quarter.transacciones} trans.</span>
                 </div>
               </div>
             </div>
@@ -58,10 +59,10 @@ const QuarterlyAnalysis = ({ quarterlyData, year, barOptions }) => {
         </div>
       </div>
 
-      {/* Gráfico de Barras Trimestral */}
-      <div className="glass-card rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-slate-800 mb-6">📊 Comparación Trimestral</h3>
-        <div className="h-80">
+      {/* Gráfico de Barras Trimestral Compacto */}
+      <div className="glass-card rounded-xl p-4">
+        <h3 className="text-sm font-bold text-slate-800 mb-3">📊 Comparación Trimestral</h3>
+        <div className="h-64">
           <Bar 
             data={{
               labels: quarterlyData.map(q => q.name),

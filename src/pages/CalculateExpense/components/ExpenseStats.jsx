@@ -6,71 +6,63 @@ import { formatCurrency, getCategoryIcon } from '../utils/expenseFormatters'
  */
 const ExpenseStats = ({ calculations }) => {
   return (
-    <div>
-      <h3 className="text-xl font-bold text-gray-800 mb-4">💰 Gastos</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="stat-card rounded-2xl p-6 text-slate-700">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-slate-100 rounded-xl">
-              <span className="text-2xl">💰</span>
-            </div>
-            <span className="text-sm text-slate-600">Total Gastado</span>
+    <div className="glass-card rounded-xl p-4">
+      <h3 className="text-lg font-bold text-gray-800 mb-3">💰 Gastos</h3>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-lg p-3 border border-red-100">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">💰</span>
+            <span className="text-xs font-medium text-gray-600">Total</span>
           </div>
-          <h3 className="text-2xl font-bold mb-1 text-slate-800">
+          <p className="text-xl font-bold text-gray-800">
             {formatCurrency(calculations.totalAmount)}
-          </h3>
-          <p className="text-sm text-slate-600">
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
             {calculations.totalTransactions} transacciones
           </p>
         </div>
 
-        <div className="stat-card rounded-2xl p-6 text-slate-700">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-slate-100 rounded-xl">
-              <span className="text-2xl">📊</span>
-            </div>
-            <span className="text-sm text-slate-600">Promedio</span>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-100">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">📊</span>
+            <span className="text-xs font-medium text-gray-600">Promedio</span>
           </div>
-          <h3 className="text-2xl font-bold mb-1 text-slate-800">
+          <p className="text-xl font-bold text-gray-800">
             {formatCurrency(calculations.averageAmount)}
-          </h3>
-          <p className="text-sm text-slate-600">Por transacción</p>
+          </p>
+          <p className="text-xs text-gray-500 mt-1">Por transacción</p>
         </div>
 
-        <div className="stat-card rounded-2xl p-6 text-slate-700">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-slate-100 rounded-xl">
-              <span className="text-2xl">🏆</span>
-            </div>
-            <span className="text-sm text-slate-600">Más Gastado</span>
+        <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-lg p-3 border border-yellow-100">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">🏆</span>
+            <span className="text-xs font-medium text-gray-600">Más Gastado</span>
           </div>
-          <h3 className="text-2xl font-bold mb-1 text-slate-800">
+          <p className="text-sm font-bold text-gray-800 truncate">
             {calculations.topCategory ? (
               <>
                 {getCategoryIcon(calculations.topCategory.name)} {calculations.topCategory.name}
               </>
             ) : 'N/A'}
-          </h3>
-          <p className="text-sm text-slate-600">
+          </p>
+          <p className="text-xs text-gray-600 mt-1">
             {calculations.topCategory ? formatCurrency(calculations.topCategory.total) : ''}
           </p>
         </div>
 
-        <div className="stat-card rounded-2xl p-6 text-slate-700">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-slate-100 rounded-xl">
-              <span className="text-2xl">📉</span>
-            </div>
-            <span className="text-sm text-slate-600">Menos Gastado</span>
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-3 border border-green-100">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">📉</span>
+            <span className="text-xs font-medium text-gray-600">Menos Gastado</span>
           </div>
-          <h3 className="text-2xl font-bold mb-1 text-slate-800">
+          <p className="text-sm font-bold text-gray-800 truncate">
             {calculations.lowestCategory ? (
               <>
                 {getCategoryIcon(calculations.lowestCategory.name)} {calculations.lowestCategory.name}
               </>
             ) : 'N/A'}
-          </h3>
-          <p className="text-sm text-slate-600">
+          </p>
+          <p className="text-xs text-gray-600 mt-1">
             {calculations.lowestCategory ? formatCurrency(calculations.lowestCategory.total) : ''}
           </p>
         </div>

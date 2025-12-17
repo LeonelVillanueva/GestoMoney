@@ -205,10 +205,10 @@ const Settings = () => {
         }
       }
       
-      notifications.showSync(`✅ ${getSettingLabel(key)} actualizado`, 'success', 1500)
+      notifications.showSync(`${getSettingLabel(key)} actualizado`, 'success', 1500)
     } catch (error) {
       console.error('Error saving setting:', error)
-      notifications.showSync('❌ Error al guardar configuración', 'error')
+      notifications.showSync('Error al guardar configuración', 'error')
     }
   }
 
@@ -243,11 +243,11 @@ const Settings = () => {
       if (doubleConfirmed) {
         try {
           await database.clearAllData()
-          notifications.showSync('🗑️ Todos los datos han sido eliminados', 'warning', 3000)
+          notifications.showSync('Todos los datos han sido eliminados', 'warning', 3000)
           setTimeout(() => window.location.reload(), 2000)
         } catch (error) {
           console.error('Error clearing data:', error)
-          notifications.showSync('❌ Error al eliminar los datos', 'error')
+          notifications.showSync('Error al eliminar los datos', 'error')
         }
       }
     }
@@ -347,30 +347,29 @@ const Settings = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="glass-card rounded-2xl p-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">⚙️ Configuración</h2>
-        <p className="text-gray-600">Personaliza tu experiencia con el gestor de gastos</p>
+    <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
+      {/* Header Compacto */}
+      <div className="glass-card rounded-xl p-4">
+        <h2 className="text-2xl font-bold text-slate-800">⚙️ Configuración</h2>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Tabs Navigation */}
-        <div className="lg:col-span-1">
-          <div className="glass-card rounded-2xl p-4">
-            <nav className="space-y-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Tabs Navigation Compacto */}
+        <div className="lg:col-span-3">
+          <div className="glass-card rounded-xl p-3">
+            <nav className="space-y-1">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-blue-600 text-white shadow-lg'
+                      ? 'bg-blue-600 text-white shadow-md'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
                   }`}
                 >
-                  <span className="text-xl">{tab.icon}</span>
-                  <span className="font-medium">{tab.label}</span>
+                  <span className="text-base">{tab.icon}</span>
+                  <span>{tab.label}</span>
                 </button>
               ))}
             </nav>
@@ -378,8 +377,10 @@ const Settings = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="lg:col-span-3">
-          {renderTabContent()}
+        <div className="lg:col-span-9">
+          <div className="glass-card rounded-xl p-4">
+            {renderTabContent()}
+          </div>
         </div>
       </div>
     </div>

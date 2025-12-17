@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import database from '../../../database/index.js'
-import { calculateTotalBudget, calculateTotalSpent } from '../utils/budgetCalculations'
+import { calculateTotalBudget, calculateTotalSpentInBudgetCategories } from '../utils/budgetCalculations'
 
 /**
  * Componente selector de mes con grid 4x3
@@ -141,9 +141,9 @@ const MonthSelector = ({ currentMonth, onMonthChange, expenses = [] }) => {
       return null
     }
 
-    // Calcular total de presupuesto y gastado
+    // Calcular total de presupuesto y gastado SOLO en categorías con presupuesto
     const totalBudget = calculateTotalBudget(budgets)
-    const totalSpent = calculateTotalSpent(expenses, monthString)
+    const totalSpent = calculateTotalSpentInBudgetCategories(expenses, budgets, monthString)
     
     if (totalBudget === 0) {
       return null

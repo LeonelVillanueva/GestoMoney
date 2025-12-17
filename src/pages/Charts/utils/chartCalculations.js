@@ -115,3 +115,104 @@ export const calculateDailyData = (gastos, ingresos) => {
     data: dailyTotals.map(total => isNaN(total) ? 0 : total)
   }
 }
+
+/**
+ * Calcula datos históricos completos por día (todos los días desde el primer gasto hasta el último)
+ */
+export const calculateHistoricalDailyData = (gastos, ingresos) => {
+  if (!gastos || gastos.length === 0) {
+    return { labels: [], data: [] }
+  }
+
+  // Encontrar el rango de fechas
+  let minDate = null
+  let maxDate = null
+
+  gastos.forEach(expense => {
+    const expenseDate = parseDateLocal(expense.fecha)
+    if (!expenseDate) return
+    
+    if (!minDate || expenseDate < minDate) {
+      minDate = new Date(expenseDate)
+    }
+    if (!maxDate || expenseDate > maxDate) {
+      maxDate = new Date(expenseDate)
+    }
+  })
+
+  ingresos.forEach(expense => {
+    const expenseDate = parseDateLocal(expense.fecha)
+    if (!expenseDate) return
+    
+    if (!minDate || expenseDate < minDate) {
+      minDate = new Date(expenseDate)
+    }
+    if (!maxDate || expenseDate > maxDate) {
+      maxDate = new Date(expenseDate)
+    }
+  })
+
+  if (!minDate || !maxDate) {
+    return { labels: [], data: [] }
+  }
+
+  // Generar todos los días entre minDate y maxDate
+  const dailyData = new Map()
+  const currentDate = new Date(minDate)
+  currentDate.setHours(0, 0, 0, 0) // Inicio del día
+
+  while (currentDate <= maxDate) {
+    const dateKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`
+    dailyData.set(dateKey, { gastos: 0, ingresos: 0 })
+    
+    // Avanzar al siguiente día
+    currentDate.setDate(currentDate.getDate() + 1)
+  }
+
+  // Calcular gastos por día
+  gastos.forEach(expense => {
+    if (expense.es_entrada === true || expense.es_entrada === 1) {
+      return // Saltar ingresos
+    }
+    
+    const expenseDate = parseDateLocal(expense.fecha)
+    if (!expenseDate) return
+    
+    expenseDate.setHours(0, 0, 0, 0)
+    const dateKey = `${expenseDate.getFullYear()}-${String(expenseDate.getMonth() + 1).padStart(2, '0')}-${String(expenseDate.getDate()).padStart(2, '0')}`
+    const amount = parseFloat(expense.monto)
+    
+    if (dailyData.has(dateKey) && !isNaN(amount) && amount >= 0) {
+      dailyData.get(dateKey).gastos += amount
+    }
+  })
+
+  // Calcular ingresos por día
+  ingresos.forEach(expense => {
+    const expenseDate = parseDateLocal(expense.fecha)
+    if (!expenseDate) return
+    
+    expenseDate.setHours(0, 0, 0, 0)
+    const dateKey = `${expenseDate.getFullYear()}-${String(expenseDate.getMonth() + 1).padStart(2, '0')}-${String(expenseDate.getDate()).padStart(2, '0')}`
+    const amount = parseFloat(expense.monto)
+    
+    if (dailyData.has(dateKey) && !isNaN(amount) && amount >= 0) {
+      dailyData.get(dateKey).ingresos += amount
+    }
+  })
+
+  // Convertir a arrays ordenados
+  const sortedKeys = Array.from(dailyData.keys()).sort()
+  const labels = sortedKeys.map(key => {
+    const [year, month, day] = key.split('-')
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+    return date.toLocaleDateString('es-HN', { day: 'numeric', month: 'short' })
+  })
+  
+  const data = sortedKeys.map(key => {
+    const dayData = dailyData.get(key)
+    return dayData.gastos - dayData.ingresos // Neto diario
+  })
+
+  return { labels, data }
+}

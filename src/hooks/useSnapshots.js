@@ -22,12 +22,15 @@ export default function useSnapshots(active) {
 
   const restoreLatest = useCallback(async () => {
     const snaps = await database.listSnapshots()
-    if (!snaps || snaps.length === 0) return false
-    return database.restoreSnapshot(snaps[0].id)
+    if (!snaps || snaps.length === 0) return { success: false, errors: ['No hay snapshots disponibles'] }
+    const result = await database.restoreSnapshot(snaps[0].id)
+    return result
   }, [])
 
   const restoreById = useCallback(async (id) => {
-    return database.restoreSnapshot(id)
+    const result = await database.restoreSnapshot(id)
+    // El nuevo método retorna { success, errors?, backupId?, counts? }
+    return result
   }, [])
 
   const deleteById = useCallback(async (id) => {

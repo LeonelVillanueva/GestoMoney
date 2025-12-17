@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import notifications from '../utils/services/notifications'
 import database from '../database/index.js'
-import DateInput from '../components/DateInput'
+import CustomDatePicker from '../components/CustomDatePicker'
 import { formatDateLocal, getTodayLocal } from '../utils/normalizers'
 
 const AddExpense = ({ onExpenseAdded }) => {
@@ -160,22 +160,22 @@ const AddExpense = ({ onExpenseAdded }) => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="glass-card rounded-2xl p-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">➕ Agregar Gasto</h2>
-        <p className="text-gray-600">Registra un nuevo gasto en tu sistema</p>
+    <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
+      {/* Header Compacto */}
+      <div className="glass-card rounded-xl p-4">
+        <h2 className="text-2xl font-bold text-gray-800">➕ Agregar Gasto</h2>
+        <p className="text-sm text-gray-500 mt-1">Registra un nuevo gasto o ingreso</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Formulario */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Formulario Reorganizado */}
         <div className="lg:col-span-2">
-          <div className="glass-card rounded-2xl p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Monto y Moneda */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="glass-card rounded-xl p-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Primera fila: Monto, Moneda y Tipo */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
                     💰 Monto
                   </label>
                   <input
@@ -187,82 +187,74 @@ const AddExpense = ({ onExpenseAdded }) => {
                     step="0.01"
                     min="0"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg font-semibold"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
                     💱 Moneda
                   </label>
                   <select
                     name="currency"
                     value={formData.currency}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   >
-                    <option value="LPS">LPS (Lempiras)</option>
-                    <option value="USD">USD (Dólares)</option>
+                    <option value="LPS">LPS</option>
+                    <option value="USD">USD</option>
                   </select>
                 </div>
               </div>
 
-              {/* Conversión automática */}
+              {/* Conversión automática compacta */}
               {formData.currency === 'USD' && formData.amount && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                  <div className="flex items-center space-x-2 text-slate-700">
-                    <span className="text-lg">💱</span>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+                  <div className="flex items-center gap-2 text-sm text-blue-700">
+                    <span>💱</span>
                     <span className="font-medium">
-                      Conversión automática: ${formData.amount} USD = L {calculateConvertedAmount()} LPS
+                      ${formData.amount} USD = L {calculateConvertedAmount()} LPS
                     </span>
                   </div>
                 </div>
               )}
 
-              {/* Categoría */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  🏷️ Categoría
-                </label>
-                {loadingCategories ? (
-                  <div className="text-center py-4 text-gray-500">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-2 text-sm">Cargando categorías...</p>
+              {/* Segunda fila: Fecha y Tipo (Gasto/Ingreso) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                    📅 Fecha
+                  </label>
+                  <CustomDatePicker
+                    value={formData.date}
+                    onChange={(date) => setFormData(prev => ({ ...prev, date }))}
+                    placeholder="Seleccionar fecha"
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                    Tipo
+                  </label>
+                  <div className="flex items-center gap-2 p-2.5 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg h-[42px]">
+                    <input
+                      type="checkbox"
+                      id="es_entrada"
+                      checked={formData.es_entrada}
+                      onChange={(e) => setFormData(prev => ({ ...prev, es_entrada: e.target.checked }))}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <label htmlFor="es_entrada" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center gap-2 flex-1">
+                      <span className="text-lg">{formData.es_entrada ? '💰' : '💸'}</span>
+                      <span>{formData.es_entrada ? 'Ingreso' : 'Gasto'}</span>
+                    </label>
                   </div>
-                ) : categories.length === 0 ? (
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                    <p className="text-sm text-yellow-800">
-                      ⚠️ No hay categorías disponibles. Por favor, crea categorías en <strong>Configuración → Categorías</strong>
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-3">
-                    {categories.map((category) => (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, category: category.id }))}
-                        className={`p-4 rounded-xl border-2 transition-all text-left ${
-                          formData.category === category.id || formData.category === String(category.id)
-                            ? 'border-slate-400 bg-slate-50'
-                            : 'border-gray-200 hover:border-slate-300'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <span className="text-2xl">{category.icon}</span>
-                          <div>
-                            <div className="font-medium text-gray-800">{category.label}</div>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                </div>
               </div>
 
               {/* Descripción */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-600 mb-1.5">
                   📝 Descripción
                 </label>
                 <input
@@ -270,106 +262,131 @@ const AddExpense = ({ onExpenseAdded }) => {
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  placeholder="Descripción del gasto..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Ej: Almuerzo en restaurante"
+                  required
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
-              {/* Fecha */}
-              <DateInput
-                label="📅 Fecha del Gasto"
-                value={formData.date}
-                onChange={(date) => setFormData(prev => ({ ...prev, date }))}
-                required
-              />
-
-              {/* Checkbox para entrada de dinero */}
-              <div className="flex items-center space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <input
-                  type="checkbox"
-                  id="es_entrada"
-                  checked={formData.es_entrada}
-                  onChange={(e) => setFormData(prev => ({ ...prev, es_entrada: e.target.checked }))}
-                  className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                />
-                <label htmlFor="es_entrada" className="text-sm font-medium text-gray-700 cursor-pointer">
-                  💰 Es una entrada de dinero (ingreso)
+              {/* Categoría */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-2">
+                  🏷️ Categoría
                 </label>
-              </div>
-
-              {/* Información sobre el checkbox */}
-              {formData.es_entrada && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-xl">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-green-600">ℹ️</span>
-                    <span className="text-sm text-green-700">
-                      Esta cantidad se restará de tus gastos totales (será tratada como un ingreso)
-                    </span>
+                {loadingCategories ? (
+                  <div className="text-center py-3 text-gray-500">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-2 text-xs">Cargando...</p>
                   </div>
-                </div>
-              )}
+                ) : categories.length === 0 ? (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-xs text-yellow-800">
+                      ⚠️ Crea categorías en <strong>Configuración</strong>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2">
+                    {categories.map((category) => (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, category: category.id }))}
+                        className={`p-3 rounded-lg border-2 transition-all ${
+                          formData.category === category.id || formData.category === String(category.id)
+                            ? 'border-blue-500 bg-blue-50 shadow-sm scale-105'
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-xl">{category.icon}</span>
+                          <span className="text-xs font-medium text-gray-700 text-center leading-tight">
+                            {category.label}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Botón de envío */}
               <button
                 type="submit"
-                disabled={loading || !formData.amount || !formData.category}
-                className="w-full gradient-button text-white py-4 rounded-xl font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                disabled={loading || !formData.amount || !formData.category || !formData.description}
+                className="w-full gradient-button text-white py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-[1.02]"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     <span>Guardando...</span>
                   </div>
                 ) : (
-                  '💾 Guardar Gasto'
+                  <span className="flex items-center justify-center gap-2">
+                    <span>💾</span>
+                    <span>Guardar {formData.es_entrada ? 'Ingreso' : 'Gasto'}</span>
+                  </span>
                 )}
               </button>
             </form>
           </div>
         </div>
 
-        {/* Resumen */}
-        <div className="space-y-6">
-          {/* Categoría seleccionada */}
-          {formData.category && (
-            <div className="glass-card rounded-2xl p-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Resumen</h3>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                  <span className="text-2xl">{getSelectedCategory()?.icon}</span>
-                  <div>
-                    <div className="font-medium text-gray-800">{getSelectedCategory()?.label}</div>
-                    <div className="text-sm text-gray-600">Categoría seleccionada</div>
+        {/* Resumen Compacto */}
+        <div className="space-y-4">
+          {/* Resumen de la transacción */}
+          {(formData.category || formData.amount) && (
+            <div className="glass-card rounded-xl p-4">
+              <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">📋 Resumen</h3>
+              <div className="space-y-3">
+                {formData.category && (
+                  <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
+                    <span className="text-2xl">{getSelectedCategory()?.icon}</span>
+                    <div className="flex-1">
+                      <div className="font-semibold text-sm text-gray-800">{getSelectedCategory()?.label}</div>
+                      <div className="text-xs text-gray-500">Categoría</div>
+                    </div>
                   </div>
-                </div>
+                )}
                 
                 {formData.amount && (
-                  <div className="p-3 bg-slate-50 rounded-xl">
-                    <div className="text-sm text-slate-600 mb-1">Monto</div>
-                    <div className="font-bold text-slate-800">
-                      {formData.currency} {parseFloat(formData.amount).toFixed(2)}
+                  <div className="p-2.5 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                    <div className="text-xs text-gray-600 mb-1">Monto {formData.es_entrada ? '(Ingreso)' : '(Gasto)'}</div>
+                    <div className="font-bold text-lg text-gray-800">
+                      {formData.currency} {parseFloat(formData.amount || 0).toFixed(2)}
                     </div>
+                    {formData.currency === 'USD' && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        ≈ L {calculateConvertedAmount()} LPS
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {formData.description && (
+                  <div className="p-2.5 bg-gray-50 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">Descripción</div>
+                    <div className="text-sm font-medium text-gray-800 truncate">{formData.description}</div>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* Consejos */}
-          <div className="glass-card rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">💡 Consejos</h3>
-            <div className="space-y-3 text-sm text-gray-600">
-              <div className="flex items-start space-x-2">
-                <span className="text-slate-500 mt-1">💡</span>
-                <span>Usa descripciones claras para identificar mejor tus gastos</span>
+          {/* Consejos Compactos */}
+          <div className="glass-card rounded-xl p-4">
+            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">💡 Tips</h3>
+            <div className="space-y-2 text-xs text-gray-600">
+              <div className="flex items-start gap-2">
+                <span>💡</span>
+                <span>Usa descripciones claras</span>
               </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-slate-500 mt-1">💰</span>
-                <span>Los USD se convierten automáticamente a LPS</span>
+              <div className="flex items-start gap-2">
+                <span>💰</span>
+                <span>USD se convierte automáticamente</span>
               </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-slate-500 mt-1">📊</span>
-                <span>Las categorías te ayudan a analizar tus gastos</span>
+              <div className="flex items-start gap-2">
+                <span>📊</span>
+                <span>Categorías ayudan al análisis</span>
               </div>
             </div>
           </div>

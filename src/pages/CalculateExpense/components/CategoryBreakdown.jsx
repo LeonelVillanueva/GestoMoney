@@ -10,49 +10,49 @@ const CategoryBreakdown = ({ categoryBreakdown }) => {
   }
 
   return (
-    <div className="glass-card rounded-2xl p-6">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">📋 Desglose por Categoría</h3>
+    <div className="glass-card rounded-xl p-4">
+      <h3 className="text-lg font-bold text-gray-800 mb-3">📋 Desglose por Categoría</h3>
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200">
-              <th className="text-left py-3 px-4 font-medium text-gray-700">Categoría</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Total</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Transacciones</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Promedio</th>
-              <th className="text-right py-3 px-4 font-medium text-gray-700">Porcentaje</th>
+              <th className="text-left py-2 px-3 font-medium text-gray-700 text-xs">Categoría</th>
+              <th className="text-right py-2 px-3 font-medium text-gray-700 text-xs">Total</th>
+              <th className="text-right py-2 px-3 font-medium text-gray-700 text-xs">Trans.</th>
+              <th className="text-right py-2 px-3 font-medium text-gray-700 text-xs">Promedio</th>
+              <th className="text-right py-2 px-3 font-medium text-gray-700 text-xs">%</th>
             </tr>
           </thead>
           <tbody>
             {categoryBreakdown.map((category, index) => (
               <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="py-3 px-4">
+                <td className="py-2 px-3">
                   <div className="flex items-center">
-                    <span className="text-xl mr-2">{getCategoryIcon(category.name)}</span>
-                    <span className="font-medium text-gray-800">{category.name}</span>
+                    <span className="text-base mr-2">{getCategoryIcon(category.name)}</span>
+                    <span className="font-medium text-gray-800 text-sm">{category.name}</span>
                   </div>
                 </td>
-                <td className="text-right py-3 px-4 font-bold text-gray-800">
+                <td className="text-right py-2 px-3 font-bold text-gray-800 text-sm">
                   {formatCurrency(category.total)}
                 </td>
-                <td className="text-right py-3 px-4 text-gray-600">
+                <td className="text-right py-2 px-3 text-gray-600 text-sm">
                   {category.count}
                 </td>
-                <td className="text-right py-3 px-4 text-gray-600">
+                <td className="text-right py-2 px-3 text-gray-600 text-sm">
                   {formatCurrency(category.total / category.count)}
                 </td>
-                <td className="text-right py-3 px-4">
+                <td className="text-right py-2 px-3">
                   <div className="flex items-center justify-end">
-                    <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                    <div className="w-12 bg-gray-200 rounded-full h-1.5 mr-2">
                       <div 
-                        className="h-2 rounded-full" 
+                        className="h-1.5 rounded-full" 
                         style={{ 
                           width: `${category.percentage}%`,
                           backgroundColor: category.color
                         }}
                       ></div>
                     </div>
-                    <span className="text-sm text-gray-600 w-12">
+                    <span className="text-xs text-gray-600 w-10">
                       {category.percentage.toFixed(1)}%
                     </span>
                   </div>
