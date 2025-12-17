@@ -14,7 +14,7 @@ const IncomeStats = ({ incomeCalculations, filteredIncomes, showIncomeList, onTo
             <span className="text-lg">💵</span>
             <span className="text-xs font-medium text-gray-600">Total</span>
           </div>
-          <p className="text-xl font-bold text-green-800">
+          <p className="text-base sm:text-lg md:text-xl font-bold text-green-800 break-words leading-tight">
             {formatCurrency(incomeCalculations.totalAmount)}
           </p>
           <p className="text-xs text-gray-500 mt-1">
@@ -27,7 +27,7 @@ const IncomeStats = ({ incomeCalculations, filteredIncomes, showIncomeList, onTo
             <span className="text-lg">📊</span>
             <span className="text-xs font-medium text-gray-600">Promedio</span>
           </div>
-          <p className="text-xl font-bold text-green-800">
+          <p className="text-base sm:text-lg md:text-xl font-bold text-green-800 break-words leading-tight">
             {formatCurrency(incomeCalculations.averageAmount)}
           </p>
           <p className="text-xs text-gray-500 mt-1">Por transacción</p>

@@ -222,26 +222,26 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
       {/* Stats Cards Compactas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="stat-card rounded-xl p-4 hover:shadow-lg transition-shadow">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg">
+          <div className="flex items-start gap-3 mb-2">
+            <div className="p-2 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex-shrink-0">
               <span className="text-xl">💰</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-600 font-medium">Total Gastos</p>
-              <h3 className="text-lg font-bold text-gray-800 truncate">{formatCurrency(stats.totalExpenses)}</h3>
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 break-words leading-tight">{formatCurrency(stats.totalExpenses)}</h3>
             </div>
           </div>
           <p className="text-xs text-gray-500">Todos los tiempos</p>
         </div>
 
         <div className="stat-card rounded-xl p-4 hover:shadow-lg transition-shadow">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg">
+          <div className="flex items-start gap-3 mb-2">
+            <div className="p-2 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex-shrink-0">
               <span className="text-xl">📅</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-600 font-medium">Este Mes</p>
-              <h3 className="text-lg font-bold text-gray-800 truncate">{formatCurrency(monthStats.currentMonthTotal)}</h3>
+              <h3 className="text-base sm:text-lg font-bold text-gray-800 break-words leading-tight">{formatCurrency(monthStats.currentMonthTotal)}</h3>
             </div>
           </div>
           <p className={`text-xs font-medium ${
@@ -252,8 +252,8 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
         </div>
 
         <div className="stat-card rounded-xl p-4 hover:shadow-lg transition-shadow">
-          <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${
+          <div className="flex items-start gap-3 mb-2">
+            <div className={`p-2 rounded-lg flex-shrink-0 ${
               monthStats.balance >= 0 
                 ? 'bg-gradient-to-br from-green-100 to-green-200' 
                 : 'bg-gradient-to-br from-red-100 to-red-200'
@@ -262,7 +262,7 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-600 font-medium">Balance</p>
-              <h3 className={`text-lg font-bold truncate ${
+              <h3 className={`text-base sm:text-lg font-bold break-words leading-tight ${
                 monthStats.balance >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 {formatCurrency(monthStats.balance)}
