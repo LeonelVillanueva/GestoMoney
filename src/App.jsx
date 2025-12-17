@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from 'react'
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import ProtectedRoute from './components/ProtectedRoute'
+import ZoomControls from './components/ZoomControls'
 import { AuthProvider } from './contexts/AuthContext'
 import database from './database/index.js'
 import currencyConverter from './utils/services/currency'
@@ -36,6 +37,23 @@ function AppContent() {
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const location = useLocation()
+
+  // Aplicar zoom en móvil
+  useEffect(() => {
+    const applyMobileZoom = () => {
+      const isMobile = window.innerWidth < 768
+      if (isMobile) {
+        const savedZoom = settingsManager.get('mobileZoom', 100)
+        document.documentElement.style.zoom = savedZoom / 100
+      } else {
+        document.documentElement.style.zoom = '1'
+      }
+    }
+
+    applyMobileZoom()
+    window.addEventListener('resize', applyMobileZoom)
+    return () => window.removeEventListener('resize', applyMobileZoom)
+  }, [])
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -94,6 +112,7 @@ function AppContent() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col md:flex-row">
         <Sidebar currentPage={currentPage} onNavigate={handleNavigation} />
+        <ZoomControls />
         <main className="flex-1 p-4 md:p-6 overflow-y-auto">
           <div className="max-w-7xl mx-auto">
             <Suspense fallback={<LoadingFallback />}>
