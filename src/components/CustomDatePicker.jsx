@@ -31,6 +31,14 @@ const CustomDatePicker = ({
     }
   }, [])
 
+  // Función para parsear fecha sin problemas de zona horaria
+  const parseDateSafe = (dateString) => {
+    if (!dateString || !dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return null
+    const [year, month, day] = dateString.split('-')
+    // Crear fecha en hora local (mediodía) para evitar problemas de zona horaria
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0)
+  }
+
   const formatDisplayValue = (dateString) => {
     if (!dateString) return placeholder
     
@@ -42,7 +50,10 @@ const CustomDatePicker = ({
       ]
       return `${monthNames[parseInt(month) - 1]} ${year}`
     } else {
-      const date = new Date(dateString)
+      // Parsear fecha sin problemas de zona horaria
+      const date = parseDateSafe(dateString)
+      if (!date) return placeholder
+      
       return date.toLocaleDateString('es-HN', {
         year: 'numeric',
         month: 'long',
@@ -74,9 +85,15 @@ const CustomDatePicker = ({
 
   const getCurrentDate = () => {
     const now = new Date()
-    return type === 'month' 
-      ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-      : now.toISOString().split('T')[0]
+    if (type === 'month') {
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    } else {
+      // Formatear fecha actual sin problemas de zona horaria
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
   }
 
   const getCurrentYear = () => new Date().getFullYear()
@@ -247,7 +264,7 @@ const CustomDatePicker = ({
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`
-          w-full px-4 py-3 border border-gray-300 rounded-xl 
+          w-full px-3 py-2.5 border border-gray-300 rounded-lg 
           focus:ring-2 focus:ring-blue-500 focus:border-transparent 
           transition-all cursor-pointer flex items-center justify-between
           ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white hover:border-gray-400'}

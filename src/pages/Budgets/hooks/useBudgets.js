@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import database from '../../../database/index.js'
 import notifications from '../../../utils/services/notifications'
-import { calculateBudgetAnalysis, calculateTotalBudget, calculateTotalSpent, getOverBudgetCategories } from '../utils/budgetCalculations'
+import { calculateBudgetAnalysis, calculateTotalBudget, calculateTotalSpentInBudgetCategories, getOverBudgetCategories } from '../utils/budgetCalculations'
 
 /**
  * Hook para manejar presupuestos
@@ -119,8 +119,9 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
   }, [budgets])
 
   const totalSpent = useMemo(() => {
-    return calculateTotalSpent(expenses, currentMonth)
-  }, [expenses, currentMonth])
+    // Solo contar gastos de categorías que tienen presupuesto
+    return calculateTotalSpentInBudgetCategories(expenses, budgets, currentMonth)
+  }, [expenses, budgets, currentMonth])
 
   const overBudgetCategories = useMemo(() => {
     return getOverBudgetCategories(analysis)

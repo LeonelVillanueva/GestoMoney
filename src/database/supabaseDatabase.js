@@ -408,10 +408,15 @@ class SupabaseDatabase {
   }
 
   async getBudgets(month) {
-    const { data, error } = await supabase
+    let query = supabase
       .from('budgets')
       .select('*')
-      .eq('month', month)
+    
+    if (month !== null && month !== undefined) {
+      query = query.eq('month', month)
+    }
+
+    const { data, error } = await query
 
     if (error) throw error
     return data
@@ -494,33 +499,704 @@ class SupabaseDatabase {
   }
 
   // ============================================
-  // BACKUP/EXPORT (Opcionales)
+  // BACKUP/EXPORT
   // ============================================
 
   async exportAll() {
-    // Implementar si es necesario
-    return {}
+    try {
+      // Obtener todos los datos de todas las tablas
+      const [expenses, categories, supermarketPurchases, cuts, budgets, config] = await Promise.all([
+        this.getExpenses({}),
+        this.getCategories(),
+        this.getSupermarketPurchases({}),
+        this.getCuts({}),
+        this.getBudgets(null),
+        this.getAllConfig()
+      ])
+
+      return {
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        expenses: expenses || [],
+        categories: categories || [],
+        supermarketPurchases: supermarketPurchases || [],
+        cuts: cuts || [],
+        budgets: budgets || [],
+        config: config || {}
+      }
+    } catch (error) {
+      console.error('Error exporting data:', error)
+      throw error
+    }
   }
 
   async importAll(payload) {
-    // Implementar si es necesario
-    return true
+    try {
+      if (!payload || typeof payload !== 'object') {
+        return false
+      }
+
+      // Limpiar datos existentes (opcional, dependiendo de la estrategia)
+      // Por ahora, importamos sin limpiar para permitir merge
+
+      // Importar categorías primero (necesarias para gastos)
+      if (payload.categories && Array.isArray(payload.categories)) {
+        for (const cat of payload.categories) {
+          try {
+            await this.createCategory({
+              name: cat.name || cat.nombre,
+              color: cat.color,
+              icon: cat.icon,
+              description: cat.description || cat.descripcion
+            })
+          } catch (err) {
+            // Si ya existe, intentar actualizar
+            if (cat.id) {
+              try {
+                await this.updateCategory(cat.id, {
+                  name: cat.name || cat.nombre,
+                  color: cat.color,
+                  icon: cat.icon,
+                  description: cat.description || cat.descripcion
+                })
+              } catch (updateErr) {
+                console.warn('No se pudo importar categoría:', cat.name, updateErr)
+              }
+            }
+          }
+        }
+      }
+
+      // Importar gastos
+      if (payload.expenses && Array.isArray(payload.expenses)) {
+        for (const expense of payload.expenses) {
+          try {
+            // Buscar categoría por nombre si no hay ID
+            let categoria_id = expense.categoria_id
+            if (!categoria_id && expense.categoria_nombre) {
+              const cats = await this.getCategories()
+              const foundCat = cats.find(c => c.name === expense.categoria_nombre)
+              if (foundCat) categoria_id = foundCat.id
+            }
+
+            if (categoria_id) {
+              await this.createExpense({
+                fecha: expense.fecha,
+                monto: expense.monto,
+                categoria_id: categoria_id,
+                descripcion: expense.descripcion || '',
+                es_entrada: expense.es_entrada || false,
+                moneda_original: expense.moneda_original || 'LPS'
+              })
+            }
+          } catch (err) {
+            console.warn('No se pudo importar gasto:', err)
+          }
+        }
+      }
+
+      // Importar compras de supermercado
+      if (payload.supermarketPurchases && Array.isArray(payload.supermarketPurchases)) {
+        for (const purchase of payload.supermarketPurchases) {
+          try {
+            await this.createSupermarketPurchase({
+              fecha: purchase.fecha,
+              monto: purchase.monto || purchase.monto_total,
+              supermercado: purchase.supermercado,
+              descripcion: purchase.descripcion || ''
+            })
+          } catch (err) {
+            console.warn('No se pudo importar compra:', err)
+          }
+        }
+      }
+
+      // Importar cortes
+      if (payload.cuts && Array.isArray(payload.cuts)) {
+        for (const cut of payload.cuts) {
+          try {
+            await this.createCut({
+              fecha: cut.fecha,
+              tipo_corte: cut.tipo_corte,
+              monto: cut.monto || cut.precio || 0,
+              descripcion: cut.descripcion || ''
+            })
+          } catch (err) {
+            console.warn('No se pudo importar corte:', err)
+          }
+        }
+      }
+
+      // Importar presupuestos
+      if (payload.budgets && Array.isArray(payload.budgets)) {
+        for (const budget of payload.budgets) {
+          try {
+            // Los presupuestos se almacenan como registros individuales por categoría
+            await this.createBudget({
+              category: budget.category,
+              amount: budget.amount,
+              month: budget.month
+            })
+          } catch (err) {
+            console.warn('No se pudo importar presupuesto:', err)
+          }
+        }
+      }
+
+      // Importar configuración
+      if (payload.config && typeof payload.config === 'object') {
+        for (const [key, value] of Object.entries(payload.config)) {
+          try {
+            await this.setConfig(key, value)
+          } catch (err) {
+            console.warn('No se pudo importar configuración:', key, err)
+          }
+        }
+      }
+
+      return true
+    } catch (error) {
+      console.error('Error importing data:', error)
+      return false
+    }
+  }
+
+  // ============================================
+  // SNAPSHOTS (Mini backups rápidos en localStorage)
+  // ============================================
+
+  _getSnapshotsIndex() {
+    try {
+      const stored = localStorage.getItem('gestor_gastos_snapshots_index')
+      return stored ? JSON.parse(stored) : []
+    } catch (error) {
+      console.error('Error reading snapshots index:', error)
+      return []
+    }
+  }
+
+  _saveSnapshotsIndex(index) {
+    try {
+      localStorage.setItem('gestor_gastos_snapshots_index', JSON.stringify(index))
+    } catch (error) {
+      console.error('Error saving snapshots index:', error)
+      throw error
+    }
   }
 
   async listSnapshots() {
-    return []
+    try {
+      const index = this._getSnapshotsIndex()
+      const snapshots = []
+
+      for (const snapshotInfo of index) {
+        try {
+          const snapshotData = localStorage.getItem(`gestor_gastos_snapshot_${snapshotInfo.id}`)
+          if (snapshotData) {
+            const data = JSON.parse(snapshotData)
+            snapshots.push({
+              id: snapshotInfo.id,
+              createdAt: snapshotInfo.createdAt,
+              sizeBytes: snapshotInfo.sizeBytes,
+              totalRecords: snapshotInfo.totalRecords,
+              data: data // Incluir datos para descarga
+            })
+          }
+        } catch (err) {
+          console.warn('Error reading snapshot:', snapshotInfo.id, err)
+        }
+      }
+
+      // Ordenar por fecha más reciente primero
+      return snapshots.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    } catch (error) {
+      console.error('Error listing snapshots:', error)
+      return []
+    }
   }
 
   async createSnapshot() {
-    return null
+    try {
+      // Exportar todos los datos
+      const allData = await this.exportAll()
+
+      // Calcular estadísticas
+      const totalRecords = 
+        (allData.expenses?.length || 0) +
+        (allData.categories?.length || 0) +
+        (allData.supermarketPurchases?.length || 0) +
+        (allData.cuts?.length || 0) +
+        (allData.budgets?.length || 0)
+
+      const dataString = JSON.stringify(allData)
+      const sizeBytes = new Blob([dataString]).size
+
+      // Generar ID único
+      const id = `snapshot_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      const createdAt = new Date().toISOString()
+
+      // Guardar snapshot en localStorage
+      localStorage.setItem(`gestor_gastos_snapshot_${id}`, dataString)
+
+      // Actualizar índice
+      const index = this._getSnapshotsIndex()
+      index.push({
+        id,
+        createdAt,
+        sizeBytes,
+        totalRecords
+      })
+
+      // Limitar a 50 snapshots (eliminar los más antiguos)
+      if (index.length > 50) {
+        const sorted = index.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        const toRemove = sorted.slice(0, index.length - 50)
+        for (const oldSnap of toRemove) {
+          localStorage.removeItem(`gestor_gastos_snapshot_${oldSnap.id}`)
+        }
+        index.splice(0, index.length - 50)
+      }
+
+      this._saveSnapshotsIndex(index)
+
+      return {
+        id,
+        createdAt,
+        sizeBytes,
+        totalRecords
+      }
+    } catch (error) {
+      console.error('Error creating snapshot:', error)
+      throw error
+    }
   }
 
   async deleteSnapshot(id) {
-    return true
+    try {
+      // Eliminar snapshot de localStorage
+      localStorage.removeItem(`gestor_gastos_snapshot_${id}`)
+
+      // Actualizar índice
+      const index = this._getSnapshotsIndex()
+      const filtered = index.filter(snap => snap.id !== id)
+      this._saveSnapshotsIndex(filtered)
+
+      return true
+    } catch (error) {
+      console.error('Error deleting snapshot:', error)
+      return false
+    }
   }
 
+  /**
+   * Valida la estructura y contenido de un snapshot
+   * @param {Object} data - Datos del snapshot a validar
+   * @returns {Object} { valid: boolean, errors: string[] }
+   */
+  _validateSnapshot(data) {
+    const errors = []
+
+    // Validar estructura básica
+    if (!data || typeof data !== 'object') {
+      errors.push('El snapshot no es un objeto válido')
+      return { valid: false, errors }
+    }
+
+    // Validar version
+    if (!data.version || typeof data.version !== 'string') {
+      errors.push('El snapshot no tiene una versión válida')
+    }
+
+    // Validar arrays requeridos
+    const requiredArrays = ['expenses', 'categories', 'supermarketPurchases', 'cuts', 'budgets']
+    for (const key of requiredArrays) {
+      if (!Array.isArray(data[key])) {
+        errors.push(`El campo '${key}' debe ser un array`)
+      }
+    }
+
+    // Validar config
+    if (data.config && typeof data.config !== 'object') {
+      errors.push('El campo "config" debe ser un objeto')
+    }
+
+    // Validar estructura de categorías
+    if (Array.isArray(data.categories)) {
+      data.categories.forEach((cat, idx) => {
+        if (!cat.name && !cat.nombre) {
+          errors.push(`Categoría ${idx}: falta nombre`)
+        }
+        if (cat.color && typeof cat.color !== 'string') {
+          errors.push(`Categoría ${idx}: color inválido`)
+        }
+        if (cat.icon && typeof cat.icon !== 'string') {
+          errors.push(`Categoría ${idx}: icono inválido`)
+        }
+      })
+    }
+
+    // Validar estructura de gastos
+    if (Array.isArray(data.expenses)) {
+      data.expenses.forEach((exp, idx) => {
+        if (!exp.fecha) {
+          errors.push(`Gasto ${idx}: falta fecha`)
+        }
+        if (exp.monto === undefined || exp.monto === null || isNaN(parseFloat(exp.monto))) {
+          errors.push(`Gasto ${idx}: monto inválido`)
+        }
+        if (!exp.categoria_id && !exp.categoria_nombre) {
+          errors.push(`Gasto ${idx}: falta categoría`)
+        }
+      })
+    }
+
+    // Validar estructura de compras de supermercado
+    if (Array.isArray(data.supermarketPurchases)) {
+      data.supermarketPurchases.forEach((purchase, idx) => {
+        if (!purchase.fecha) {
+          errors.push(`Compra ${idx}: falta fecha`)
+        }
+        if (purchase.monto === undefined && purchase.monto_total === undefined) {
+          errors.push(`Compra ${idx}: falta monto`)
+        }
+        if (!purchase.supermercado) {
+          errors.push(`Compra ${idx}: falta supermercado`)
+        }
+      })
+    }
+
+    // Validar estructura de cortes
+    if (Array.isArray(data.cuts)) {
+      data.cuts.forEach((cut, idx) => {
+        if (!cut.fecha) {
+          errors.push(`Corte ${idx}: falta fecha`)
+        }
+        if (!cut.tipo_corte) {
+          errors.push(`Corte ${idx}: falta tipo de corte`)
+        }
+      })
+    }
+
+    // Validar estructura de presupuestos
+    if (Array.isArray(data.budgets)) {
+      data.budgets.forEach((budget, idx) => {
+        if (!budget.category) {
+          errors.push(`Presupuesto ${idx}: falta categoría`)
+        }
+        if (budget.amount === undefined || isNaN(parseFloat(budget.amount))) {
+          errors.push(`Presupuesto ${idx}: monto inválido`)
+        }
+        if (!budget.month || !/^\d{4}-\d{2}$/.test(budget.month)) {
+          errors.push(`Presupuesto ${idx}: formato de mes inválido (debe ser YYYY-MM)`)
+        }
+      })
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors
+    }
+  }
+
+  /**
+   * Verifica la conexión con Supabase
+   * @returns {Promise<{connected: boolean, error?: string}>}
+   */
+  async _verifySupabaseConnection() {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('count')
+        .limit(1)
+
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 = tabla vacía, es OK
+        return {
+          connected: false,
+          error: `Error de conexión: ${error.message}`
+        }
+      }
+
+      return { connected: true }
+    } catch (error) {
+      return {
+        connected: false,
+        error: `Error al verificar conexión: ${error.message}`
+      }
+    }
+  }
+
+  /**
+   * Crea un snapshot de seguridad automático antes de restaurar
+   * @returns {Promise<{success: boolean, backupId?: string, error?: string}>}
+   */
+  async _createSafetyBackup() {
+    try {
+      const backupId = `safety_backup_${Date.now()}`
+      const allData = await this.exportAll()
+      const dataString = JSON.stringify(allData)
+      
+      // Guardar en localStorage con prefijo especial
+      localStorage.setItem(`gestor_gastos_safety_backup_${backupId}`, dataString)
+      
+      // También guardar metadatos
+      const backupInfo = {
+        id: backupId,
+        createdAt: new Date().toISOString(),
+        sizeBytes: new Blob([dataString]).size,
+        totalRecords: 
+          (allData.expenses?.length || 0) +
+          (allData.categories?.length || 0) +
+          (allData.supermarketPurchases?.length || 0) +
+          (allData.cuts?.length || 0) +
+          (allData.budgets?.length || 0)
+      }
+      
+      localStorage.setItem('gestor_gastos_last_safety_backup', JSON.stringify(backupInfo))
+      
+      return { success: true, backupId }
+    } catch (error) {
+      return {
+        success: false,
+        error: `Error al crear backup de seguridad: ${error.message}`
+      }
+    }
+  }
+
+  /**
+   * Restaura desde un backup de seguridad
+   * @param {string} backupId - ID del backup de seguridad
+   * @returns {Promise<boolean>}
+   */
+  async _restoreFromSafetyBackup(backupId) {
+    try {
+      const backupData = localStorage.getItem(`gestor_gastos_safety_backup_${backupId}`)
+      if (!backupData) {
+        console.error('Backup de seguridad no encontrado:', backupId)
+        return false
+      }
+
+      const data = JSON.parse(backupData)
+      await this.clearAllData()
+      return await this.importAll(data)
+    } catch (error) {
+      console.error('Error restaurando desde backup de seguridad:', error)
+      return false
+    }
+  }
+
+  /**
+   * Valida que la restauración fue exitosa comparando conteos
+   * @param {Object} snapshotData - Datos del snapshot restaurado
+   * @returns {Promise<{valid: boolean, errors: string[]}>}
+   */
+  async _validateRestoration(snapshotData) {
+    const errors = []
+    
+    try {
+      // Obtener datos actuales de Supabase
+      const [currentExpenses, currentCategories, currentPurchases, currentCuts, currentBudgets] = await Promise.all([
+        this.getExpenses({}),
+        this.getCategories(),
+        this.getSupermarketPurchases({}),
+        this.getCuts({}),
+        this.getBudgets(null)
+      ])
+
+      // Comparar conteos (con tolerancia del 5% por posibles errores menores)
+      const snapshotCounts = {
+        expenses: snapshotData.expenses?.length || 0,
+        categories: snapshotData.categories?.length || 0,
+        purchases: snapshotData.supermarketPurchases?.length || 0,
+        cuts: snapshotData.cuts?.length || 0,
+        budgets: snapshotData.budgets?.length || 0
+      }
+
+      const currentCounts = {
+        expenses: currentExpenses.length,
+        categories: currentCategories.length,
+        purchases: currentPurchases.length,
+        cuts: currentCuts.length,
+        budgets: currentBudgets.length
+      }
+
+      // Validar que los conteos sean razonables (al menos 80% de coincidencia)
+      const tolerance = 0.2 // 20% de tolerancia
+      const types = ['expenses', 'categories', 'purchases', 'cuts', 'budgets']
+      const typeNames = {
+        expenses: 'gastos',
+        categories: 'categorías',
+        purchases: 'compras',
+        cuts: 'cortes',
+        budgets: 'presupuestos'
+      }
+
+      for (const type of types) {
+        const expected = snapshotCounts[type]
+        const actual = currentCounts[type]
+        
+        if (expected > 0) {
+          const diff = Math.abs(actual - expected) / expected
+          if (diff > tolerance) {
+            errors.push(
+              `${typeNames[type]}: se esperaban ${expected} pero se encontraron ${actual} (diferencia: ${(diff * 100).toFixed(1)}%)`
+            )
+          }
+        }
+      }
+
+      return {
+        valid: errors.length === 0,
+        errors,
+        counts: { snapshot: snapshotCounts, current: currentCounts }
+      }
+    } catch (error) {
+      errors.push(`Error al validar restauración: ${error.message}`)
+      return { valid: false, errors }
+    }
+  }
+
+  /**
+   * Restaura un snapshot con validaciones estrictas y sistema de seguridad
+   * @param {string} id - ID del snapshot a restaurar
+   * @returns {Promise<{success: boolean, errors?: string[], backupId?: string}>}
+   */
   async restoreSnapshot(id) {
-    return true
+    const validationErrors = []
+    let safetyBackupId = null
+
+    try {
+      // PASO 1: Verificar que el snapshot existe
+      const snapshotData = localStorage.getItem(`gestor_gastos_snapshot_${id}`)
+      if (!snapshotData) {
+        return {
+          success: false,
+          errors: ['El snapshot no existe en el almacenamiento local']
+        }
+      }
+
+      // PASO 2: Parsear y validar estructura JSON
+      let data
+      try {
+        data = JSON.parse(snapshotData)
+      } catch (parseError) {
+        return {
+          success: false,
+          errors: [`El snapshot está corrupto (JSON inválido): ${parseError.message}`]
+        }
+      }
+
+      // PASO 3: Validar estructura y contenido del snapshot
+      const validation = this._validateSnapshot(data)
+      if (!validation.valid) {
+        return {
+          success: false,
+          errors: ['Errores de validación en el snapshot:', ...validation.errors]
+        }
+      }
+
+      // PASO 3.5: Validar integridad referencial (categorías)
+      if (Array.isArray(data.expenses) && Array.isArray(data.categories)) {
+        const categoryNames = new Set(data.categories.map(c => (c.name || c.nombre).toLowerCase().trim()))
+        const categoryIds = new Set(data.categories.map(c => c.id).filter(Boolean))
+        
+        const missingCategories = []
+        data.expenses.forEach((exp, idx) => {
+          if (exp.categoria_id && !categoryIds.has(exp.categoria_id)) {
+            missingCategories.push(`Gasto ${idx}: categoría con ID ${exp.categoria_id} no existe en el snapshot`)
+          }
+          if (exp.categoria_nombre && !categoryNames.has((exp.categoria_nombre || '').toLowerCase().trim())) {
+            missingCategories.push(`Gasto ${idx}: categoría "${exp.categoria_nombre}" no existe en el snapshot`)
+          }
+        })
+        
+        if (missingCategories.length > 0) {
+          return {
+            success: false,
+            errors: ['Errores de integridad referencial:', ...missingCategories.slice(0, 10)]
+          }
+        }
+      }
+
+      // PASO 4: Verificar conexión con Supabase
+      const connectionCheck = await this._verifySupabaseConnection()
+      if (!connectionCheck.connected) {
+        return {
+          success: false,
+          errors: [`No se puede conectar a Supabase: ${connectionCheck.error}`]
+        }
+      }
+
+      // PASO 5: Crear backup de seguridad automático
+      const backupResult = await this._createSafetyBackup()
+      if (!backupResult.success) {
+        return {
+          success: false,
+          errors: [`No se pudo crear backup de seguridad: ${backupResult.error}`]
+        }
+      }
+      safetyBackupId = backupResult.backupId
+
+      // PASO 6: Limpiar datos existentes
+      try {
+        await this.clearAllData()
+      } catch (clearError) {
+        // Si falla la limpieza, restaurar desde backup de seguridad
+        await this._restoreFromSafetyBackup(safetyBackupId)
+        return {
+          success: false,
+          errors: [`Error al limpiar datos: ${clearError.message}. Se restauró el backup de seguridad.`]
+        }
+      }
+
+      // PASO 7: Importar datos del snapshot
+      const importSuccess = await this.importAll(data)
+      if (!importSuccess) {
+        // Si falla la importación, restaurar desde backup de seguridad
+        await this._restoreFromSafetyBackup(safetyBackupId)
+        return {
+          success: false,
+          errors: ['Error al importar datos del snapshot. Se restauró el backup de seguridad.']
+        }
+      }
+
+      // PASO 8: Validar que la restauración fue exitosa
+      const restorationValidation = await this._validateRestoration(data)
+      if (!restorationValidation.valid) {
+        // Si la validación falla, restaurar desde backup de seguridad
+        await this._restoreFromSafetyBackup(safetyBackupId)
+        return {
+          success: false,
+          errors: [
+            'La restauración no pasó la validación:',
+            ...restorationValidation.errors
+          ]
+        }
+      }
+
+      // PASO 9: Éxito - limpiar backup de seguridad (opcional, puedes mantenerlo)
+      // localStorage.removeItem(`gestor_gastos_safety_backup_${safetyBackupId}`)
+
+      return {
+        success: true,
+        backupId: safetyBackupId,
+        counts: restorationValidation.counts
+      }
+    } catch (error) {
+      // Si ocurre cualquier error inesperado, restaurar desde backup
+      if (safetyBackupId) {
+        try {
+          await this._restoreFromSafetyBackup(safetyBackupId)
+        } catch (restoreError) {
+          console.error('Error crítico: no se pudo restaurar desde backup de seguridad', restoreError)
+        }
+      }
+
+      return {
+        success: false,
+        errors: [`Error inesperado durante la restauración: ${error.message}`]
+      }
+    }
   }
 
   async clearAllData() {

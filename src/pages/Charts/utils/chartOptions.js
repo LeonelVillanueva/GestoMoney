@@ -74,7 +74,7 @@ export const createLineOptions = () => {
     ...baseOptions,
     scales: {
       y: {
-        beginAtZero: true,
+        beginAtZero: false, // No forzar comenzar en cero para mejor visualización
         grid: {
           color: 'rgba(0,0,0,0.1)'
         },
@@ -90,6 +90,12 @@ export const createLineOptions = () => {
       x: {
         grid: {
           display: false
+        },
+        ticks: {
+          maxRotation: 45,
+          minRotation: 45,
+          autoSkip: false, // Mostrar todos los labels
+          maxTicksLimit: undefined // Sin límite de ticks
         }
       }
     },
@@ -105,6 +111,10 @@ export const createLineOptions = () => {
         borderJoinStyle: 'round',
         borderCapStyle: 'round'
       }
+    },
+    interaction: {
+      intersect: false,
+      mode: 'index'
     }
   }
 }

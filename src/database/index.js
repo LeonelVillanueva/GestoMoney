@@ -154,7 +154,7 @@ const database = {
   // Auto-backup snapshots API
   async listSnapshots() {
     const db = await initDatabase();
-    return await db.getSnapshots();
+    return await db.listSnapshots();
   },
   async createSnapshot() {
     const db = await initDatabase();

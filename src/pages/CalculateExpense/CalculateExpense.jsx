@@ -1,5 +1,6 @@
 import React from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js'
+import zoomPlugin from 'chartjs-plugin-zoom'
 import { useDateRange } from './hooks/useDateRange'
 import { useExpenseCalculation } from './hooks/useExpenseCalculation'
 import DateRangeSelector from './components/DateRangeSelector'
@@ -20,7 +21,8 @@ ChartJS.register(
   Legend,
   ArcElement,
   PointElement,
-  LineElement
+  LineElement,
+  zoomPlugin
 )
 
 const CalculateExpense = ({ expenses, onDataChanged }) => {
@@ -53,15 +55,22 @@ const CalculateExpense = ({ expenses, onDataChanged }) => {
     }
   }
 
+  const [showExpenseList, setShowExpenseList] = React.useState(false)
+  const [showIncomeList, setShowIncomeList] = React.useState(false)
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="glass-card rounded-2xl p-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">🧮 Calcula tu Gasto</h2>
-        <p className="text-gray-600">Analiza tus gastos en un rango de fechas específico</p>
+    <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
+      {/* Header Compacto */}
+      <div className="glass-card rounded-xl p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">🧮 Calcula tu Gasto</h2>
+            <p className="text-sm text-gray-500 mt-1">Analiza tus gastos en un rango de fechas específico</p>
+          </div>
+        </div>
       </div>
 
-      {/* Selector de Fechas */}
+      {/* Selector de Fechas Compacto */}
       <DateRangeSelector
         startDate={startDate}
         endDate={endDate}
@@ -73,27 +82,33 @@ const CalculateExpense = ({ expenses, onDataChanged }) => {
       {/* Resultados */}
       {isCalculated && (
         <>
-          {/* Resumen de Resultados - Gastos e Ingresos lado a lado */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Resumen Compacto - Gastos e Ingresos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ExpenseStats calculations={calculations} />
             <IncomeStats 
               incomeCalculations={incomeCalculations} 
               filteredIncomes={filteredIncomes}
+              showIncomeList={showIncomeList}
+              onToggleIncomeList={() => setShowIncomeList(!showIncomeList)}
             />
           </div>
 
-          {/* Gráficos */}
+          {/* Gráficos Compactos */}
           <ExpenseCharts
             calculations={calculations}
             chartOptions={chartOptions}
             pieChartOptions={pieChartOptions}
           />
 
-          {/* Tabla Detallada por Categoría */}
+          {/* Tabla Detallada por Categoría Compacta */}
           <CategoryBreakdown categoryBreakdown={calculations.categoryBreakdown} />
 
-          {/* Lista de Gastos Filtrados */}
-          <ExpenseList filteredExpenses={filteredExpenses} />
+          {/* Lista de Gastos Filtrados Colapsable */}
+          <ExpenseList 
+            filteredExpenses={filteredExpenses}
+            showExpenseList={showExpenseList}
+            onToggleExpenseList={() => setShowExpenseList(!showExpenseList)}
+          />
         </>
       )}
     </div>

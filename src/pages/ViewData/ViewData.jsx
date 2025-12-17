@@ -122,9 +122,9 @@ const ViewData = ({ onDataChanged }) => {
         />
         
         {filteredData.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {paginatedData.map((expense) => (
-              <div key={expense.id} className="glass-card rounded-xl p-4 hover:shadow-lg transition-all">
+              <div key={expense.id} className="glass-card rounded-lg p-3 hover:shadow-md transition-all">
                 {editingItem && editingItem.id === expense.id && editingItem.type === 'gastos' ? (
                   <EditForm
                     editingItem={editingItem}
@@ -136,44 +136,44 @@ const ViewData = ({ onDataChanged }) => {
                   />
                 ) : (
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className={`p-3 rounded-lg ${expense.es_entrada ? 'bg-green-100' : 'bg-white'}`}>
-                        <span className="text-2xl">{getCategoryIcon(expense)}</span>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className={`p-2 rounded-lg flex-shrink-0 ${expense.es_entrada ? 'bg-green-100' : 'bg-gray-50'}`}>
+                        <span className="text-lg">{getCategoryIcon(expense)}</span>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-gray-800">{expense.descripcion}</h4>
-                        <div className="flex items-center space-x-2">
-                          <p className="text-sm text-gray-600">{expense.categoria_nombre}</p>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-gray-800 truncate">{expense.descripcion}</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-gray-600">{expense.categoria_nombre}</p>
                           {expense.es_entrada && (
-                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded font-medium">
                               💰 Ingreso
                             </span>
                           )}
                           {expense.moneda_original === 'USD' && (
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded font-medium">
                               💵 USD
                             </span>
                           )}
+                          <span className="text-xs text-gray-500">•</span>
+                          <p className="text-xs text-gray-500">{formatDate(expense.fecha)}</p>
                         </div>
-                        <p className="text-xs text-gray-500">{formatDate(expense.fecha)}</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <div className="text-right">
-                        <p className="text-xl font-bold text-blue-600">{formatCurrency(expense.monto)}</p>
-                        <p className="text-xs text-gray-500">LPS</p>
+                        <p className="text-base font-bold text-blue-600">{formatCurrency(expense.monto)}</p>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex gap-1">
                         <button
                           onClick={() => startEdit(expense, 'gastos')}
-                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                          className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
                           title="Editar"
                         >
                           ✏️
                         </button>
                         <button
                           onClick={() => deleteItem(expense.id, 'gastos')}
-                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                          className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
                           title="Eliminar"
                         >
                           🗑️
@@ -186,24 +186,24 @@ const ViewData = ({ onDataChanged }) => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-8">
             {hasActiveFilters ? (
               <>
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-gray-600 mb-2">No se encontraron resultados</h3>
-                <p className="text-gray-500 mb-4">No hay gastos que coincidan con los filtros aplicados</p>
+                <div className="text-4xl mb-3">🔍</div>
+                <h3 className="text-sm font-bold text-gray-600 mb-1">No se encontraron resultados</h3>
+                <p className="text-xs text-gray-500 mb-3">No hay gastos que coincidan con los filtros aplicados</p>
                 <button
                   onClick={clearFilters}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   Limpiar filtros
                 </button>
               </>
             ) : (
               <>
-                <div className="text-6xl mb-4">💰</div>
-                <h3 className="text-xl font-bold text-gray-600 mb-2">No hay gastos registrados</h3>
-                <p className="text-gray-500">Comienza agregando tu primer gasto</p>
+                <div className="text-4xl mb-3">💰</div>
+                <h3 className="text-sm font-bold text-gray-600 mb-1">No hay gastos registrados</h3>
+                <p className="text-xs text-gray-500">Comienza agregando tu primer gasto</p>
               </>
             )}
           </div>
@@ -226,9 +226,9 @@ const ViewData = ({ onDataChanged }) => {
         />
         
         {filteredData.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {paginatedData.map((purchase) => (
-              <div key={purchase.id} className="glass-card rounded-xl p-4 hover:shadow-lg transition-all">
+              <div key={purchase.id} className="glass-card rounded-lg p-3 hover:shadow-md transition-all">
                 {editingItem && editingItem.id === purchase.id && editingItem.type === 'supermercado' ? (
                   <EditForm
                     editingItem={editingItem}
@@ -239,32 +239,34 @@ const ViewData = ({ onDataChanged }) => {
                   />
                 ) : (
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-3 bg-white rounded-lg">
-                        <span className="text-2xl">{getSupermarketIcon(purchase.supermercado)}</span>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
+                        <span className="text-lg">{getSupermarketIcon(purchase.supermercado)}</span>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-gray-800">{purchase.descripcion}</h4>
-                        <p className="text-sm text-gray-600">{purchase.supermercado}</p>
-                        <p className="text-xs text-gray-500">{formatDate(purchase.fecha)}</p>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-gray-800 truncate">{purchase.descripcion}</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-gray-600">{purchase.supermercado}</p>
+                          <span className="text-xs text-gray-500">•</span>
+                          <p className="text-xs text-gray-500">{formatDate(purchase.fecha)}</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <div className="text-right">
-                        <p className="text-xl font-bold text-green-600">{formatCurrency(purchase.monto)}</p>
-                        <p className="text-xs text-gray-500">LPS</p>
+                        <p className="text-base font-bold text-green-600">{formatCurrency(purchase.monto)}</p>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex gap-1">
                         <button
                           onClick={() => startEdit(purchase, 'supermercado')}
-                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                          className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
                           title="Editar"
                         >
                           ✏️
                         </button>
                         <button
                           onClick={() => deleteItem(purchase.id, 'supermercado')}
-                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                          className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
                           title="Eliminar"
                         >
                           🗑️
@@ -277,24 +279,24 @@ const ViewData = ({ onDataChanged }) => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-8">
             {hasActiveFilters ? (
               <>
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-gray-600 mb-2">No se encontraron resultados</h3>
-                <p className="text-gray-500 mb-4">No hay compras que coincidan con los filtros aplicados</p>
+                <div className="text-4xl mb-3">🔍</div>
+                <h3 className="text-sm font-bold text-gray-600 mb-1">No se encontraron resultados</h3>
+                <p className="text-xs text-gray-500 mb-3">No hay compras que coincidan con los filtros aplicados</p>
                 <button
                   onClick={clearFilters}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   Limpiar filtros
                 </button>
               </>
             ) : (
               <>
-                <div className="text-6xl mb-4">🛒</div>
-                <h3 className="text-xl font-bold text-gray-600 mb-2">No hay compras registradas</h3>
-                <p className="text-gray-500">Comienza registrando tu primera compra de supermercado</p>
+                <div className="text-4xl mb-3">🛒</div>
+                <h3 className="text-sm font-bold text-gray-600 mb-1">No hay compras registradas</h3>
+                <p className="text-xs text-gray-500">Comienza registrando tu primera compra de supermercado</p>
               </>
             )}
           </div>
@@ -317,9 +319,9 @@ const ViewData = ({ onDataChanged }) => {
         />
         
         {filteredData.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {paginatedData.map((cut) => (
-              <div key={cut.id} className="glass-card rounded-xl p-4 hover:shadow-lg transition-all">
+              <div key={cut.id} className="glass-card rounded-lg p-3 hover:shadow-md transition-all">
                 {editingItem && editingItem.id === cut.id && editingItem.type === 'cortes' ? (
                   <EditForm
                     editingItem={editingItem}
@@ -331,36 +333,34 @@ const ViewData = ({ onDataChanged }) => {
                   />
                 ) : (
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="p-3 bg-white rounded-lg">
-                        <span className="text-2xl">{getCutIcon(cut.tipo_corte)}</span>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
+                        <span className="text-lg">{getCutIcon(cut.tipo_corte)}</span>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-gray-800">{cut.tipo_corte}</h4>
-                        <p className="text-sm text-gray-600">Corte registrado</p>
-                        <p className="text-xs text-gray-500">{formatDate(cut.fecha)}</p>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-gray-800 truncate">{cut.tipo_corte}</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-gray-600">Corte registrado</p>
+                          <span className="text-xs text-gray-500">•</span>
+                          <p className="text-xs text-gray-500">{formatDate(cut.fecha)}</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="p-3 bg-purple-100 rounded-lg">
-                        <span className="text-sm font-medium text-purple-600">Registrado</span>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => startEdit(cut, 'cortes')}
-                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                          title="Editar"
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => deleteItem(cut.id, 'cortes')}
-                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                          title="Eliminar"
-                        >
-                          🗑️
-                        </button>
-                      </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => startEdit(cut, 'cortes')}
+                        className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                        title="Editar"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => deleteItem(cut.id, 'cortes')}
+                        className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
+                        title="Eliminar"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </div>
                 )}
@@ -368,24 +368,24 @@ const ViewData = ({ onDataChanged }) => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-8">
             {hasActiveFilters ? (
               <>
-                <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-gray-600 mb-2">No se encontraron resultados</h3>
-                <p className="text-gray-500 mb-4">No hay cortes que coincidan con los filtros aplicados</p>
+                <div className="text-4xl mb-3">🔍</div>
+                <h3 className="text-sm font-bold text-gray-600 mb-1">No se encontraron resultados</h3>
+                <p className="text-xs text-gray-500 mb-3">No hay cortes que coincidan con los filtros aplicados</p>
                 <button
                   onClick={clearFilters}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   Limpiar filtros
                 </button>
               </>
             ) : (
               <>
-                <div className="text-6xl mb-4">💇</div>
-                <h3 className="text-xl font-bold text-gray-600 mb-2">No hay cortes registrados</h3>
-                <p className="text-gray-500">Comienza registrando tu primer corte</p>
+                <div className="text-4xl mb-3">💇</div>
+                <h3 className="text-sm font-bold text-gray-600 mb-1">No hay cortes registrados</h3>
+                <p className="text-xs text-gray-500">Comienza registrando tu primer corte</p>
               </>
             )}
           </div>
@@ -407,35 +407,78 @@ const ViewData = ({ onDataChanged }) => {
     }
   }
 
+  // Calcular totales
+  const totalGastos = expenses.reduce((sum, exp) => sum + exp.monto, 0)
+  const totalSupermercado = supermarketPurchases.reduce((sum, p) => sum + p.monto, 0)
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="glass-card rounded-2xl p-6">
+    <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
+      {/* Header Compacto */}
+      <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">📋 Ver Datos</h2>
-            <p className="text-gray-600">Visualiza todos tus datos registrados organizados por categorías</p>
-          </div>
-          
-          {/* Botones de acción */}
-          <div className="flex items-center space-x-3">
-            {/* Botón de descarga CSV */}
+          <h2 className="text-2xl font-bold text-slate-800">📋 Ver Datos</h2>
+          <div className="flex items-center gap-2">
+            {refreshing && (
+              <div className="flex items-center gap-2 text-blue-600 text-xs">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span>Actualizando...</span>
+              </div>
+            )}
             <button
               onClick={downloadCSV}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
               title="Descargar datos en CSV"
             >
               <span>📊</span>
-              <span>Descargar CSV</span>
+              <span>CSV</span>
             </button>
-            
-            {/* Indicador de refresh */}
-            {refreshing && (
-              <div className="flex items-center space-x-2 text-blue-600 animate-pulse">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                <span className="text-sm font-medium">Actualizando...</span>
-              </div>
-            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Estadísticas Rápidas Compactas */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Total Gastos</p>
+              <p className="text-lg font-bold text-blue-700">{formatCurrency(totalGastos)}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{expenses.length} registros</p>
+            </div>
+            <span className="text-2xl">💰</span>
+          </div>
+        </div>
+
+        <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Total Supermercado</p>
+              <p className="text-lg font-bold text-green-700">{formatCurrency(totalSupermercado)}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{supermarketPurchases.length} compras</p>
+            </div>
+            <span className="text-2xl">🛒</span>
+          </div>
+        </div>
+
+        <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Total Cortes</p>
+              <p className="text-lg font-bold text-purple-700">{cuts.length}</p>
+              <p className="text-xs text-gray-500 mt-0.5">cortes</p>
+            </div>
+            <span className="text-2xl">💇</span>
+          </div>
+        </div>
+
+        <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-600 mb-1">Filtrados</p>
+              <p className="text-lg font-bold text-orange-700">{filteredData.length}</p>
+              <p className="text-xs text-gray-500 mt-0.5">de {getCurrentTabData().length}</p>
+            </div>
+            <span className="text-2xl">🔍</span>
           </div>
         </div>
       </div>
@@ -454,22 +497,22 @@ const ViewData = ({ onDataChanged }) => {
         onClearFilters={clearFilters}
       />
 
-      {/* Tabs */}
-      <div className={`glass-card rounded-2xl p-6 transition-all ${refreshing ? 'opacity-75' : 'opacity-100'}`}>
-        <div className="flex space-x-1 mb-6">
+      {/* Tabs Compactos */}
+      <div className={`glass-card rounded-xl p-4 transition-all ${refreshing ? 'opacity-75' : 'opacity-100'}`}>
+        <div className="flex gap-2 mb-4">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-lg'
+                  ? 'bg-blue-600 text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               } ${refreshing ? 'animate-pulse' : ''}`}
             >
-              <span className="text-lg">{tab.icon}</span>
+              <span className="text-base">{tab.icon}</span>
               <span>{tab.label}</span>
-              <span className={`px-2 py-1 rounded-full text-xs ${
+              <span className={`px-1.5 py-0.5 rounded-full text-xs ${
                 activeTab === tab.id ? 'bg-blue-500' : 'bg-gray-300'
               }`}>
                 {tab.count}
@@ -482,40 +525,12 @@ const ViewData = ({ onDataChanged }) => {
         <div className={`min-h-[400px] transition-all ${refreshing ? 'opacity-50' : 'opacity-100'}`}>
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Cargando datos...</span>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-sm text-gray-600">Cargando datos...</span>
             </div>
           ) : (
             renderTabContent()
           )}
-        </div>
-      </div>
-
-      {/* Estadísticas Generales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-card rounded-2xl p-6 text-center">
-          <div className="text-4xl mb-4">💰</div>
-          <h3 className="text-lg font-bold text-gray-800 mb-2">Total Gastos</h3>
-          <p className="text-2xl font-bold text-blue-600">
-            {formatCurrency(expenses.reduce((sum, exp) => sum + exp.monto, 0))}
-          </p>
-          <p className="text-sm text-gray-500">{expenses.length} registros</p>
-        </div>
-
-        <div className="glass-card rounded-2xl p-6 text-center">
-          <div className="text-4xl mb-4">🛒</div>
-          <h3 className="text-lg font-bold text-gray-800 mb-2">Total Supermercado</h3>
-          <p className="text-2xl font-bold text-green-600">
-            {formatCurrency(supermarketPurchases.reduce((sum, p) => sum + p.monto, 0))}
-          </p>
-          <p className="text-sm text-gray-500">{supermarketPurchases.length} compras</p>
-        </div>
-
-        <div className="glass-card rounded-2xl p-6 text-center">
-          <div className="text-4xl mb-4">💇</div>
-          <h3 className="text-lg font-bold text-gray-800 mb-2">Total Cortes</h3>
-          <p className="text-2xl font-bold text-purple-600">{cuts.length}</p>
-          <p className="text-sm text-gray-500">cortes registrados</p>
         </div>
       </div>
     </div>

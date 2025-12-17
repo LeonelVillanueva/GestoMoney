@@ -160,9 +160,11 @@ const DateInput = ({ value, onChange, label, required = false, className = "" })
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
+      {label && (
+        <label className="block text-xs font-medium text-gray-600">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+      )}
       
       <div className="grid grid-cols-3 gap-3">
         {/* Día */}

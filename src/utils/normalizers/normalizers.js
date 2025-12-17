@@ -210,7 +210,7 @@ export const normalizeCut = (cut) => {
   return {
     id: cut.id,
     fecha: cut.fecha || '',
-    tipo_corte: cut.tipo_corte || '',
+    tipo_corte: (cut.tipo_corte || '').trim(), // Normalizar con trim para evitar problemas de espacios
     descripcion: cut.descripcion || '',
     created_at: cut.created_at
   }
