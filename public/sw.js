@@ -1,5 +1,6 @@
 // Service Worker para Gestor de Gastos PWA
-const CACHE_NAME = 'gestor-gastos-v1'
+// IMPORTANTE: Cambiar el número de versión cuando quieras forzar actualización del cache
+const CACHE_NAME = 'gestor-gastos-v2'
 const urlsToCache = [
   '/',
   '/index.html',
