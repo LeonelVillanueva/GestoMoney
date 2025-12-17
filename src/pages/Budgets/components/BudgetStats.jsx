@@ -36,7 +36,7 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
               <span className="text-2xl">💰</span>
               <p className="text-sm font-medium text-gray-600">Presupuesto Total</p>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mb-1">{formatCurrency(totalBudget)}</p>
+            <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-1 break-words leading-tight">{formatCurrency(totalBudget)}</p>
             <p className="text-xs text-gray-500">{formatDate(currentMonth)}</p>
           </div>
           <div className="text-center md:text-left border-y md:border-y-0 md:border-x border-gray-200 py-4 md:py-0 px-6">
@@ -44,7 +44,7 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
               <span className="text-2xl">💸</span>
               <p className="text-sm font-medium text-gray-600">Gastado</p>
             </div>
-            <p className="text-2xl font-bold text-gray-800 mb-1">{formatCurrency(totalSpent)}</p>
+            <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-1 break-words leading-tight">{formatCurrency(totalSpent)}</p>
             <div className="flex items-center justify-center md:justify-start gap-2">
               <span className="text-xs font-semibold text-gray-600">{percentage}%</span>
               <span className="text-xs text-gray-400">del presupuesto</span>
@@ -55,7 +55,7 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
               <span className="text-2xl">💵</span>
               <p className="text-sm font-medium text-gray-600">Restante</p>
             </div>
-            <p className={`text-2xl font-bold mb-1 ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-lg sm:text-xl md:text-2xl font-bold mb-1 break-words leading-tight ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(remaining)}
             </p>
             <p className={`text-xs font-medium ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>

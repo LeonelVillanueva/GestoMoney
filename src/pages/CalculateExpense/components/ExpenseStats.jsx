@@ -14,7 +14,7 @@ const ExpenseStats = ({ calculations }) => {
             <span className="text-lg">💰</span>
             <span className="text-xs font-medium text-gray-600">Total</span>
           </div>
-          <p className="text-xl font-bold text-gray-800">
+          <p className="text-base sm:text-lg md:text-xl font-bold text-gray-800 break-words leading-tight">
             {formatCurrency(calculations.totalAmount)}
           </p>
           <p className="text-xs text-gray-500 mt-1">
@@ -27,7 +27,7 @@ const ExpenseStats = ({ calculations }) => {
             <span className="text-lg">📊</span>
             <span className="text-xs font-medium text-gray-600">Promedio</span>
           </div>
-          <p className="text-xl font-bold text-gray-800">
+          <p className="text-base sm:text-lg md:text-xl font-bold text-gray-800 break-words leading-tight">
             {formatCurrency(calculations.averageAmount)}
           </p>
           <p className="text-xs text-gray-500 mt-1">Por transacción</p>
@@ -45,7 +45,7 @@ const ExpenseStats = ({ calculations }) => {
               </>
             ) : 'N/A'}
           </p>
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="text-xs text-gray-600 mt-1 break-words">
             {calculations.topCategory ? formatCurrency(calculations.topCategory.total) : ''}
           </p>
         </div>
@@ -62,7 +62,7 @@ const ExpenseStats = ({ calculations }) => {
               </>
             ) : 'N/A'}
           </p>
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="text-xs text-gray-600 mt-1 break-words">
             {calculations.lowestCategory ? formatCurrency(calculations.lowestCategory.total) : ''}
           </p>
         </div>

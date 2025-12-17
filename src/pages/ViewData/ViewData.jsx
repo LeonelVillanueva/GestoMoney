@@ -439,43 +439,43 @@ const ViewData = ({ onDataChanged }) => {
       {/* Estadísticas Rápidas Compactas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-600 mb-1">Total Gastos</p>
-              <p className="text-lg font-bold text-blue-700">{formatCurrency(totalGastos)}</p>
+              <p className="text-base sm:text-lg font-bold text-blue-700 break-words leading-tight">{formatCurrency(totalGastos)}</p>
               <p className="text-xs text-gray-500 mt-0.5">{expenses.length} registros</p>
             </div>
-            <span className="text-2xl">💰</span>
+            <span className="text-2xl flex-shrink-0">💰</span>
           </div>
         </div>
 
         <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-600 mb-1">Total Supermercado</p>
-              <p className="text-lg font-bold text-green-700">{formatCurrency(totalSupermercado)}</p>
+              <p className="text-base sm:text-lg font-bold text-green-700 break-words leading-tight">{formatCurrency(totalSupermercado)}</p>
               <p className="text-xs text-gray-500 mt-0.5">{supermarketPurchases.length} compras</p>
             </div>
-            <span className="text-2xl">🛒</span>
+            <span className="text-2xl flex-shrink-0">🛒</span>
           </div>
         </div>
 
         <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-600 mb-1">Total Cortes</p>
-              <p className="text-lg font-bold text-purple-700">{cuts.length}</p>
+              <p className="text-base sm:text-lg font-bold text-purple-700 break-words leading-tight">{cuts.length}</p>
               <p className="text-xs text-gray-500 mt-0.5">cortes</p>
             </div>
-            <span className="text-2xl">💇</span>
+            <span className="text-2xl flex-shrink-0">💇</span>
           </div>
         </div>
 
         <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-gray-600 mb-1">Filtrados</p>
-              <p className="text-lg font-bold text-orange-700">{filteredData.length}</p>
+              <p className="text-base sm:text-lg font-bold text-orange-700 break-words leading-tight">{filteredData.length}</p>
               <p className="text-xs text-gray-500 mt-0.5">de {getCurrentTabData().length}</p>
             </div>
             <span className="text-2xl">🔍</span>
