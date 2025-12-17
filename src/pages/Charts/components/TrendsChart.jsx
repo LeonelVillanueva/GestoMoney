@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Line } from 'react-chartjs-2'
 
 /**
@@ -8,6 +9,7 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
   const lineChartRef = useRef(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [isRotated, setIsRotated] = useState(false)
 
   if (!chartData.line) {
     return (
@@ -38,15 +40,17 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Prevenir scroll del body cuando está en fullscreen
+  // Prevenir scroll del body cuando está en fullscreen y resetear rotación al cerrar
   useEffect(() => {
     if (isFullscreen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
+      setIsRotated(false) // Resetear rotación al cerrar
     }
     return () => {
       document.body.style.overflow = ''
+      setIsRotated(false)
     }
   }, [isFullscreen])
 
@@ -133,77 +137,150 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
     />
   )
 
-  // Si está en fullscreen, mostrar modal
+  // Si está en fullscreen, mostrar modal usando Portal (fuera del DOM normal)
   if (isFullscreen) {
-    return (
-      <>
-        {/* Overlay */}
+    const modalContent = (
+      <div 
+        className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4"
+        onClick={() => setIsFullscreen(false)}
+        style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999
+        }}
+      >
+        {/* Contenedor del gráfico con scroll horizontal */}
         <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => setIsFullscreen(false)}
+          className="bg-white rounded-xl p-4 md:p-6 w-full h-full flex flex-col shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+          style={{ 
+            maxHeight: '100vh', 
+            maxWidth: '100vw',
+            overflowY: 'auto', 
+            overflowX: 'auto'
+          }}
         >
-          {/* Contenedor del gráfico con scroll horizontal */}
-          <div 
-            className="bg-white rounded-xl p-6 w-full max-w-full h-full max-h-full overflow-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header del modal */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-800">📈 {title}</h3>
+          {/* Header del modal - fijo arriba */}
+          <div className="flex items-center justify-between mb-4 flex-shrink-0">
+            <h3 className="text-lg font-bold text-slate-800">📈 {title}</h3>
+            <div className="flex items-center gap-2">
+              {isMobile && (
+                <button
+                  onClick={() => setIsRotated(!isRotated)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-gray-800"
+                  aria-label={isRotated ? "Rotar horizontal" : "Rotar vertical"}
+                  title={isRotated ? "Volver a horizontal" : "Girar a vertical"}
+                >
+                  <span className="text-xl">{isRotated ? "🔄" : "📱"}</span>
+                </button>
+              )}
               <button
-                onClick={() => setIsFullscreen(false)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={() => {
+                  setIsFullscreen(false)
+                  setIsRotated(false) // Resetear rotación al cerrar
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 hover:text-gray-800"
                 aria-label="Cerrar"
               >
                 <span className="text-2xl">✕</span>
               </button>
             </div>
-            
-            {/* Instrucciones para móvil */}
-            {isMobile && (
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-                👆 Desplázate horizontalmente para ver todo el gráfico
-              </div>
-            )}
-
-            {/* Gráfico en contenedor scrolleable */}
-            <div 
-              className="w-full overflow-x-auto overflow-y-hidden" 
-              style={{ 
-                minWidth: isMobile ? '1200px' : '100%', 
-                height: '70vh',
-                WebkitOverflowScrolling: 'touch' // Scroll suave en iOS
-              }}
-            >
-              <ChartContent />
-            </div>
-
-            {/* Botones de acción */}
-            <div className="mt-4 flex justify-between items-center">
-              <div className="text-xs text-gray-600">
-                {period === 'all' && (
-                  <>
-                    🔍 Zoom: Rueda del ratón • 🖱️ Desplazar: Click y arrastrar
-                  </>
-                )}
-              </div>
-              {period !== 'all' && (
-                <button
-                  onClick={() => {
-                    if (lineChartRef.current) {
-                      lineChartRef.current.resetZoom()
-                    }
-                  }}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium px-3 py-1 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                >
-                  🔄 Restablecer Zoom
-                </button>
+          </div>
+          
+          {/* Instrucciones para móvil */}
+          {isMobile && (
+            <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700 flex-shrink-0">
+              {isRotated ? (
+                <>📱 Gráfico en vertical - Desplázate verticalmente para ver todo</>
+              ) : (
+                <>👆 Desplázate horizontalmente para ver todo el gráfico</>
               )}
             </div>
+          )}
+
+          {/* Gráfico en contenedor scrolleable - área principal */}
+          <div 
+            className="flex-1 w-full bg-gray-50 rounded-lg p-4 flex items-center justify-center" 
+            style={{ 
+              overflow: isRotated ? 'auto' : 'hidden',
+              overflowX: isMobile && !isRotated ? 'auto' : 'hidden',
+              overflowY: isMobile && isRotated ? 'auto' : 'hidden',
+              WebkitOverflowScrolling: 'touch',
+              position: 'relative'
+            }}
+          >
+            {isMobile && isRotated ? (
+              // Vista rotada: el gráfico está en vertical
+              <div 
+                style={{ 
+                  transform: 'rotate(90deg)',
+                  transformOrigin: 'center center',
+                  transition: 'transform 0.4s ease',
+                  width: '100vh',
+                  height: '100vw',
+                  maxWidth: '100vh',
+                  maxHeight: '100vw',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <div style={{ 
+                  width: '100vw',
+                  height: '1200px',
+                  maxWidth: '100vw'
+                }}>
+                  <ChartContent />
+                </div>
+              </div>
+            ) : (
+              // Vista normal: scroll horizontal
+              <div style={{ 
+                width: isMobile ? '1200px' : '100%', 
+                height: isMobile ? '400px' : '500px'
+              }}>
+                <ChartContent />
+              </div>
+            )}
+          </div>
+
+          {/* Botones de acción - fijo abajo */}
+          <div className="mt-4 flex justify-between items-center flex-shrink-0 pt-4 border-t border-gray-200">
+            <div className="text-xs text-gray-600">
+              {period === 'all' && !isMobile && (
+                <>
+                  🔍 Zoom: Rueda del ratón • 🖱️ Desplazar: Click y arrastrar
+                </>
+              )}
+            </div>
+            {period !== 'all' && (
+              <button
+                onClick={() => {
+                  if (lineChartRef.current) {
+                    lineChartRef.current.resetZoom()
+                  }
+                }}
+                className="text-xs text-blue-600 hover:text-blue-700 font-medium px-3 py-1 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                🔄 Restablecer Zoom
+              </button>
+            )}
+            <button
+              onClick={() => setIsFullscreen(false)}
+              className="text-xs text-gray-600 hover:text-gray-800 font-medium px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cerrar
+            </button>
           </div>
         </div>
-      </>
+      </div>
     )
+    
+    // Renderizar en el body usando Portal para estar completamente fuera del layout
+    return createPortal(modalContent, document.body)
   }
 
   // Vista normal
