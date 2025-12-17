@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos personalizados para la aplicación */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg;
+}
+
+.stat-card {
+  @apply bg-white/90 backdrop-blur-sm border border-white/30 shadow-md hover:shadow-lg transition-all duration-300;
+}
+
+.gradient-button {
+  @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300;
+}
+
+/* Animaciones */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Sidebar específico */
+.sidebar-collapsed {
+  @apply w-20;
+}
+
+.sidebar-expanded {
+  @apply w-64;
+}
+
+.sidebar-text {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.sidebar-text-hidden {
+  @apply opacity-0 w-0 overflow-hidden;
+}
+
+.sidebar-button-content {
+  @apply flex items-center space-x-3;
+}
+
+.sidebar-button-content.collapsed {
+  @apply justify-center;
+}
+
+.sidebar-button-content.expanded {
+  @apply justify-start;
+}
+
+.sidebar-tooltip {
+  @apply relative;
+}
+
+.sidebar-tooltip:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-left: 10px;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Estilos para inputs y formularios */
+input[type="number"], 
+input[type="text"], 
+select, 
+textarea {
+  @apply bg-white/90 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+}
+
+input[type="checkbox"] {
+  @apply w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2;
+}
+
+/* Botones personalizados */
+button:not(.gradient-button) {
+  @apply transition-all duration-200;
+}
+
+/* Efectos hover para cards */
+.stat-card:hover {
+  @apply transform -translate-y-1;
+}
+
+.glass-card:hover {
+  @apply shadow-xl;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar-expanded {
+    @apply w-56;
+  }
+}
