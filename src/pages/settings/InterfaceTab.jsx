@@ -1,6 +1,31 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import settingsManager from '../../utils/services/settings'
 
 export default function InterfaceTab({ settings, onSettingChange }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [mobileZoom, setMobileZoom] = useState(() => {
+    return settingsManager.get('mobileZoom', 100)
+  })
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const handleZoomChange = (newZoom) => {
+    const clamped = Math.max(75, Math.min(150, newZoom))
+    setMobileZoom(clamped)
+    settingsManager.set('mobileZoom', clamped)
+    
+    // Aplicar zoom inmediatamente si estamos en móvil
+    if (window.innerWidth < 768) {
+      document.documentElement.style.zoom = clamped / 100
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -46,6 +71,64 @@ export default function InterfaceTab({ settings, onSettingChange }) {
               </select>
             </div>
           </div>
+
+          {/* Zoom para móviles */}
+          {isMobile && (
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-800 mb-1">
+                  📱 Zoom de interfaz (Solo móvil)
+                </label>
+                <p className="text-xs text-gray-600 mb-3">
+                  Ajusta el tamaño de la interfaz para facilitar la lectura en dispositivos móviles
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleZoomChange(mobileZoom - 10)}
+                  disabled={mobileZoom <= 75}
+                  className="w-10 h-10 flex items-center justify-center bg-white border-2 border-blue-300 rounded-lg text-blue-600 font-bold text-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Reducir zoom"
+                >
+                  −
+                </button>
+                
+                <div className="flex-1">
+                  <input
+                    type="range"
+                    min="75"
+                    max="150"
+                    step="5"
+                    value={mobileZoom}
+                    onChange={(e) => handleZoomChange(parseInt(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  <div className="flex justify-between text-xs text-gray-600 mt-1">
+                    <span>75%</span>
+                    <span className="font-bold text-blue-600">{mobileZoom}%</span>
+                    <span>150%</span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => handleZoomChange(mobileZoom + 10)}
+                  disabled={mobileZoom >= 150}
+                  className="w-10 h-10 flex items-center justify-center bg-white border-2 border-blue-300 rounded-lg text-blue-600 font-bold text-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Aumentar zoom"
+                >
+                  +
+                </button>
+              </div>
+              
+              <button
+                onClick={() => handleZoomChange(100)}
+                className="mt-3 w-full px-3 py-2 text-xs font-medium text-blue-600 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+              >
+                Restablecer a 100%
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
