@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import database from '../../../database/index.js'
 import { normalizeMany, normalizeExpense, normalizeSupermarketPurchase, normalizeCut } from '../../../utils/normalizers'
 import notifications from '../../../utils/services/notifications'
+import logger from '../../../utils/logger'
 
 /**
  * Hook personalizado para gestionar los datos de ViewData
@@ -30,7 +31,7 @@ export const useViewData = (onDataChanged) => {
       setSupermarketPurchases(normalizeMany(supermarketData, normalizeSupermarketPurchase))
       setCuts(normalizeMany(cutsData, normalizeCut))
     } catch (error) {
-      console.error('Error loading data:', error)
+      logger.error('Error loading data:', error)
       notifications.showSync('Error al cargar los datos', 'error')
     } finally {
       setLoading(false)
@@ -47,7 +48,7 @@ export const useViewData = (onDataChanged) => {
     const handleDataChange = async (event) => {
       // Verificar que estamos en la ruta correcta
       if (window.location.pathname !== '/view-data') {
-        console.log('⚠️ ViewData: Evento recibido pero no estamos en /view-data, ignorando')
+        logger.debug('⚠️ ViewData: Evento recibido pero no estamos en /view-data, ignorando')
         return
       }
       
@@ -70,7 +71,7 @@ export const useViewData = (onDataChanged) => {
       }
     }
 
-    console.log('📡 ViewData: Configurando listeners de eventos para ruta:', window.location.pathname)
+    logger.debug('📡 ViewData: Configurando listeners de eventos para ruta:', window.location.pathname)
     
     // Escuchar eventos de cambio de datos (CustomEvent)
     window.addEventListener('gastosDataChanged', handleDataChange)
@@ -80,7 +81,7 @@ export const useViewData = (onDataChanged) => {
 
     // Limpiar los listeners al desmontar
     return () => {
-      console.log('🧹 ViewData: Limpiando listeners de eventos')
+      logger.debug('🧹 ViewData: Limpiando listeners de eventos')
       window.removeEventListener('gastosDataChanged', handleDataChange)
       window.removeEventListener('storage', handleStorageChange)
     }
@@ -143,7 +144,7 @@ export const useViewData = (onDataChanged) => {
       es_entrada: item.es_entrada || false,
       moneda_original: item.moneda_original || 'LPS'
     })
-    console.log('✅ ViewData: Formulario de edición inicializado con fecha:', item.fecha)
+    logger.debug('✅ ViewData: Formulario de edición inicializado con fecha:', item.fecha)
   }, [])
 
   // Cancelar edición
@@ -201,7 +202,7 @@ export const useViewData = (onDataChanged) => {
       // Limpiar edición
       cancelEdit()
     } catch (error) {
-      console.error('Error updating item:', error)
+      logger.error('Error updating item:', error)
       notifications.showSync('❌ Error al actualizar el registro', 'error')
     }
   }, [editingItem, editForm, getOrCreateCategoryId, loadAllData, onDataChanged, cancelEdit])
@@ -232,7 +233,7 @@ export const useViewData = (onDataChanged) => {
         onDataChanged()
       }
     } catch (error) {
-      console.error('Error deleting item:', error)
+      logger.error('Error deleting item:', error)
       notifications.showSync('❌ Error al eliminar el registro', 'error')
     }
   }, [loadAllData, onDataChanged])

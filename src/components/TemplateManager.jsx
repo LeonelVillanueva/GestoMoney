@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import templateEngine from '../utils/generators/templateEngine'
 import notifications from '../utils/services/notifications'
+import logger from '../utils/logger'
 
 const TemplateManager = ({ onTemplateSelect, onClose }) => {
   const [templates, setTemplates] = useState([])
@@ -40,14 +41,14 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
   }, [])
 
   const loadTemplates = () => {
-    console.log('🔍 Cargando plantillas...')
+    logger.log('🔍 Cargando plantillas...')
     const allTemplates = templateEngine.getTemplates()
-    console.log('📋 Plantillas cargadas:', allTemplates)
+    logger.log('📋 Plantillas cargadas:', allTemplates)
     setTemplates(allTemplates)
   }
 
   const handleCreateTemplate = () => {
-    console.log('✏️ Abriendo editor de plantillas...')
+    logger.log('✏️ Abriendo editor de plantillas...')
     setEditingTemplate(null)
     setTemplateForm({
       name: '',
@@ -76,9 +77,9 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
         ]
       }
     })
-    console.log('📝 Formulario inicializado')
+    logger.log('📝 Formulario inicializado')
     setShowEditor(true)
-    console.log('✅ Editor abierto')
+    logger.log('✅ Editor abierto')
   }
 
   const handleEditTemplate = (template) => {
@@ -112,7 +113,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
       setShowEditor(false)
       setEditingTemplate(null)
     } catch (error) {
-      console.error('Error saving template:', error)
+      logger.error('Error saving template:', error)
       notifications.showSync('❌ Error al guardar plantilla', 'error')
     }
   }
@@ -124,7 +125,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
         notifications.showSync('✅ Plantilla eliminada', 'success')
         loadTemplates()
       } catch (error) {
-        console.error('Error deleting template:', error)
+        logger.error('Error deleting template:', error)
         notifications.showSync('❌ Error al eliminar plantilla', 'error')
       }
     }
@@ -187,12 +188,12 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
     { value: 'budget_alerts', label: 'Alertas de Presupuesto' }
   ]
 
-  console.log('🎨 TemplateManager render - showEditor:', showEditor)
+  logger.debug('🎨 TemplateManager render - showEditor:', showEditor)
   
   const renderModal = () => {
     if (!showEditor) return null
     
-    console.log('📝 Renderizando editor modal')
+    logger.debug('📝 Renderizando editor modal')
     
     return createPortal(
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
@@ -203,7 +204,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
             </h2>
             <button
               onClick={() => {
-                console.log('❌ Cerrando editor')
+                logger.log('❌ Cerrando editor')
                 setShowEditor(false)
               }}
               className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -388,7 +389,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
     )
   }
 
-  console.log('📊 Renderizando lista de plantillas, total:', templates.length)
+  logger.debug('📊 Renderizando lista de plantillas, total:', templates.length)
   
   return (
     <>

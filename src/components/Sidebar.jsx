@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import notifications from '../utils/services/notifications'
 
 const Sidebar = ({ currentPage, onNavigate }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -10,6 +12,17 @@ const Sidebar = ({ currentPage, onNavigate }) => {
   })
   const location = useLocation()
   const navigate = useNavigate()
+  const { logout } = useAuth()
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      notifications.showSync('Sesión cerrada correctamente', 'success')
+    } catch (error) {
+      logger.error('Error al cerrar sesión:', error)
+      notifications.showSync('Error al cerrar sesión', 'error')
+    }
+  }
   
   const menuGroups = [
     {
@@ -179,6 +192,20 @@ const Sidebar = ({ currentPage, onNavigate }) => {
             )
           })}
         </nav>
+
+        {/* Logout Button */}
+        <div className="mt-auto pt-4 border-t border-white/20">
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'} px-4 py-3 rounded-xl transition-all duration-200 text-red-600 hover:bg-red-50/50 hover:text-red-700 border border-red-200/50`}
+            title={isCollapsed ? 'Cerrar Sesión' : ''}
+          >
+            <span className="text-xl">🚪</span>
+            {!isCollapsed && (
+              <span className="ml-3 font-semibold">Cerrar Sesión</span>
+            )}
+          </button>
+        </div>
       </div>
     </aside>
   )

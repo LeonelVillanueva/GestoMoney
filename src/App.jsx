@@ -1,10 +1,13 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react'
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
+import ProtectedRoute from './components/ProtectedRoute'
+import { AuthProvider } from './contexts/AuthContext'
 import database from './database/index.js'
 import currencyConverter from './utils/services/currency'
 import settingsManager from './utils/services/settings'
 import notifications from './utils/services/notifications'
+import logger from './utils/logger'
 
 // Lazy-load de componentes de páginas (mejora el rendimiento inicial)
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -55,8 +58,8 @@ function AppContent() {
       
       setLoading(false)
     } catch (error) {
-      console.error('❌ Error loading data:', error)
-      console.error('Error stack:', error.stack)
+      logger.error('❌ Error loading data:', error)
+      logger.error('Error stack:', error.stack)
       // Asegurar que la app se renderice incluso si hay error
       setExpenses([])
       setLoading(false)
@@ -64,7 +67,7 @@ function AppContent() {
       try {
         notifications.showSync('Error al cargar los datos', 'error')
       } catch (notifError) {
-        console.error('Error al mostrar notificación:', notifError)
+        logger.error('Error al mostrar notificación:', notifError)
       }
     }
   }
@@ -88,37 +91,41 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex">
-      <Sidebar currentPage={currentPage} onNavigate={handleNavigation} />
-      <main className="flex-1 p-6 overflow-y-auto">
-        <div className="max-w-7xl mx-auto">
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={loadInitialData} />} />
-              <Route path="/dashboard" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={loadInitialData} />} />
-              <Route path="/add-expense" element={<AddExpense onExpenseAdded={loadInitialData} />} />
-              <Route path="/calculate-expense" element={<CalculateExpense expenses={expenses} onDataChanged={loadInitialData} />} />
-              <Route path="/budgets" element={<Budgets expenses={expenses} onDataChanged={loadInitialData} />} />
-              <Route path="/supermarket" element={<Supermarket onDataAdded={loadInitialData} />} />
-              <Route path="/cuts" element={<Cuts onDataAdded={loadInitialData} />} />
-              <Route path="/view-data" element={<ViewData onDataChanged={loadInitialData} />} />
-              <Route path="/charts" element={<Charts expenses={expenses} onDataAdded={loadInitialData} />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={loadInitialData} />} />
-            </Routes>
-          </Suspense>
-        </div>
-      </main>
-    </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex">
+        <Sidebar currentPage={currentPage} onNavigate={handleNavigation} />
+        <main className="flex-1 p-6 overflow-y-auto">
+          <div className="max-w-7xl mx-auto">
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={loadInitialData} />} />
+                <Route path="/dashboard" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={loadInitialData} />} />
+                <Route path="/add-expense" element={<AddExpense onExpenseAdded={loadInitialData} />} />
+                <Route path="/calculate-expense" element={<CalculateExpense expenses={expenses} onDataChanged={loadInitialData} />} />
+                <Route path="/budgets" element={<Budgets expenses={expenses} onDataChanged={loadInitialData} />} />
+                <Route path="/supermarket" element={<Supermarket onDataAdded={loadInitialData} />} />
+                <Route path="/cuts" element={<Cuts onDataAdded={loadInitialData} />} />
+                <Route path="/view-data" element={<ViewData onDataChanged={loadInitialData} />} />
+                <Route path="/charts" element={<Charts expenses={expenses} onDataAdded={loadInitialData} />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={loadInitialData} />} />
+              </Routes>
+            </Suspense>
+          </div>
+        </main>
+      </div>
+    </ProtectedRoute>
   )
 }
 
 // Componente principal con Router
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   )
 }
 
