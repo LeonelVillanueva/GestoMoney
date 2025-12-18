@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import database from '../database/index.js'
+import YearSelector from '../components/YearSelector'
+import { useYearFilter } from '../hooks/useYearFilter'
 
 const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
   const [stats, setStats] = useState({
@@ -20,18 +22,31 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
     balance: 0
   })
 
+  // Hook para filtro de año
+  const {
+    yearFilter,
+    selectedYear,
+    currentYear,
+    availableYears,
+    previousYears,
+    filterLabel,
+    filteredData: expensesByYear,
+    statsByYear,
+    handleYearFilterChange
+  } = useYearFilter(expenses)
+
   useEffect(() => {
     calculateStats()
     checkBudgetAlerts()
     calculateMonthStats()
-  }, [expenses])
+  }, [expensesByYear, yearFilter])
 
   const checkBudgetAlerts = async () => {
     try {
       const currentMonth = new Date().toISOString().slice(0, 7)
       const budgets = await database.getBudgets(currentMonth)
       
-      const currentMonthExpenses = expenses.filter(expense => {
+      const currentMonthExpenses = expensesByYear.filter(expense => {
         const expenseMonth = expense.fecha.slice(0, 7)
         return expenseMonth === currentMonth && !expense.es_entrada
       })
@@ -78,16 +93,16 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
   }, [onDataChanged])
 
   const calculateStats = () => {
-    // Separar gastos e ingresos
-    const gastos = expenses.filter(expense => !expense.es_entrada)
-    const ingresos = expenses.filter(expense => expense.es_entrada)
+    // Separar gastos e ingresos (de los datos filtrados por año)
+    const gastos = expensesByYear.filter(expense => !expense.es_entrada)
+    const ingresos = expensesByYear.filter(expense => expense.es_entrada)
     
     // Calcular total de gastos (restar ingresos)
     const totalGastos = gastos.reduce((sum, expense) => sum + expense.monto, 0)
     const totalIngresos = ingresos.reduce((sum, expense) => sum + expense.monto, 0)
     const total = totalGastos - totalIngresos // ✅ Restar ingresos de gastos
     
-    const count = expenses.length
+    const count = expensesByYear.length
     const average = count > 0 ? totalGastos / count : 0
 
     // Categoría más gastada (solo gastos, no ingresos)
@@ -109,7 +124,7 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
       monthlyTrend: '+12.5%' // Esto se calculará con datos reales
     })
 
-    setRecentExpenses(expenses.slice(0, 5))
+    setRecentExpenses(expensesByYear.slice(0, 5))
   }
 
   const calculateMonthStats = () => {
@@ -117,19 +132,19 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
     const currentMonth = now.toISOString().slice(0, 7) // YYYY-MM
     const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().slice(0, 7)
     
-    // Gastos e ingresos del mes actual
-    const currentMonthExpenses = expenses.filter(expense => {
+    // Gastos e ingresos del mes actual (de datos filtrados por año)
+    const currentMonthExpenses = expensesByYear.filter(expense => {
       const expenseMonth = expense.fecha?.slice(0, 7)
       return expenseMonth === currentMonth && !expense.es_entrada
     })
     
-    const currentMonthIncomes = expenses.filter(expense => {
+    const currentMonthIncomes = expensesByYear.filter(expense => {
       const expenseMonth = expense.fecha?.slice(0, 7)
       return expenseMonth === currentMonth && expense.es_entrada
     })
     
     // Gastos del mes anterior
-    const previousMonthExpenses = expenses.filter(expense => {
+    const previousMonthExpenses = expensesByYear.filter(expense => {
       const expenseMonth = expense.fecha?.slice(0, 7)
       return expenseMonth === previousMonth && !expense.es_entrada
     })
@@ -201,6 +216,54 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
     return new Date(dateString).toLocaleDateString('es-HN')
   }
 
+  // Calcular estadísticas de todos los tiempos vs año actual
+  const allTimeStats = useMemo(() => {
+    const gastos = expenses.filter(e => !e.es_entrada)
+    const ingresos = expenses.filter(e => e.es_entrada)
+    const totalGastos = gastos.reduce((sum, e) => sum + e.monto, 0)
+    const totalIngresos = ingresos.reduce((sum, e) => sum + e.monto, 0)
+    return {
+      totalGastos,
+      totalIngresos,
+      balance: totalIngresos - totalGastos,
+      count: expenses.length
+    }
+  }, [expenses])
+
+  const currentYearStats = useMemo(() => {
+    const yearData = expenses.filter(e => {
+      if (!e.fecha) return false
+      return new Date(e.fecha).getFullYear() === currentYear
+    })
+    const gastos = yearData.filter(e => !e.es_entrada)
+    const ingresos = yearData.filter(e => e.es_entrada)
+    const totalGastos = gastos.reduce((sum, e) => sum + e.monto, 0)
+    const totalIngresos = ingresos.reduce((sum, e) => sum + e.monto, 0)
+    return {
+      totalGastos,
+      totalIngresos,
+      balance: totalIngresos - totalGastos,
+      count: yearData.length
+    }
+  }, [expenses, currentYear])
+
+  const previousYearsStats = useMemo(() => {
+    const yearData = expenses.filter(e => {
+      if (!e.fecha) return false
+      return new Date(e.fecha).getFullYear() < currentYear
+    })
+    const gastos = yearData.filter(e => !e.es_entrada)
+    const ingresos = yearData.filter(e => e.es_entrada)
+    const totalGastos = gastos.reduce((sum, e) => sum + e.monto, 0)
+    const totalIngresos = ingresos.reduce((sum, e) => sum + e.monto, 0)
+    return {
+      totalGastos,
+      totalIngresos,
+      balance: totalIngresos - totalGastos,
+      count: yearData.length
+    }
+  }, [expenses, currentYear])
+
   return (
     <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
       {/* Header Compacto */}
@@ -219,7 +282,139 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
         </div>
       </div>
 
-      {/* Stats Cards Compactas */}
+      {/* Selector de Año Compacto */}
+      <div className="glass-card rounded-xl p-4">
+        <YearSelector
+          yearFilter={yearFilter}
+          selectedYear={selectedYear}
+          currentYear={currentYear}
+          previousYears={previousYears}
+          availableYears={availableYears}
+          onFilterChange={handleYearFilterChange}
+          showStats={false}
+          statsByYear={statsByYear}
+          compact={true}
+        />
+      </div>
+
+      {/* Cards de Comparación por Año */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Año Actual */}
+        <div className={`glass-card rounded-xl p-4 border-2 transition-all cursor-pointer hover:shadow-lg ${
+          yearFilter === 'current' ? 'border-green-400 bg-green-50/50' : 'border-transparent hover:border-green-200'
+        }`}
+        onClick={() => handleYearFilterChange('current')}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🗓️</span>
+              <h3 className="text-lg font-bold text-gray-800">{currentYear}</h3>
+            </div>
+            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+              Año actual
+            </span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Gastos:</span>
+              <span className="font-bold text-red-600">{formatCurrency(currentYearStats.totalGastos)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Ingresos:</span>
+              <span className="font-bold text-green-600">{formatCurrency(currentYearStats.totalIngresos)}</span>
+            </div>
+            <div className="pt-2 border-t border-gray-200">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Balance:</span>
+                <span className={`font-bold ${currentYearStats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(currentYearStats.balance)}
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              {currentYearStats.count} transacciones
+            </p>
+          </div>
+        </div>
+
+        {/* Años Anteriores */}
+        <div className={`glass-card rounded-xl p-4 border-2 transition-all cursor-pointer hover:shadow-lg ${
+          yearFilter === 'previous' ? 'border-purple-400 bg-purple-50/50' : 'border-transparent hover:border-purple-200'
+        }`}
+        onClick={() => handleYearFilterChange('previous')}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">📚</span>
+              <h3 className="text-lg font-bold text-gray-800">Anteriores</h3>
+            </div>
+            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+              {previousYears.length} años
+            </span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Gastos:</span>
+              <span className="font-bold text-red-600">{formatCurrency(previousYearsStats.totalGastos)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Ingresos:</span>
+              <span className="font-bold text-green-600">{formatCurrency(previousYearsStats.totalIngresos)}</span>
+            </div>
+            <div className="pt-2 border-t border-gray-200">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Balance:</span>
+                <span className={`font-bold ${previousYearsStats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(previousYearsStats.balance)}
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              {previousYearsStats.count} transacciones
+            </p>
+          </div>
+        </div>
+
+        {/* Total Histórico */}
+        <div className={`glass-card rounded-xl p-4 border-2 transition-all cursor-pointer hover:shadow-lg ${
+          yearFilter === 'all' ? 'border-blue-400 bg-blue-50/50' : 'border-transparent hover:border-blue-200'
+        }`}
+        onClick={() => handleYearFilterChange('all')}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">📊</span>
+              <h3 className="text-lg font-bold text-gray-800">Total</h3>
+            </div>
+            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+              Histórico
+            </span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Gastos:</span>
+              <span className="font-bold text-red-600">{formatCurrency(allTimeStats.totalGastos)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Ingresos:</span>
+              <span className="font-bold text-green-600">{formatCurrency(allTimeStats.totalIngresos)}</span>
+            </div>
+            <div className="pt-2 border-t border-gray-200">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Balance:</span>
+                <span className={`font-bold ${allTimeStats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(allTimeStats.balance)}
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              {allTimeStats.count} transacciones
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards Compactas (datos filtrados) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="stat-card rounded-xl p-4 hover:shadow-lg transition-shadow">
           <div className="flex items-start gap-3 mb-2">
@@ -227,11 +422,13 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
               <span className="text-xl">💰</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 font-medium">Total Gastos</p>
+              <p className="text-xs text-gray-600 font-medium">
+                Total {yearFilter !== 'all' && <span className="text-blue-600">({filterLabel})</span>}
+              </p>
               <h3 className="text-base sm:text-lg font-bold text-gray-800 break-words leading-tight">{formatCurrency(stats.totalExpenses)}</h3>
             </div>
           </div>
-          <p className="text-xs text-gray-500">Todos los tiempos</p>
+          <p className="text-xs text-gray-500">{stats.totalTransactions} transacciones</p>
         </div>
 
         <div className="stat-card rounded-xl p-4 hover:shadow-lg transition-shadow">
@@ -385,7 +582,10 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-lg">📋</span>
-              <h3 className="text-lg font-bold text-gray-800">Gastos Recientes</h3>
+              <h3 className="text-lg font-bold text-gray-800">
+                Gastos Recientes
+                {yearFilter !== 'all' && <span className="text-sm font-normal text-blue-600 ml-1">({filterLabel})</span>}
+              </h3>
             </div>
             {recentExpenses.length > 0 && (
               <button 
@@ -421,7 +621,11 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
           ) : (
             <div className="text-center py-6">
               <span className="text-3xl mb-2 block">📊</span>
-              <p className="text-sm text-gray-500 mb-3">No hay gastos registrados</p>
+              <p className="text-sm text-gray-500 mb-3">
+                {yearFilter !== 'all' 
+                  ? `No hay gastos registrados en ${filterLabel}` 
+                  : 'No hay gastos registrados'}
+              </p>
               <button 
                 onClick={() => onNavigate('add-expense')}
                 className="gradient-button text-white px-4 py-2 rounded-lg text-xs font-medium"

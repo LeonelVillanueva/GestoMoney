@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js'
 import zoomPlugin from 'chartjs-plugin-zoom'
 import { useDateRange } from './hooks/useDateRange'
@@ -39,9 +39,25 @@ const CalculateExpense = ({ expenses, onDataChanged }) => {
     calculate
   } = useExpenseCalculation(expenses)
 
+  // Obtener años disponibles de los datos
+  const availableYears = useMemo(() => {
+    if (!expenses || expenses.length === 0) return []
+    
+    const years = new Set()
+    expenses.forEach(expense => {
+      if (expense.fecha) {
+        const year = new Date(expense.fecha).getFullYear()
+        if (!isNaN(year)) years.add(year)
+      }
+    })
+    
+    // Ordenar de más reciente a más antiguo
+    return Array.from(years).sort((a, b) => b - a)
+  }, [expenses])
+
   // Opciones de gráficos
-  const chartOptions = React.useMemo(() => createChartOptions(), [])
-  const pieChartOptions = React.useMemo(() => createPieChartOptions(), [])
+  const chartOptions = useMemo(() => createChartOptions(), [])
+  const pieChartOptions = useMemo(() => createPieChartOptions(), [])
 
   // Manejar cálculo
   const handleCalculate = () => {
@@ -70,13 +86,14 @@ const CalculateExpense = ({ expenses, onDataChanged }) => {
         </div>
       </div>
 
-      {/* Selector de Fechas Compacto */}
+      {/* Selector de Fechas con acceso rápido por año */}
       <DateRangeSelector
         startDate={startDate}
         endDate={endDate}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
         onCalculate={handleCalculate}
+        availableYears={availableYears}
       />
 
       {/* Resultados */}
