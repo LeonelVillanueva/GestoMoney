@@ -32,6 +32,13 @@ const Budgets = ({ expenses, onDataChanged }) => {
     budgetCategory: ''
   })
 
+  // Estado para el modal de confirmación de edición
+  const [editModal, setEditModal] = useState({
+    isOpen: false,
+    budget: null,
+    budgetCategory: ''
+  })
+
   const {
     budgets,
     loading,
@@ -83,6 +90,35 @@ const Budgets = ({ expenses, onDataChanged }) => {
     }
     closeDeleteModal()
   }, [deleteModal.budgetId, deleteBudget, closeDeleteModal])
+
+  // Función para abrir el modal de edición
+  const openEditModal = useCallback((budget) => {
+    setEditModal({
+      isOpen: true,
+      budget,
+      budgetCategory: budget.categoria
+    })
+  }, [])
+
+  // Función para cerrar el modal de edición
+  const closeEditModal = useCallback(() => {
+    setEditModal({
+      isOpen: false,
+      budget: null,
+      budgetCategory: ''
+    })
+  }, [])
+
+  // Función para confirmar la edición (después de PIN verificado)
+  const confirmEdit = useCallback(() => {
+    if (editModal.budget) {
+      const newAmount = prompt('Nuevo monto:', editModal.budget.amount)
+      if (newAmount && !isNaN(newAmount) && parseFloat(newAmount) > 0) {
+        updateBudget(editModal.budget.id, newAmount)
+      }
+    }
+    closeEditModal()
+  }, [editModal.budget, updateBudget, closeEditModal])
 
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
@@ -154,6 +190,7 @@ const Budgets = ({ expenses, onDataChanged }) => {
           formatDate={formatDate}
           onUpdateBudget={updateBudget}
           onDeleteBudget={openDeleteModal}
+          onRequestEdit={openEditModal}
         />
       </div>
 
@@ -181,6 +218,17 @@ const Budgets = ({ expenses, onDataChanged }) => {
         title="¿Eliminar este presupuesto?"
         message="Esta acción no se puede deshacer."
         itemName={`Presupuesto de ${deleteModal.budgetCategory}`}
+      />
+
+      {/* Modal de confirmación de edición */}
+      <DeleteConfirmModal
+        isOpen={editModal.isOpen}
+        onClose={closeEditModal}
+        onConfirm={confirmEdit}
+        title="¿Editar este presupuesto?"
+        message="Ingresa tu PIN para continuar con la edición."
+        itemName={`Presupuesto de ${editModal.budgetCategory}`}
+        actionType="edit"
       />
     </div>
   )

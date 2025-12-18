@@ -9,6 +9,7 @@ export default function CategoriesTab({
   onAddCategory,
   onDeleteCategory,
   onUpdateCategory,
+  onRequestEdit,
   settings,
   onSettingChange,
   colors,
@@ -96,7 +97,7 @@ export default function CategoriesTab({
                   </div>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => setEditingCategory(editingCategory === category.id ? null : category.id)} className="text-blue-600 hover:text-blue-800 text-xs">✏️</button>
+                  <button onClick={() => onRequestEdit ? onRequestEdit(category.id) : setEditingCategory(editingCategory === category.id ? null : category.id)} className="text-blue-600 hover:text-blue-800 text-xs">✏️</button>
                   <button onClick={() => onDeleteCategory(category.id)} className="text-red-600 hover:text-red-800 text-xs">🗑️</button>
                 </div>
               </div>

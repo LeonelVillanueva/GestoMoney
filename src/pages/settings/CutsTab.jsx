@@ -9,6 +9,7 @@ export default function CutsTab({
   onAddCutType,
   onDeleteCutType,
   onUpdateCutType,
+  onRequestEdit,
   settings,
 }) {
   return (
@@ -65,7 +66,7 @@ export default function CutsTab({
                   </div>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => setEditingCutType(editingCutType === cutType ? null : cutType)} className="text-blue-600 hover:text-blue-800 text-xs">✏️</button>
+                  <button onClick={() => onRequestEdit ? onRequestEdit(cutType) : setEditingCutType(editingCutType === cutType ? null : cutType)} className="text-blue-600 hover:text-blue-800 text-xs">✏️</button>
                   <button onClick={() => onDeleteCutType(cutType)} className="text-red-600 hover:text-red-800 text-xs">🗑️</button>
                 </div>
               </div>

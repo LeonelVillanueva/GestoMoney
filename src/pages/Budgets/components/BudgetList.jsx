@@ -10,7 +10,8 @@ const BudgetList = ({
   currentMonth, 
   formatDate, 
   onUpdateBudget, 
-  onDeleteBudget 
+  onDeleteBudget,
+  onRequestEdit
 }) => {
   if (loading) {
     return (
@@ -100,9 +101,13 @@ const BudgetList = ({
                 <div className="flex gap-1">
                   <button
                     onClick={() => {
-                      const newAmount = prompt('Nuevo monto:', budget.amount)
-                      if (newAmount && !isNaN(newAmount) && parseFloat(newAmount) > 0) {
-                        onUpdateBudget(budget.id, newAmount)
+                      if (onRequestEdit) {
+                        onRequestEdit(budget)
+                      } else {
+                        const newAmount = prompt('Nuevo monto:', budget.amount)
+                        if (newAmount && !isNaN(newAmount) && parseFloat(newAmount) > 0) {
+                          onUpdateBudget(budget.id, newAmount)
+                        }
                       }
                     }}
                     className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"

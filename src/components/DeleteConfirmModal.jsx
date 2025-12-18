@@ -3,15 +3,16 @@ import { createPortal } from 'react-dom'
 import useSecurityPin from '../hooks/useSecurityPin'
 
 /**
- * Modal de confirmación de eliminación con PIN de seguridad
+ * Modal de confirmación con PIN de seguridad
  * @param {Object} props
  * @param {boolean} props.isOpen - Si el modal está abierto
  * @param {Function} props.onClose - Función para cerrar el modal
  * @param {Function} props.onConfirm - Función a ejecutar si el PIN es correcto
  * @param {string} props.title - Título del modal
  * @param {string} props.message - Mensaje descriptivo
- * @param {string} props.itemName - Nombre del item a eliminar (opcional)
+ * @param {string} props.itemName - Nombre del item (opcional)
  * @param {boolean} props.isDangerous - Si es una acción muy peligrosa (eliminar todo)
+ * @param {string} props.actionType - Tipo de acción: 'delete' o 'edit'
  */
 const DeleteConfirmModal = ({
   isOpen,
@@ -20,7 +21,8 @@ const DeleteConfirmModal = ({
   title = '¿Confirmar eliminación?',
   message = 'Esta acción no se puede deshacer.',
   itemName = '',
-  isDangerous = false
+  isDangerous = false,
+  actionType = 'delete' // 'delete' o 'edit'
 }) => {
   const [pin, setPin] = useState(['', '', '', '', '', ''])
   const [error, setError] = useState('')
@@ -136,10 +138,10 @@ const DeleteConfirmModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`p-4 rounded-t-2xl ${isDangerous ? 'bg-red-50 dark:bg-red-900/30' : 'bg-gray-50 dark:bg-slate-700'}`}>
+        <div className={`p-4 rounded-t-2xl ${isDangerous ? 'bg-red-50 dark:bg-red-900/30' : actionType === 'edit' ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-gray-50 dark:bg-slate-700'}`}>
           <div className="flex items-center gap-3">
             <div className={`text-3xl ${isDangerous ? 'animate-pulse' : ''}`}>
-              {isDangerous ? '⚠️' : '🔐'}
+              {isDangerous ? '⚠️' : actionType === 'edit' ? '✏️' : '🔐'}
             </div>
             <div>
               <h3 className={`text-lg font-bold ${isDangerous ? 'text-red-700 dark:text-red-300' : 'text-slate-800 dark:text-slate-200'}`}>
@@ -261,7 +263,7 @@ const DeleteConfirmModal = ({
                     </>
                   ) : (
                     <>
-                      🗑️ Confirmar
+                      {actionType === 'edit' ? '✏️ Editar' : '🗑️ Confirmar'}
                     </>
                   )}
                 </button>
