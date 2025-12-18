@@ -2,6 +2,8 @@ import React, { useState, useCallback, useMemo } from 'react'
 import { useViewData } from './hooks/useViewData'
 import { useDataPagination } from './hooks/useDataPagination'
 import { useViewDataFilters } from './hooks/useViewDataFilters'
+import { useYearFilter } from '../../hooks/useYearFilter'
+import YearSelector from '../../components/YearSelector'
 import SearchBar from './components/SearchBar'
 import Pagination from './components/Pagination'
 import EditForm from './components/EditForm'
@@ -48,6 +50,49 @@ const ViewData = ({ onDataChanged }) => {
     loadAllData
   } = useViewData(onDataChanged)
 
+  // Hook para filtro de año - combinar todos los datos para obtener años disponibles
+  const allData = useMemo(() => [...expenses, ...supermarketPurchases, ...cuts], [expenses, supermarketPurchases, cuts])
+  
+  const {
+    yearFilter,
+    selectedYear,
+    currentYear,
+    availableYears,
+    previousYears,
+    filterLabel,
+    statsByYear,
+    handleYearFilterChange
+  } = useYearFilter(allData)
+
+  // Filtrar datos por año antes de aplicar otros filtros
+  const filterByYear = useCallback((data) => {
+    if (!data || data.length === 0) return []
+    
+    return data.filter(item => {
+      if (!item.fecha) return yearFilter === 'all'
+      
+      const itemYear = new Date(item.fecha).getFullYear()
+      
+      switch (yearFilter) {
+        case 'current':
+          return itemYear === currentYear
+        case 'previous':
+          if (selectedYear) {
+            return itemYear === selectedYear
+          }
+          return itemYear < currentYear
+        case 'all':
+        default:
+          return true
+      }
+    })
+  }, [yearFilter, selectedYear, currentYear])
+
+  // Datos filtrados por año
+  const expensesByYear = useMemo(() => filterByYear(expenses), [expenses, filterByYear])
+  const supermarketByYear = useMemo(() => filterByYear(supermarketPurchases), [supermarketPurchases, filterByYear])
+  const cutsByYear = useMemo(() => filterByYear(cuts), [cuts, filterByYear])
+
   const {
     searchFilters,
     showFilters,
@@ -60,21 +105,21 @@ const ViewData = ({ onDataChanged }) => {
     applyFilters
   } = useViewDataFilters(activeTab)
 
-  // Obtener datos del tab actual
+  // Obtener datos del tab actual (ya filtrados por año)
   const getCurrentTabData = useCallback(() => {
     switch (activeTab) {
       case 'gastos':
-        return expenses
+        return expensesByYear
       case 'supermercado':
-        return supermarketPurchases
+        return supermarketByYear
       case 'cortes':
-        return cuts
+        return cutsByYear
       default:
         return []
     }
-  }, [activeTab, expenses, supermarketPurchases, cuts])
+  }, [activeTab, expensesByYear, supermarketByYear, cutsByYear])
 
-  // Datos filtrados
+  // Datos filtrados (por año + otros filtros)
   const filteredData = useMemo(() => {
     return applyFilters(getCurrentTabData(), activeTab)
   }, [applyFilters, getCurrentTabData, activeTab])
@@ -88,17 +133,17 @@ const ViewData = ({ onDataChanged }) => {
     setCurrentPage
   } = useDataPagination(filteredData, itemsPerPage)
 
-  // Resetear página cuando cambie de tab o filtros
+  // Resetear página cuando cambie de tab, filtros o año
   React.useEffect(() => {
     setCurrentPage(1)
-  }, [activeTab, filteredData.length, setCurrentPage])
+  }, [activeTab, filteredData.length, setCurrentPage, yearFilter, selectedYear])
 
   // Manejar cambios en el formulario de edición
   const handleFormChange = useCallback((updates) => {
     setEditForm(prev => ({ ...prev, ...updates }))
   }, [setEditForm])
 
-  // Descargar CSV
+  // Descargar CSV (datos filtrados por año)
   const downloadCSV = useCallback(() => {
     const currentData = getCurrentTabData()
     const csvContent = convertToCSV(currentData, activeTab)
@@ -108,11 +153,12 @@ const ViewData = ({ onDataChanged }) => {
       return
     }
 
-    const filename = `${activeTab}_${new Date().toISOString().split('T')[0]}.csv`
+    const yearSuffix = yearFilter === 'all' ? 'todos' : yearFilter === 'current' ? currentYear : selectedYear || 'anteriores'
+    const filename = `${activeTab}_${yearSuffix}_${new Date().toISOString().split('T')[0]}.csv`
     if (downloadCSVFile(csvContent, filename)) {
       notifications.showSync('✅ Archivo CSV descargado correctamente', 'success')
     }
-  }, [activeTab, getCurrentTabData])
+  }, [activeTab, getCurrentTabData, yearFilter, currentYear, selectedYear])
 
   const cutTypes = [
     'Corte básico', 'Corte y peinado', 'Corte + barba', 
@@ -195,10 +241,11 @@ const ViewData = ({ onDataChanged }) => {
     setEditModal({ isOpen: false, item: null, itemType: null, itemName: '' })
   }, [])
 
+  // Tabs con conteo filtrado por año
   const tabs = [
-    { id: 'gastos', label: 'Gastos', icon: '💰', count: expenses.length },
-    { id: 'supermercado', label: 'Supermercado', icon: '🛒', count: supermarketPurchases.length },
-    { id: 'cortes', label: 'Cortes', icon: '💇', count: cuts.length }
+    { id: 'gastos', label: 'Gastos', icon: '💰', count: expensesByYear.length },
+    { id: 'supermercado', label: 'Supermercado', icon: '🛒', count: supermarketByYear.length },
+    { id: 'cortes', label: 'Cortes', icon: '💇', count: cutsByYear.length }
   ]
 
   // Renderizar gastos
@@ -209,7 +256,7 @@ const ViewData = ({ onDataChanged }) => {
           currentPage={currentPage}
           totalPages={totalPages}
           filteredDataLength={filteredData.length}
-          totalDataLength={expenses.length}
+          totalDataLength={expensesByYear.length}
           hasActiveFilters={hasActiveFilters}
           onPageChange={handlePageChange}
         />
@@ -280,17 +327,32 @@ const ViewData = ({ onDataChanged }) => {
           </div>
         ) : (
           <div className="text-center py-8">
-            {hasActiveFilters ? (
+            {hasActiveFilters || yearFilter !== 'all' ? (
               <>
                 <div className="text-4xl mb-3">🔍</div>
                 <h3 className="text-sm font-bold text-gray-600 mb-1">No se encontraron resultados</h3>
-                <p className="text-xs text-gray-500 mb-3">No hay gastos que coincidan con los filtros aplicados</p>
-                <button
-                  onClick={clearFilters}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  Limpiar filtros
-                </button>
+                <p className="text-xs text-gray-500 mb-3">
+                  No hay gastos que coincidan con los filtros aplicados
+                  {yearFilter !== 'all' && ` para ${filterLabel}`}
+                </p>
+                <div className="flex gap-2 justify-center">
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Limpiar filtros
+                    </button>
+                  )}
+                  {yearFilter !== 'all' && (
+                    <button
+                      onClick={() => handleYearFilterChange('all')}
+                      className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Ver todos los años
+                    </button>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -313,7 +375,7 @@ const ViewData = ({ onDataChanged }) => {
           currentPage={currentPage}
           totalPages={totalPages}
           filteredDataLength={filteredData.length}
-          totalDataLength={supermarketPurchases.length}
+          totalDataLength={supermarketByYear.length}
           hasActiveFilters={hasActiveFilters}
           onPageChange={handlePageChange}
         />
@@ -373,17 +435,32 @@ const ViewData = ({ onDataChanged }) => {
           </div>
         ) : (
           <div className="text-center py-8">
-            {hasActiveFilters ? (
+            {hasActiveFilters || yearFilter !== 'all' ? (
               <>
                 <div className="text-4xl mb-3">🔍</div>
                 <h3 className="text-sm font-bold text-gray-600 mb-1">No se encontraron resultados</h3>
-                <p className="text-xs text-gray-500 mb-3">No hay compras que coincidan con los filtros aplicados</p>
-                <button
-                  onClick={clearFilters}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  Limpiar filtros
-                </button>
+                <p className="text-xs text-gray-500 mb-3">
+                  No hay compras que coincidan con los filtros aplicados
+                  {yearFilter !== 'all' && ` para ${filterLabel}`}
+                </p>
+                <div className="flex gap-2 justify-center">
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Limpiar filtros
+                    </button>
+                  )}
+                  {yearFilter !== 'all' && (
+                    <button
+                      onClick={() => handleYearFilterChange('all')}
+                      className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Ver todos los años
+                    </button>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -406,7 +483,7 @@ const ViewData = ({ onDataChanged }) => {
           currentPage={currentPage}
           totalPages={totalPages}
           filteredDataLength={filteredData.length}
-          totalDataLength={cuts.length}
+          totalDataLength={cutsByYear.length}
           hasActiveFilters={hasActiveFilters}
           onPageChange={handlePageChange}
         />
@@ -462,17 +539,32 @@ const ViewData = ({ onDataChanged }) => {
           </div>
         ) : (
           <div className="text-center py-8">
-            {hasActiveFilters ? (
+            {hasActiveFilters || yearFilter !== 'all' ? (
               <>
                 <div className="text-4xl mb-3">🔍</div>
                 <h3 className="text-sm font-bold text-gray-600 mb-1">No se encontraron resultados</h3>
-                <p className="text-xs text-gray-500 mb-3">No hay cortes que coincidan con los filtros aplicados</p>
-                <button
-                  onClick={clearFilters}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
-                >
-                  Limpiar filtros
-                </button>
+                <p className="text-xs text-gray-500 mb-3">
+                  No hay cortes que coincidan con los filtros aplicados
+                  {yearFilter !== 'all' && ` para ${filterLabel}`}
+                </p>
+                <div className="flex gap-2 justify-center">
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Limpiar filtros
+                    </button>
+                  )}
+                  {yearFilter !== 'all' && (
+                    <button
+                      onClick={() => handleYearFilterChange('all')}
+                      className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Ver todos los años
+                    </button>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -500,16 +592,23 @@ const ViewData = ({ onDataChanged }) => {
     }
   }
 
-  // Calcular totales
-  const totalGastos = expenses.reduce((sum, exp) => sum + exp.monto, 0)
-  const totalSupermercado = supermarketPurchases.reduce((sum, p) => sum + p.monto, 0)
+  // Calcular totales (filtrados por año)
+  const totalGastos = expensesByYear.reduce((sum, exp) => sum + exp.monto, 0)
+  const totalSupermercado = supermarketByYear.reduce((sum, p) => sum + p.monto, 0)
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
       {/* Header Compacto */}
       <div className="glass-card rounded-xl p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-800">📋 Ver Datos</h2>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">📋 Ver Datos</h2>
+            {yearFilter !== 'all' && (
+              <p className="text-sm text-blue-600 mt-1">
+                📅 Mostrando: {filterLabel}
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {refreshing && (
               <div className="flex items-center gap-2 text-blue-600 text-xs">
@@ -529,14 +628,28 @@ const ViewData = ({ onDataChanged }) => {
         </div>
       </div>
 
-      {/* Estadísticas Rápidas Compactas */}
+      {/* Selector de Año */}
+      <YearSelector
+        yearFilter={yearFilter}
+        selectedYear={selectedYear}
+        currentYear={currentYear}
+        previousYears={previousYears}
+        availableYears={availableYears}
+        onFilterChange={handleYearFilterChange}
+        showStats={true}
+        statsByYear={statsByYear}
+      />
+
+      {/* Estadísticas Rápidas Compactas (filtradas por año) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 mb-1">Total Gastos</p>
+              <p className="text-xs text-gray-600 mb-1">
+                Total Gastos {yearFilter !== 'all' && <span className="text-blue-600">({filterLabel})</span>}
+              </p>
               <p className="text-base sm:text-lg font-bold text-blue-700 break-words leading-tight">{formatCurrency(totalGastos)}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{expenses.length} registros</p>
+              <p className="text-xs text-gray-500 mt-0.5">{expensesByYear.length} registros</p>
             </div>
             <span className="text-2xl flex-shrink-0">💰</span>
           </div>
@@ -545,9 +658,11 @@ const ViewData = ({ onDataChanged }) => {
         <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 mb-1">Total Supermercado</p>
+              <p className="text-xs text-gray-600 mb-1">
+                Total Supermercado {yearFilter !== 'all' && <span className="text-green-600">({filterLabel})</span>}
+              </p>
               <p className="text-base sm:text-lg font-bold text-green-700 break-words leading-tight">{formatCurrency(totalSupermercado)}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{supermarketPurchases.length} compras</p>
+              <p className="text-xs text-gray-500 mt-0.5">{supermarketByYear.length} compras</p>
             </div>
             <span className="text-2xl flex-shrink-0">🛒</span>
           </div>
@@ -556,8 +671,10 @@ const ViewData = ({ onDataChanged }) => {
         <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 mb-1">Total Cortes</p>
-              <p className="text-base sm:text-lg font-bold text-purple-700 break-words leading-tight">{cuts.length}</p>
+              <p className="text-xs text-gray-600 mb-1">
+                Total Cortes {yearFilter !== 'all' && <span className="text-purple-600">({filterLabel})</span>}
+              </p>
+              <p className="text-base sm:text-lg font-bold text-purple-700 break-words leading-tight">{cutsByYear.length}</p>
               <p className="text-xs text-gray-500 mt-0.5">cortes</p>
             </div>
             <span className="text-2xl flex-shrink-0">💇</span>

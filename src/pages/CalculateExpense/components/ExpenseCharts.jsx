@@ -40,6 +40,10 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
     }]
   }
 
+  // Calcular altura dinámica según cantidad de categorías
+  const categoryCount = calculations.categoryBreakdown.length
+  const pieContainerHeight = categoryCount > 6 ? 'h-96' : 'h-72'
+
   return (
     <>
       {/* Gráficos Compactos */}
@@ -47,7 +51,7 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
         {/* Gráfico de Barras */}
         <div className="glass-card rounded-xl p-4">
           <h3 className="text-sm font-bold text-gray-800 mb-3">📊 Gastos por Categoría</h3>
-          <div className="h-64">
+          <div className={pieContainerHeight}>
             <Bar data={barChartData} options={chartOptions} />
           </div>
         </div>
@@ -55,7 +59,7 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
         {/* Gráfico Circular */}
         <div className="glass-card rounded-xl p-4">
           <h3 className="text-sm font-bold text-gray-800 mb-3">🥧 Distribución</h3>
-          <div className="h-64">
+          <div className={pieContainerHeight}>
             <Pie data={pieChartData} options={pieChartOptions} />
           </div>
         </div>
