@@ -33,9 +33,12 @@ export default function useCategories(active) {
     }
   }, [newCategory, loadCategories])
 
-  const deleteCategory = useCallback(async (categoryId) => {
-    const confirmed = window.confirm('¿Estás seguro de que quieres eliminar esta categoría?')
-    if (!confirmed) return
+  // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
+  const deleteCategory = useCallback(async (categoryId, skipConfirm = false) => {
+    if (!skipConfirm) {
+      const confirmed = window.confirm('¿Estás seguro de que quieres eliminar esta categoría?')
+      if (!confirmed) return
+    }
     try {
       await database.deleteCategory(categoryId)
       await loadCategories()

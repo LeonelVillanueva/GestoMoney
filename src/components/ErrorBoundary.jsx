@@ -17,7 +17,7 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Registrar el error solo en desarrollo o en un servicio de reporte de errores
     if (isDevelopment) {
-      console.error('Error capturado por ErrorBoundary:', error, errorInfo)
+    console.error('Error capturado por ErrorBoundary:', error, errorInfo)
     }
     // En producción, podrías enviar el error a un servicio como Sentry
     // if (!isDevelopment) {

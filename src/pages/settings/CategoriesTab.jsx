@@ -17,21 +17,21 @@ export default function CategoriesTab({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-slate-800 mb-3">➕ Agregar Nueva Categoría</h3>
-        <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">➕ Agregar Nueva Categoría</h3>
+        <div className="space-y-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nombre</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre</label>
             <input
               type="text"
               value={newCategory.name}
               onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-600 text-gray-900 dark:text-gray-100"
               placeholder="Ej: Ropa, Viajes..."
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Color</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Color</label>
               <div className="flex gap-2 items-center">
                 <input
                   type="color"
@@ -54,7 +54,7 @@ export default function CategoriesTab({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Icono</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Icono</label>
               <div className="flex flex-wrap gap-1 max-h-12 overflow-y-auto">
                 {icons.slice(0, 8).map((icon) => (
                   <button
@@ -80,15 +80,15 @@ export default function CategoriesTab({
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-slate-800 mb-3">🏷️ Categorías ({categories.length})</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">🏷️ Categorías ({categories.length})</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {categories.map((category) => (
-            <div key={category.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <div key={category.id} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 border border-gray-200 dark:border-slate-600">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <span className="text-lg flex-shrink-0">{category.icon}</span>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-semibold text-gray-800 truncate">{category.name}</h4>
+                    <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{category.name}</h4>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <div className="w-3 h-3 rounded-full border border-gray-300" style={{ backgroundColor: category.color }} />
                       <span className="text-xs text-gray-600 truncate">{category.color}</span>
@@ -142,13 +142,13 @@ export default function CategoriesTab({
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-slate-800 mb-3">⚙️ Configuración</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">⚙️ Configuración</h3>
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Categoría por defecto</label>
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Categoría por defecto</label>
           <select
             value={settings.defaultCategory}
             onChange={(e) => onSettingChange('defaultCategory', e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
           >
             {categories.map((category) => (
               <option key={category.id} value={category.name}>

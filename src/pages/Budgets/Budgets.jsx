@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js'
 import { useBudgets } from './hooks/useBudgets'
 import BudgetForm from './components/BudgetForm'
@@ -6,6 +6,7 @@ import BudgetList from './components/BudgetList'
 import BudgetStats from './components/BudgetStats'
 import BudgetCharts from './components/BudgetCharts'
 import MonthSelector from './components/MonthSelector'
+import DeleteConfirmModal from '../../components/DeleteConfirmModal'
 import { formatDate } from './utils/budgetFormatters'
 
 // Registrar componentes de Chart.js
@@ -23,6 +24,13 @@ const Budgets = ({ expenses, onDataChanged }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().slice(0, 7)) // YYYY-MM
   const [showForm, setShowForm] = useState(false)
   const [showCharts, setShowCharts] = useState(false)
+  
+  // Estado para el modal de confirmación de eliminación
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    budgetId: null,
+    budgetCategory: ''
+  })
 
   const {
     budgets,
@@ -49,6 +57,32 @@ const Budgets = ({ expenses, onDataChanged }) => {
     await createBudget(e)
     setShowForm(false)
   }
+
+  // Función para abrir el modal de eliminación
+  const openDeleteModal = useCallback((budgetId, budgetCategory) => {
+    setDeleteModal({
+      isOpen: true,
+      budgetId,
+      budgetCategory
+    })
+  }, [])
+
+  // Función para cerrar el modal
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModal({
+      isOpen: false,
+      budgetId: null,
+      budgetCategory: ''
+    })
+  }, [])
+
+  // Función para confirmar la eliminación
+  const confirmDelete = useCallback(async () => {
+    if (deleteModal.budgetId) {
+      await deleteBudget(deleteModal.budgetId, true) // true = skipConfirm
+    }
+    closeDeleteModal()
+  }, [deleteModal.budgetId, deleteBudget, closeDeleteModal])
 
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
@@ -119,7 +153,7 @@ const Budgets = ({ expenses, onDataChanged }) => {
           currentMonth={currentMonth}
           formatDate={formatDate}
           onUpdateBudget={updateBudget}
-          onDeleteBudget={deleteBudget}
+          onDeleteBudget={openDeleteModal}
         />
       </div>
 
@@ -138,6 +172,16 @@ const Budgets = ({ expenses, onDataChanged }) => {
           />
         </div>
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="¿Eliminar este presupuesto?"
+        message="Esta acción no se puede deshacer."
+        itemName={`Presupuesto de ${deleteModal.budgetCategory}`}
+      />
     </div>
   )
 }

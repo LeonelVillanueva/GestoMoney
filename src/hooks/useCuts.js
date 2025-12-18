@@ -41,9 +41,12 @@ export default function useCuts(active) {
     }
   }, [newCutType, cuts, loadCuts])
 
-  const deleteCutType = useCallback(async (cutType) => {
-    const confirmed = window.confirm(`¿Eliminar el tipo de corte "${cutType}"?`)
-    if (!confirmed) return
+  // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
+  const deleteCutType = useCallback(async (cutType, skipConfirm = false) => {
+    if (!skipConfirm) {
+      const confirmed = window.confirm(`¿Eliminar el tipo de corte "${cutType}"?`)
+      if (!confirmed) return
+    }
     try {
       const currentTypes = (await database.getAllConfig()).tipos_corte_por_defecto
       const parsed = currentTypes ? JSON.parse(currentTypes) : []

@@ -208,8 +208,9 @@ export const useViewData = (onDataChanged) => {
   }, [editingItem, editForm, getOrCreateCategoryId, loadAllData, onDataChanged, cancelEdit])
 
   // Eliminar item
-  const deleteItem = useCallback(async (id, type) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este registro?')) {
+  // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
+  const deleteItem = useCallback(async (id, type, skipConfirm = false) => {
+    if (!skipConfirm && !window.confirm('¿Estás seguro de que quieres eliminar este registro?')) {
       return
     }
 

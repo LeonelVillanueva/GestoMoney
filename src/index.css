@@ -2,13 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Variables CSS para temas */
+:root {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #e2e8f0;
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: rgba(30, 41, 59, 0.8);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: rgba(71, 85, 105, 0.5);
+}
+
+/* Transición suave para cambio de tema */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.15s ease;
+}
+
 /* Estilos personalizados para la aplicación */
 .glass-card {
-  @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg;
+  @apply bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-lg;
 }
 
 .stat-card {
-  @apply bg-white/90 backdrop-blur-sm border border-white/30 shadow-md hover:shadow-lg transition-all duration-300;
+  @apply bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-white/30 dark:border-slate-700/50 shadow-md hover:shadow-lg transition-all duration-300;
 }
 
 .gradient-button {
@@ -29,6 +53,17 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Animación de shake para errores */
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
 /* Sidebar específico */
@@ -83,31 +118,44 @@
 /* Scrollbar personalizado */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  @apply bg-gray-200 dark:bg-slate-700;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  @apply bg-gray-400 dark:bg-slate-500 rounded;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
+  @apply bg-gray-500 dark:bg-slate-400;
 }
 
 /* Estilos para inputs y formularios */
 input[type="number"], 
 input[type="text"], 
+input[type="email"],
+input[type="password"],
+input[type="date"],
 select, 
 textarea {
-  @apply bg-white/90 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+  @apply bg-white/90 dark:bg-slate-700/90 border border-gray-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500;
 }
 
 input[type="checkbox"] {
-  @apply w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2;
+  @apply w-5 h-5 text-blue-600 bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500 focus:ring-2;
+}
+
+/* Estilos adicionales para modo oscuro */
+.dark body {
+  @apply bg-slate-900 text-gray-100;
+}
+
+/* Labels en modo oscuro */
+label {
+  @apply text-gray-700 dark:text-gray-300;
 }
 
 /* Botones personalizados */

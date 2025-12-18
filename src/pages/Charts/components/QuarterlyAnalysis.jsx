@@ -24,10 +24,10 @@ const QuarterlyAnalysis = ({ quarterlyData, year, barOptions }) => {
         <h3 className="text-sm font-bold text-slate-800 mb-3">📅 Análisis Trimestral - {year}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quarterlyData.map((quarter) => (
-            <div key={quarter.name} className="bg-gradient-to-br from-gray-50 to-white rounded-lg p-3 border border-gray-200">
+            <div key={quarter.name} className="bg-gradient-to-br from-gray-50 to-white dark:from-slate-700 dark:to-slate-600 rounded-lg p-3 border border-gray-200 dark:border-slate-600">
               <div className="text-center mb-2">
-                <h4 className="text-sm font-bold text-slate-800">{quarter.name}</h4>
-                <p className="text-xs text-slate-500">{quarter.label}</p>
+                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">{quarter.name}</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{quarter.label}</p>
               </div>
               
               <div className="space-y-1.5">
@@ -43,7 +43,7 @@ const QuarterlyAnalysis = ({ quarterlyData, year, barOptions }) => {
                 
                 <div className="border-t pt-1.5 mt-1.5">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-medium text-slate-700">📊</span>
+                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300">📊</span>
                     <span className={`text-xs font-bold ${quarter.neto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(quarter.neto)}
                     </span>
@@ -61,7 +61,7 @@ const QuarterlyAnalysis = ({ quarterlyData, year, barOptions }) => {
 
       {/* Gráfico de Barras Trimestral Compacto */}
       <div className="glass-card rounded-xl p-4">
-        <h3 className="text-sm font-bold text-slate-800 mb-3">📊 Comparación Trimestral</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">📊 Comparación Trimestral</h3>
         <div className="h-64">
           <Bar 
             data={{

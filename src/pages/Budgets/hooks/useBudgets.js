@@ -94,8 +94,9 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
   }, [loadBudgets])
 
   // Eliminar presupuesto
-  const deleteBudget = useCallback(async (budgetId) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este presupuesto?')) {
+  // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
+  const deleteBudget = useCallback(async (budgetId, skipConfirm = false) => {
+    if (!skipConfirm && !window.confirm('¿Estás seguro de que quieres eliminar este presupuesto?')) {
       return
     }
 

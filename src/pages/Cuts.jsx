@@ -205,7 +205,7 @@ const Cuts = ({ onDataAdded }) => {
     <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
       {/* Header Compacto */}
       <div className="glass-card rounded-xl p-4">
-        <h2 className="text-2xl font-bold text-slate-800">💇 Gestión de Cortes</h2>
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">💇 Gestión de Cortes</h2>
       </div>
 
       {/* Estadísticas Rápidas Compactas */}
@@ -260,7 +260,7 @@ const Cuts = ({ onDataAdded }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Formulario de Corte Compacto */}
         <div className="lg:col-span-1 glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">➕ Nuevo Corte</h3>
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4">➕ Nuevo Corte</h3>
           
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* Fecha */}
@@ -318,7 +318,7 @@ const Cuts = ({ onDataAdded }) => {
         {/* Lista de Cortes Recientes Compacta */}
         <div className="lg:col-span-2 glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-slate-800">📋 Cortes Recientes</h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">📋 Cortes Recientes</h3>
             {cuts.length > 0 && (
               <span className="text-xs text-gray-500">{cuts.length} cortes</span>
             )}
@@ -327,7 +327,7 @@ const Cuts = ({ onDataAdded }) => {
           {cuts.length > 0 ? (
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {cuts.slice(0, 10).map((cut) => (
-                <div key={cut.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div key={cut.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                     <div className="p-1.5 bg-white rounded-lg flex-shrink-0">
                       <span className="text-lg">{getCutIcon(cut.tipo_corte)}</span>
@@ -348,7 +348,7 @@ const Cuts = ({ onDataAdded }) => {
           ) : (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">💇</div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">No hay cortes registrados</h3>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">No hay cortes registrados</h3>
               <p className="text-xs text-gray-500">Registra tu primer corte usando el formulario</p>
             </div>
           )}
@@ -358,7 +358,7 @@ const Cuts = ({ onDataAdded }) => {
       {/* Estadísticas por Tipo de Corte */}
       {cuts.length > 0 && cortesPorTipo.some(c => c.cantidad > 0) && (
         <div className="glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-slate-800 mb-3">📊 Por Tipo de Corte</h3>
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3">📊 Por Tipo de Corte</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {cortesPorTipo.map((item, index) => {
               if (item.cantidad === 0) return null

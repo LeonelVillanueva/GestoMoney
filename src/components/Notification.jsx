@@ -21,13 +21,13 @@ const Notification = ({ message, type = 'info', duration = 3000, onClose }) => {
   const getTypeStyles = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-500 text-white'
+        return 'bg-green-500 dark:bg-green-600 text-white'
       case 'error':
-        return 'bg-red-500 text-white'
+        return 'bg-red-500 dark:bg-red-600 text-white'
       case 'warning':
-        return 'bg-yellow-500 text-black'
+        return 'bg-yellow-500 dark:bg-yellow-600 text-black dark:text-white'
       default:
-        return 'bg-slate-500 text-white'
+        return 'bg-slate-500 dark:bg-slate-600 text-white'
     }
   }
 

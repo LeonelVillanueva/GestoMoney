@@ -196,3 +196,4 @@ export function sanitizeCategory(categoryData) {
     description: categoryData.description || categoryData.descripcion ? sanitizeString(categoryData.description || categoryData.descripcion).substring(0, 500) : ''
   }
 }
+ 
