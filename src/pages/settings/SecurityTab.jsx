@@ -1,19 +1,35 @@
 import React, { useState, useRef, useEffect } from 'react'
 import useSecurityPin from '../../hooks/useSecurityPin'
+import { useAuth } from '../../contexts/AuthContext'
 import notifications from '../../utils/services/notifications'
 
 export default function SecurityTab() {
   const { hasPin, loading, setPin, changePin, removePin, checkPinExists } = useSecurityPin()
+  const { user, changePassword, changeEmail, verifyPassword } = useAuth()
   
-  // Estados para configurar nuevo PIN
+  // Estados para PIN
   const [newPin, setNewPin] = useState(['', '', '', '', '', ''])
   const [confirmPin, setConfirmPin] = useState(['', '', '', '', '', ''])
   const [currentPinForChange, setCurrentPinForChange] = useState(['', '', '', '', '', ''])
   const [currentPinForRemove, setCurrentPinForRemove] = useState(['', '', '', '', '', ''])
-  
-  const [mode, setMode] = useState('view') // 'view', 'setup', 'change', 'remove'
+  const [mode, setMode] = useState('view')
   const [error, setError] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+
+  // Estados para contraseña
+  const [passwordMode, setPasswordMode] = useState('view')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+
+  // Estados para email
+  const [emailMode, setEmailMode] = useState('view')
+  const [newEmail, setNewEmail] = useState('')
+  const [emailPassword, setEmailPassword] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [isChangingEmail, setIsChangingEmail] = useState(false)
   
   const newPinRefs = useRef([])
   const confirmPinRefs = useRef([])
@@ -33,26 +49,88 @@ export default function SecurityTab() {
     setMode('view')
   }
 
+  const resetPasswordForm = () => {
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordError('')
+    setPasswordMode('view')
+  }
+
+  const resetEmailForm = () => {
+    setNewEmail('')
+    setEmailPassword('')
+    setEmailError('')
+    setEmailMode('view')
+  }
+
+  // Cambio de contraseña
+  const handleChangePassword = async () => {
+    setPasswordError('')
+    if (!currentPassword) return setPasswordError('Ingresa tu contraseña actual')
+    if (!newPassword) return setPasswordError('Ingresa la nueva contraseña')
+    if (newPassword.length < 6) return setPasswordError('Mínimo 6 caracteres')
+    if (newPassword !== confirmPassword) return setPasswordError('Las contraseñas no coinciden')
+    if (currentPassword === newPassword) return setPasswordError('Debe ser diferente a la actual')
+
+    setIsChangingPassword(true)
+    const verifyResult = await verifyPassword(currentPassword)
+    if (!verifyResult.success) {
+      setPasswordError(verifyResult.error)
+      setIsChangingPassword(false)
+      return
+    }
+
+    const result = await changePassword(newPassword)
+    setIsChangingPassword(false)
+    if (result.success) {
+      notifications.showSync('✅ Contraseña cambiada', 'success')
+      resetPasswordForm()
+    } else {
+      setPasswordError(result.error)
+    }
+  }
+
+  // Cambio de email
+  const handleChangeEmail = async () => {
+    setEmailError('')
+    if (!newEmail) return setEmailError('Ingresa el nuevo email')
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(newEmail.trim())) return setEmailError('Email no válido')
+    if (newEmail.trim().toLowerCase() === user?.email?.toLowerCase()) return setEmailError('Debe ser diferente al actual')
+    if (!emailPassword) return setEmailError('Ingresa tu contraseña')
+
+    setIsChangingEmail(true)
+    const verifyResult = await verifyPassword(emailPassword)
+    if (!verifyResult.success) {
+      setEmailError('Contraseña incorrecta')
+      setIsChangingEmail(false)
+      return
+    }
+
+    const result = await changeEmail(newEmail)
+    setIsChangingEmail(false)
+    if (result.success) {
+      notifications.showSync('📧 Enlace de confirmación enviado', 'success')
+      resetEmailForm()
+    } else {
+      setEmailError(result.error)
+    }
+  }
+
+  // Funciones PIN
   const handlePinInput = (value, index, pinArray, setPinArray, refs, nextRefs) => {
     if (value && !/^\d$/.test(value)) return
-    
     const newArray = [...pinArray]
     newArray[index] = value
     setPinArray(newArray)
     setError('')
-
-    if (value && index < 5) {
-      refs.current[index + 1]?.focus()
-    } else if (value && index === 5 && nextRefs) {
-      // Si completamos este PIN, mover al siguiente campo
-      nextRefs.current[0]?.focus()
-    }
+    if (value && index < 5) refs.current[index + 1]?.focus()
+    else if (value && index === 5 && nextRefs) nextRefs.current[0]?.focus()
   }
 
   const handleKeyDown = (e, index, pinArray, setPinArray, refs) => {
-    if (e.key === 'Backspace' && !pinArray[index] && index > 0) {
-      refs.current[index - 1]?.focus()
-    }
+    if (e.key === 'Backspace' && !pinArray[index] && index > 0) refs.current[index - 1]?.focus()
   }
 
   const handlePaste = (e, setPinArray, refs) => {
@@ -67,65 +145,42 @@ export default function SecurityTab() {
   const handleSetupPin = async () => {
     const pin1 = newPin.join('')
     const pin2 = confirmPin.join('')
-
-    if (pin1.length !== 6) {
-      setError('Ingresa un PIN de 6 dígitos')
-      return
-    }
-
+    if (pin1.length !== 6) return setError('PIN de 6 dígitos requerido')
     if (pin1 !== pin2) {
       setError('Los PINs no coinciden')
       setConfirmPin(['', '', '', '', '', ''])
       confirmPinRefs.current[0]?.focus()
       return
     }
-
     setIsProcessing(true)
     const result = await setPin(pin1)
     setIsProcessing(false)
-
     if (result.success) {
-      notifications.showSync('✅ PIN de seguridad configurado correctamente', 'success')
+      notifications.showSync('✅ PIN configurado', 'success')
       resetForm()
       checkPinExists()
-    } else {
-      setError(result.error)
-    }
+    } else setError(result.error)
   }
 
   const handleChangePin = async () => {
     const currentPin = currentPinForChange.join('')
     const pin1 = newPin.join('')
     const pin2 = confirmPin.join('')
-
-    if (currentPin.length !== 6) {
-      setError('Ingresa tu PIN actual')
-      return
-    }
-
-    if (pin1.length !== 6) {
-      setError('Ingresa el nuevo PIN de 6 dígitos')
-      return
-    }
-
+    if (currentPin.length !== 6) return setError('Ingresa tu PIN actual')
+    if (pin1.length !== 6) return setError('PIN de 6 dígitos requerido')
     if (pin1 !== pin2) {
-      setError('Los nuevos PINs no coinciden')
+      setError('Los PINs no coinciden')
       setConfirmPin(['', '', '', '', '', ''])
       confirmPinRefs.current[0]?.focus()
       return
     }
-
-    if (currentPin === pin1) {
-      setError('El nuevo PIN debe ser diferente al actual')
-      return
-    }
+    if (currentPin === pin1) return setError('Debe ser diferente al actual')
 
     setIsProcessing(true)
     const result = await changePin(currentPin, pin1)
     setIsProcessing(false)
-
     if (result.success) {
-      notifications.showSync('✅ PIN cambiado correctamente', 'success')
+      notifications.showSync('✅ PIN cambiado', 'success')
       resetForm()
     } else {
       setError(result.error)
@@ -138,18 +193,12 @@ export default function SecurityTab() {
 
   const handleRemovePin = async () => {
     const pin = currentPinForRemove.join('')
-
-    if (pin.length !== 6) {
-      setError('Ingresa tu PIN actual para confirmar')
-      return
-    }
-
+    if (pin.length !== 6) return setError('Ingresa tu PIN actual')
     setIsProcessing(true)
     const result = await removePin(pin)
     setIsProcessing(false)
-
     if (result.success) {
-      notifications.showSync('🔓 PIN de seguridad eliminado', 'warning')
+      notifications.showSync('🔓 PIN eliminado', 'warning')
       resetForm()
       checkPinExists()
     } else {
@@ -160,10 +209,7 @@ export default function SecurityTab() {
   }
 
   const renderPinInput = (pinArray, setPinArray, refs, nextRefs = null, disabled = false) => (
-    <div 
-      className="flex justify-center gap-2"
-      onPaste={(e) => handlePaste(e, setPinArray, refs)}
-    >
+    <div className="flex justify-center gap-1.5" onPaste={(e) => handlePaste(e, setPinArray, refs)}>
       {pinArray.map((digit, index) => (
         <input
           key={index}
@@ -174,7 +220,7 @@ export default function SecurityTab() {
           value={digit}
           onChange={(e) => handlePinInput(e.target.value, index, pinArray, setPinArray, refs, nextRefs)}
           onKeyDown={(e) => handleKeyDown(e, index, pinArray, setPinArray, refs)}
-          className="w-10 h-12 text-center text-xl font-bold border-2 rounded-lg transition-all
+          className="w-9 h-10 text-center text-lg font-bold border-2 rounded-lg transition-all
             border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400
             bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200
             focus:outline-none focus:ring-2 focus:ring-blue-500/20
@@ -187,266 +233,237 @@ export default function SecurityTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">🔐 PIN de Seguridad</h3>
-        <p className="text-xs text-slate-600 dark:text-slate-400">
-          Configura un PIN de 6 dígitos para proteger las acciones de eliminación de datos.
-        </p>
-      </div>
-
-      {/* Estado actual */}
-      <div className={`p-4 rounded-lg border ${
-        hasPin 
-          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' 
-          : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
-      }`}>
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{hasPin ? '🔒' : '🔓'}</span>
-          <div>
-            <p className={`font-medium ${hasPin ? 'text-green-700 dark:text-green-300' : 'text-yellow-700 dark:text-yellow-300'}`}>
-              {hasPin ? 'PIN de seguridad activo' : 'Sin PIN de seguridad'}
-            </p>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              {hasPin 
-                ? 'Tus datos están protegidos. Se pedirá el PIN antes de eliminar.' 
-                : 'Configura un PIN para proteger tus datos de eliminaciones accidentales.'}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Modo Vista - Botones de acción */}
-      {mode === 'view' && (
-        <div className="space-y-3">
-          {!hasPin ? (
-            <button
-              onClick={() => {
-                setMode('setup')
-                setTimeout(() => newPinRefs.current[0]?.focus(), 100)
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-            >
-              🔐 Configurar PIN de Seguridad
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={() => {
-                  setMode('change')
-                  setTimeout(() => currentPinRefs.current[0]?.focus(), 100)
-                }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-              >
-                🔄 Cambiar PIN
-              </button>
-              <button
-                onClick={() => {
-                  setMode('remove')
-                  setTimeout(() => removePinRefs.current[0]?.focus(), 100)
-                }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 rounded-lg font-medium transition-colors"
-              >
-                🗑️ Eliminar PIN
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Modo Setup - Configurar nuevo PIN */}
-      {mode === 'setup' && (
-        <div className="space-y-4 p-4 bg-gray-50 dark:bg-slate-700 rounded-lg">
-          <h4 className="text-sm font-medium text-slate-800 dark:text-slate-200 text-center">
-            Configura tu nuevo PIN de 6 dígitos
-          </h4>
-          
-          <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Cuenta */}
+      <div className="p-3 rounded-lg bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">👤</span>
             <div>
-              <label className="block text-xs text-slate-600 dark:text-slate-400 text-center mb-2">
-                Nuevo PIN
-              </label>
-              {renderPinInput(newPin, setNewPin, newPinRefs, confirmPinRefs)}
-            </div>
-            
-            <div>
-              <label className="block text-xs text-slate-600 dark:text-slate-400 text-center mb-2">
-                Confirmar PIN
-              </label>
-              {renderPinInput(confirmPin, setConfirmPin, confirmPinRefs)}
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{user?.email || 'No disponible'}</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">Email de la cuenta</p>
             </div>
           </div>
-
-          {error && (
-            <p className="text-center text-red-500 text-sm">❌ {error}</p>
-          )}
-
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <button
-              onClick={resetForm}
-              disabled={isProcessing}
-              className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500 rounded-lg font-medium transition-colors disabled:opacity-50"
+              onClick={() => { setPasswordMode(passwordMode === 'view' ? 'change' : 'view'); resetEmailForm() }}
+              className={`px-2 py-1 text-xs rounded-lg font-medium transition-colors ${
+                passwordMode === 'change' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-500'
+              }`}
             >
-              Cancelar
+              🔑
             </button>
             <button
-              onClick={handleSetupPin}
-              disabled={isProcessing || newPin.some(d => !d) || confirmPin.some(d => !d)}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              onClick={() => { setEmailMode(emailMode === 'view' ? 'change' : 'view'); resetPasswordForm() }}
+              className={`px-2 py-1 text-xs rounded-lg font-medium transition-colors ${
+                emailMode === 'change' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-500'
+              }`}
             >
-              {isProcessing ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Guardando...
-                </>
+              📧
+            </button>
+          </div>
+        </div>
+
+        {/* Form Contraseña */}
+        {passwordMode === 'change' && (
+          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 space-y-2">
+            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">Cambiar contraseña</p>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError('') }}
+              className="w-full px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs"
+              placeholder="Contraseña actual"
+              disabled={isChangingPassword}
+            />
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => { setNewPassword(e.target.value); setPasswordError('') }}
+              className="w-full px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs"
+              placeholder="Nueva contraseña (mín. 6)"
+              disabled={isChangingPassword}
+            />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError('') }}
+              className="w-full px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs"
+              placeholder="Confirmar nueva"
+              disabled={isChangingPassword}
+            />
+            {passwordError && <p className="text-red-500 text-xs">❌ {passwordError}</p>}
+            <div className="flex gap-2">
+              <button onClick={resetPasswordForm} disabled={isChangingPassword} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
+              <button
+                onClick={handleChangePassword}
+                disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}
+                className="flex-1 px-2 py-1.5 text-xs bg-blue-600 text-white rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-1"
+              >
+                {isChangingPassword ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Form Email */}
+        {emailMode === 'change' && (
+          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-600 space-y-2">
+            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">Cambiar email</p>
+            <p className="text-[10px] text-yellow-600 dark:text-yellow-400">⚠️ Se enviará confirmación al nuevo email</p>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => { setNewEmail(e.target.value); setEmailError('') }}
+              className="w-full px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs"
+              placeholder="Nuevo email"
+              disabled={isChangingEmail}
+            />
+            <input
+              type="password"
+              value={emailPassword}
+              onChange={(e) => { setEmailPassword(e.target.value); setEmailError('') }}
+              className="w-full px-2 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs"
+              placeholder="Tu contraseña"
+              disabled={isChangingEmail}
+            />
+            {emailError && <p className="text-red-500 text-xs">❌ {emailError}</p>}
+            <div className="flex gap-2">
+              <button onClick={resetEmailForm} disabled={isChangingEmail} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
+              <button
+                onClick={handleChangeEmail}
+                disabled={isChangingEmail || !newEmail || !emailPassword}
+                className="flex-1 px-2 py-1.5 text-xs bg-purple-600 text-white rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-1"
+              >
+                {isChangingEmail ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* PIN de Seguridad */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">{hasPin ? '🔒' : '🔓'}</span>
+            <div>
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-200">PIN de Seguridad</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                {hasPin ? 'Activo - Protege eliminación/edición' : 'Sin PIN configurado'}
+              </p>
+            </div>
+          </div>
+          {mode === 'view' && (
+            <div className="flex gap-2">
+              {!hasPin ? (
+                <button
+                  onClick={() => { setMode('setup'); setTimeout(() => newPinRefs.current[0]?.focus(), 100) }}
+                  className="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+                >
+                  Configurar
+                </button>
               ) : (
-                'Guardar PIN'
+                <>
+                  <button
+                    onClick={() => { setMode('change'); setTimeout(() => currentPinRefs.current[0]?.focus(), 100) }}
+                    className="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
+                  >
+                    Cambiar
+                  </button>
+                  <button
+                    onClick={() => { setMode('remove'); setTimeout(() => removePinRefs.current[0]?.focus(), 100) }}
+                    className="px-2 py-1 text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-lg font-medium"
+                  >
+                    Eliminar
+                  </button>
+                </>
               )}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modo Change - Cambiar PIN */}
-      {mode === 'change' && (
-        <div className="space-y-4 p-4 bg-gray-50 dark:bg-slate-700 rounded-lg">
-          <h4 className="text-sm font-medium text-slate-800 dark:text-slate-200 text-center">
-            Cambiar PIN de seguridad
-          </h4>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs text-slate-600 dark:text-slate-400 text-center mb-2">
-                PIN Actual
-              </label>
-              {renderPinInput(currentPinForChange, setCurrentPinForChange, currentPinRefs, newPinRefs)}
             </div>
-            
+          )}
+        </div>
+
+        {/* Setup PIN */}
+        {mode === 'setup' && (
+          <div className="p-3 bg-gray-50 dark:bg-slate-700 rounded-lg space-y-3">
+            <p className="text-xs font-medium text-slate-700 dark:text-slate-300 text-center">Nuevo PIN (6 dígitos)</p>
+            {renderPinInput(newPin, setNewPin, newPinRefs, confirmPinRefs)}
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Confirmar</p>
+            {renderPinInput(confirmPin, setConfirmPin, confirmPinRefs)}
+            {error && <p className="text-red-500 text-xs text-center">❌ {error}</p>}
+            <div className="flex gap-2">
+              <button onClick={resetForm} disabled={isProcessing} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
+              <button
+                onClick={handleSetupPin}
+                disabled={isProcessing || newPin.some(d => !d) || confirmPin.some(d => !d)}
+                className="flex-1 px-2 py-1.5 text-xs bg-green-600 text-white rounded-lg font-medium disabled:opacity-50 flex items-center justify-center"
+              >
+                {isProcessing ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Change PIN */}
+        {mode === 'change' && (
+          <div className="p-3 bg-gray-50 dark:bg-slate-700 rounded-lg space-y-3">
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">PIN Actual</p>
+            {renderPinInput(currentPinForChange, setCurrentPinForChange, currentPinRefs, newPinRefs)}
             <hr className="border-gray-300 dark:border-slate-600" />
-            
-            <div>
-              <label className="block text-xs text-slate-600 dark:text-slate-400 text-center mb-2">
-                Nuevo PIN
-              </label>
-              {renderPinInput(newPin, setNewPin, newPinRefs, confirmPinRefs)}
-            </div>
-            
-            <div>
-              <label className="block text-xs text-slate-600 dark:text-slate-400 text-center mb-2">
-                Confirmar Nuevo PIN
-              </label>
-              {renderPinInput(confirmPin, setConfirmPin, confirmPinRefs)}
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Nuevo PIN</p>
+            {renderPinInput(newPin, setNewPin, newPinRefs, confirmPinRefs)}
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Confirmar</p>
+            {renderPinInput(confirmPin, setConfirmPin, confirmPinRefs)}
+            {error && <p className="text-red-500 text-xs text-center">❌ {error}</p>}
+            <div className="flex gap-2">
+              <button onClick={resetForm} disabled={isProcessing} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
+              <button
+                onClick={handleChangePin}
+                disabled={isProcessing || currentPinForChange.some(d => !d) || newPin.some(d => !d) || confirmPin.some(d => !d)}
+                className="flex-1 px-2 py-1.5 text-xs bg-green-600 text-white rounded-lg font-medium disabled:opacity-50 flex items-center justify-center"
+              >
+                {isProcessing ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : 'Cambiar'}
+              </button>
             </div>
           </div>
+        )}
 
-          {error && (
-            <p className="text-center text-red-500 text-sm">❌ {error}</p>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={resetForm}
-              disabled={isProcessing}
-              className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500 rounded-lg font-medium transition-colors disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleChangePin}
-              disabled={isProcessing || currentPinForChange.some(d => !d) || newPin.some(d => !d) || confirmPin.some(d => !d)}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {isProcessing ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Cambiando...
-                </>
-              ) : (
-                'Cambiar PIN'
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Modo Remove - Eliminar PIN */}
-      {mode === 'remove' && (
-        <div className="space-y-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-          <h4 className="text-sm font-medium text-red-700 dark:text-red-300 text-center">
-            ⚠️ Eliminar PIN de seguridad
-          </h4>
-          
-          <p className="text-xs text-red-600 dark:text-red-400 text-center">
-            Esto deshabilitará la protección de eliminación. Cualquier persona con acceso podrá eliminar datos sin confirmación adicional.
-          </p>
-          
-          <div>
-            <label className="block text-xs text-slate-600 dark:text-slate-400 text-center mb-2">
-              Ingresa tu PIN actual para confirmar
-            </label>
+        {/* Remove PIN */}
+        {mode === 'remove' && (
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 space-y-3">
+            <p className="text-xs text-red-600 dark:text-red-400 text-center">⚠️ Esto deshabilitará la protección</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">Ingresa tu PIN actual</p>
             {renderPinInput(currentPinForRemove, setCurrentPinForRemove, removePinRefs)}
+            {error && <p className="text-red-500 text-xs text-center">❌ {error}</p>}
+            <div className="flex gap-2">
+              <button onClick={resetForm} disabled={isProcessing} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
+              <button
+                onClick={handleRemovePin}
+                disabled={isProcessing || currentPinForRemove.some(d => !d)}
+                className="flex-1 px-2 py-1.5 text-xs bg-red-600 text-white rounded-lg font-medium disabled:opacity-50 flex items-center justify-center"
+              >
+                {isProcessing ? <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div> : 'Eliminar'}
+              </button>
+            </div>
           </div>
-
-          {error && (
-            <p className="text-center text-red-500 text-sm">❌ {error}</p>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              onClick={resetForm}
-              disabled={isProcessing}
-              className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500 rounded-lg font-medium transition-colors disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleRemovePin}
-              disabled={isProcessing || currentPinForRemove.some(d => !d)}
-              className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {isProcessing ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Eliminando...
-                </>
-              ) : (
-                '🗑️ Eliminar PIN'
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Información adicional */}
-      <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-        <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
-          ℹ️ ¿Qué protege el PIN?
-        </h4>
-        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">🗑️ Eliminación:</p>
-        <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1 mb-3">
-          <li>• Gastos individuales</li>
-          <li>• Compras de supermercado</li>
-          <li>• Cortes</li>
-          <li>• Categorías y configuraciones</li>
-          <li>• Presupuestos</li>
-        </ul>
-        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">✏️ Edición:</p>
-        <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
-          <li>• Gastos individuales</li>
-          <li>• Compras de supermercado</li>
-          <li>• Cortes</li>
-          <li>• Categorías, tipos de corte y supermercados</li>
-          <li>• Presupuestos</li>
-        </ul>
+        )}
       </div>
+
+      {/* Info PIN */}
+      <details className="text-xs">
+        <summary className="text-blue-600 dark:text-blue-400 cursor-pointer font-medium">ℹ️ ¿Qué protege el PIN?</summary>
+        <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400 space-y-1">
+          <p><strong>🗑️ Eliminación:</strong> Gastos, compras, cortes, categorías, presupuestos</p>
+          <p><strong>✏️ Edición:</strong> Gastos, compras, cortes, categorías, presupuestos</p>
+        </div>
+      </details>
     </div>
   )
 }

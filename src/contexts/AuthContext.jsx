@@ -152,15 +152,127 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  /**
+   * Cambia la contraseña del usuario
+   * @param {string} newPassword - Nueva contraseña
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
+  const changePassword = async (newPassword) => {
+    try {
+      logger.log('Intentando cambiar contraseña')
+      
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) {
+        logger.error('Error al cambiar contraseña:', error.message)
+        
+        // Traducir mensajes de error comunes
+        let errorMessage = error.message
+        if (error.message.includes('should be at least')) {
+          errorMessage = 'La contraseña debe tener al menos 6 caracteres'
+        } else if (error.message.includes('same as')) {
+          errorMessage = 'La nueva contraseña debe ser diferente a la actual'
+        }
+        
+        return { success: false, error: errorMessage }
+      }
+
+      logger.log('Contraseña cambiada exitosamente')
+      return { success: true }
+    } catch (error) {
+      logger.error('Error en changePassword:', error)
+      return {
+        success: false,
+        error: 'Error al cambiar la contraseña. Intenta nuevamente.'
+      }
+    }
+  }
+
+  /**
+   * Cambia el email del usuario
+   * @param {string} newEmail - Nuevo email
+   * @returns {Promise<{success: boolean, error?: string, needsConfirmation?: boolean}>}
+   */
+  const changeEmail = async (newEmail) => {
+    try {
+      logger.log('Intentando cambiar email a:', newEmail)
+      
+      const { data, error } = await supabase.auth.updateUser({
+        email: newEmail.trim().toLowerCase()
+      })
+
+      if (error) {
+        logger.error('Error al cambiar email:', error.message)
+        
+        // Traducir mensajes de error comunes
+        let errorMessage = error.message
+        if (error.message.includes('already registered')) {
+          errorMessage = 'Este email ya está registrado'
+        } else if (error.message.includes('invalid')) {
+          errorMessage = 'El email no es válido'
+        }
+        
+        return { success: false, error: errorMessage }
+      }
+
+      logger.log('Solicitud de cambio de email enviada')
+      
+      // Supabase envía un email de confirmación al nuevo correo
+      return { 
+        success: true, 
+        needsConfirmation: true,
+        message: 'Se ha enviado un enlace de confirmación al nuevo email'
+      }
+    } catch (error) {
+      logger.error('Error en changeEmail:', error)
+      return {
+        success: false,
+        error: 'Error al cambiar el email. Intenta nuevamente.'
+      }
+    }
+  }
+
+  /**
+   * Verifica la contraseña actual del usuario
+   * @param {string} password - Contraseña a verificar
+   * @returns {Promise<{success: boolean, error?: string}>}
+   */
+  const verifyPassword = async (password) => {
+    try {
+      if (!user?.email) {
+        return { success: false, error: 'No hay sesión activa' }
+      }
+
+      // Re-autenticar con la contraseña actual
+      const { error } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: password
+      })
+
+      if (error) {
+        return { success: false, error: 'Contraseña incorrecta' }
+      }
+
+      return { success: true }
+    } catch (error) {
+      logger.error('Error verificando contraseña:', error)
+      return { success: false, error: 'Error al verificar la contraseña' }
+    }
+  }
+
   const value = {
     isAuthenticated,
     isChecking,
     user,
     login,
     logout,
-    getSession
+    getSession,
+    changePassword,
+    changeEmail,
+    verifyPassword
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
-
