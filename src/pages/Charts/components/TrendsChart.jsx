@@ -118,75 +118,75 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
 
   // Opciones del gráfico (reutilizables)
   const chartOptions = {
-    ...lineOptions,
-    plugins: {
-      ...lineOptions.plugins,
-      ...(period === 'all' ? {
-        // Zoom limitado y pan horizontal para período 'all'
-        zoom: {
-          zoom: {
-            wheel: {
-              enabled: true,
+            ...lineOptions,
+            plugins: {
+              ...lineOptions.plugins,
+              ...(period === 'all' ? {
+                // Zoom limitado y pan horizontal para período 'all'
+                zoom: {
+                  zoom: {
+                    wheel: {
+                      enabled: true,
               speed: 0.04
-            },
-            pinch: {
-              enabled: true
-            },
-            mode: 'x',
-            limits: {
-              x: {
-                min: (ctx) => {
-                  if (!ctx.chart || !ctx.chart.data || !ctx.chart.data.labels) return undefined
-                  const totalPoints = ctx.chart.data.labels.length
+                    },
+                    pinch: {
+                      enabled: true
+                    },
+                    mode: 'x',
+                    limits: {
+                      x: {
+                        min: (ctx) => {
+                          if (!ctx.chart || !ctx.chart.data || !ctx.chart.data.labels) return undefined
+                          const totalPoints = ctx.chart.data.labels.length
                   if (totalPoints <= 30) return undefined
-                  return Math.max(0, totalPoints - Math.floor(totalPoints * 0.3))
-                },
-                max: (ctx) => {
-                  if (!ctx.chart || !ctx.chart.data || !ctx.chart.data.labels) return undefined
-                  const totalPoints = ctx.chart.data.labels.length
+                          return Math.max(0, totalPoints - Math.floor(totalPoints * 0.3))
+                        },
+                        max: (ctx) => {
+                          if (!ctx.chart || !ctx.chart.data || !ctx.chart.data.labels) return undefined
+                          const totalPoints = ctx.chart.data.labels.length
                   if (totalPoints <= 30) return undefined
-                  return Math.min(totalPoints - 1, Math.ceil(totalPoints * 0.3))
+                          return Math.min(totalPoints - 1, Math.ceil(totalPoints * 0.3))
+                        }
+                      },
+                      y: { min: 'original', max: 'original' }
+                    }
+                  },
+                  pan: {
+                    enabled: true,
+                    mode: 'x',
+                    limits: {
+                      x: { min: 'original', max: 'original' },
+                      y: { min: 'original', max: 'original' }
+                    }
+                  }
                 }
-              },
-              y: { min: 'original', max: 'original' }
+              } : {
+                zoom: {
+                  zoom: {
+                    wheel: {
+                      enabled: true,
+                      speed: 0.1
+                    },
+                    pinch: {
+                      enabled: true
+                    },
+                    mode: 'x',
+                    limits: {
+                      x: { min: 'original', max: 'original' },
+                      y: { min: 'original', max: 'original' }
+                    }
+                  },
+                  pan: {
+                    enabled: true,
+                    mode: 'x',
+                    limits: {
+                      x: { min: 'original', max: 'original' },
+                      y: { min: 'original', max: 'original' }
+                    }
+                  }
+                }
+              })
             }
-          },
-          pan: {
-            enabled: true,
-            mode: 'x',
-            limits: {
-              x: { min: 'original', max: 'original' },
-              y: { min: 'original', max: 'original' }
-            }
-          }
-        }
-      } : {
-        zoom: {
-          zoom: {
-            wheel: {
-              enabled: true,
-              speed: 0.1
-            },
-            pinch: {
-              enabled: true
-            },
-            mode: 'x',
-            limits: {
-              x: { min: 'original', max: 'original' },
-              y: { min: 'original', max: 'original' }
-            }
-          },
-          pan: {
-            enabled: true,
-            mode: 'x',
-            limits: {
-              x: { min: 'original', max: 'original' },
-              y: { min: 'original', max: 'original' }
-            }
-          }
-        }
-      })
-    }
   }
 
   const ChartContent = () => (
@@ -194,7 +194,7 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
       ref={lineChartRef}
       data={chartData.line} 
       options={chartOptions} 
-    />
+        />
   )
 
   // Si está en fullscreen, mostrar modal usando Portal (fuera del DOM normal)

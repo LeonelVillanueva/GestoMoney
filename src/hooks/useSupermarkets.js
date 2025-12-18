@@ -34,9 +34,12 @@ export default function useSupermarkets(active) {
     notifications.showSync('✅ Supermercado agregado', 'success')
   }, [newSupermarket, list, load])
 
-  const removeItem = useCallback(async (name) => {
-    const confirmed = window.confirm(`¿Eliminar "${name}"?`)
-    if (!confirmed) return
+  // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
+  const removeItem = useCallback(async (name, skipConfirm = false) => {
+    if (!skipConfirm) {
+      const confirmed = window.confirm(`¿Eliminar "${name}"?`)
+      if (!confirmed) return
+    }
     const updated = list.filter(s => s !== name)
     await database.setConfig('supermercados_por_defecto', JSON.stringify(updated))
     await load()

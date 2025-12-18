@@ -5,6 +5,7 @@ import { useViewDataFilters } from './hooks/useViewDataFilters'
 import SearchBar from './components/SearchBar'
 import Pagination from './components/Pagination'
 import EditForm from './components/EditForm'
+import DeleteConfirmModal from '../../components/DeleteConfirmModal'
 import { formatCurrency, formatDate, convertToCSV } from './utils/viewDataFormatters'
 import { getCategoryIcon, getSupermarketIcon, getCutIcon, downloadCSVFile } from './utils/viewDataHelpers'
 import notifications from '../../utils/services/notifications'
@@ -13,6 +14,14 @@ import DateInput from '../../components/DateInput'
 const ViewData = ({ onDataChanged }) => {
   const [activeTab, setActiveTab] = useState('gastos')
   const itemsPerPage = 25
+  
+  // Estado para el modal de confirmación de eliminación
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemId: null,
+    itemType: null,
+    itemName: ''
+  })
 
   // Hooks personalizados
   const {
@@ -102,6 +111,44 @@ const ViewData = ({ onDataChanged }) => {
     'Corte + tinte', 'Corte + mechas', 'Tratamiento capilar', 'Otros'
   ]
 
+  // Función para abrir el modal de confirmación de eliminación
+  const openDeleteModal = useCallback((item, type) => {
+    let itemName = ''
+    switch (type) {
+      case 'gastos':
+        itemName = `${item.descripcion || 'Gasto'} - ${formatCurrency(item.monto)}`
+        break
+      case 'supermercado':
+        itemName = `${item.supermercado} - ${formatCurrency(item.monto)}`
+        break
+      case 'cortes':
+        itemName = `${item.tipo_corte} - ${formatDate(item.fecha)}`
+        break
+      default:
+        itemName = 'Este registro'
+    }
+
+    setDeleteModal({
+      isOpen: true,
+      itemId: item.id,
+      itemType: type,
+      itemName
+    })
+  }, [])
+
+  // Función para confirmar la eliminación (llamada después de verificar el PIN)
+  const confirmDelete = useCallback(async () => {
+    if (deleteModal.itemId && deleteModal.itemType) {
+      await deleteItem(deleteModal.itemId, deleteModal.itemType, true) // true = skip confirm
+    }
+    setDeleteModal({ isOpen: false, itemId: null, itemType: null, itemName: '' })
+  }, [deleteModal, deleteItem])
+
+  // Cerrar modal sin eliminar
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModal({ isOpen: false, itemId: null, itemType: null, itemName: '' })
+  }, [])
+
   const tabs = [
     { id: 'gastos', label: 'Gastos', icon: '💰', count: expenses.length },
     { id: 'supermercado', label: 'Supermercado', icon: '🛒', count: supermarketPurchases.length },
@@ -172,7 +219,7 @@ const ViewData = ({ onDataChanged }) => {
                           ✏️
                         </button>
                         <button
-                          onClick={() => deleteItem(expense.id, 'gastos')}
+                          onClick={() => openDeleteModal(expense, 'gastos')}
                           className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
                           title="Eliminar"
                         >
@@ -265,7 +312,7 @@ const ViewData = ({ onDataChanged }) => {
                           ✏️
                         </button>
                         <button
-                          onClick={() => deleteItem(purchase.id, 'supermercado')}
+                          onClick={() => openDeleteModal(purchase, 'supermercado')}
                           className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
                           title="Eliminar"
                         >
@@ -355,7 +402,7 @@ const ViewData = ({ onDataChanged }) => {
                         ✏️
                       </button>
                       <button
-                        onClick={() => deleteItem(cut.id, 'cortes')}
+                        onClick={() => openDeleteModal(cut, 'cortes')}
                         className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
                         title="Eliminar"
                       >
@@ -533,6 +580,16 @@ const ViewData = ({ onDataChanged }) => {
           )}
         </div>
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="¿Eliminar este registro?"
+        message="Esta acción no se puede deshacer."
+        itemName={deleteModal.itemName}
+      />
     </div>
   )
 }

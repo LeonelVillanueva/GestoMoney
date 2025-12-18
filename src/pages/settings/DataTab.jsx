@@ -18,16 +18,16 @@ export default function DataTab({ settings, onSettingChange, active }) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-slate-800 mb-3">💾 Gestión de Datos</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">💾 Gestión de Datos</h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
             <div>
-              <div className="text-sm font-medium text-gray-800">Respaldo automático</div>
-              <div className="text-xs text-gray-600">Crear respaldos automáticos</div>
+              <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Respaldo automático</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">Crear respaldos automáticos</div>
             </div>
             <button
               onClick={() => onSettingChange('respaldo_automatico', (settings.respaldo_automatico || 'true') === 'true' ? 'false' : 'true')}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full ${ (settings.respaldo_automatico || 'true') === 'true' ? 'bg-blue-600' : 'bg-gray-300' }`}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full ${ (settings.respaldo_automatico || 'true') === 'true' ? 'bg-blue-600' : 'bg-gray-300 dark:bg-slate-500' }`}
             >
               <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition ${ (settings.respaldo_automatico || 'true') === 'true' ? 'translate-x-5' : 'translate-x-1' }`} />
             </button>
@@ -35,11 +35,11 @@ export default function DataTab({ settings, onSettingChange, active }) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Frecuencia de respaldo</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Frecuencia de respaldo</label>
               <select
                 value={settings.frecuencia_respaldo || 'weekly'}
                 onChange={(e) => onSettingChange('frecuencia_respaldo', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="daily">Diario</option>
                 <option value="weekly">Semanal</option>
@@ -48,11 +48,11 @@ export default function DataTab({ settings, onSettingChange, active }) {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Retención de datos</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Retención de datos</label>
               <select
                 value={settings.dataRetention || 'forever'}
                 onChange={(e) => onSettingChange('dataRetention', e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="6months">6 meses</option>
                 <option value="1year">1 año</option>
@@ -65,7 +65,7 @@ export default function DataTab({ settings, onSettingChange, active }) {
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-slate-800 mb-3">📦 Respaldo Manual</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">📦 Respaldo Manual</h3>
         <div className="space-y-2">
           <button
             onClick={async () => {
@@ -93,7 +93,7 @@ export default function DataTab({ settings, onSettingChange, active }) {
           </button>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Restaurar desde backup</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Restaurar desde backup</label>
             <input
               type="file"
               accept="application/json"
@@ -117,14 +117,14 @@ export default function DataTab({ settings, onSettingChange, active }) {
                   e.target.value = ''
                 }
               }}
-              className="block w-full text-xs text-gray-700 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+              className="block w-full text-xs text-gray-700 dark:text-gray-300 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-gray-100 dark:file:bg-slate-600 file:text-gray-700 dark:file:text-gray-200 hover:file:bg-gray-200 dark:hover:file:bg-slate-500"
             />
           </div>
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-slate-800 mb-3">📸 Snapshots</h3>
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">📸 Snapshots</h3>
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -136,7 +136,7 @@ export default function DataTab({ settings, onSettingChange, active }) {
                   notifications.showSync('❌ No se pudo crear snapshot', 'error')
                 }
               }}
-              className="bg-slate-600 hover:bg-slate-700 text-white px-3 py-2 text-sm rounded-lg font-medium transition-colors"
+              className="bg-slate-600 hover:bg-slate-700 dark:bg-slate-500 dark:hover:bg-slate-400 text-white px-3 py-2 text-sm rounded-lg font-medium transition-colors"
             >
               📸 Crear
             </button>
@@ -187,20 +187,20 @@ export default function DataTab({ settings, onSettingChange, active }) {
           </div>
 
           <div>
-            <h5 className="text-xs font-semibold text-gray-800 mb-2">📚 Snapshots guardados ({snapshots.length})</h5>
+            <h5 className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-2">📚 Snapshots guardados ({snapshots.length})</h5>
             {loadingSnapshots ? (
-              <div className="text-xs text-gray-500 py-2">Cargando snapshots...</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 py-2">Cargando snapshots...</div>
             ) : snapshots.length === 0 ? (
-              <div className="text-xs text-gray-500 py-2">No hay snapshots guardados todavía.</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 py-2">No hay snapshots guardados todavía.</div>
             ) : (
               <div className="space-y-1.5 max-h-64 overflow-y-auto">
                 {snapshots.map((snap) => (
-                  <div key={snap.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-2 py-1.5 border border-gray-200">
+                  <div key={snap.id} className="flex items-center justify-between bg-gray-50 dark:bg-slate-700 rounded-lg px-2 py-1.5 border border-gray-200 dark:border-slate-600">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                       <span className="text-xs flex-shrink-0">🗂️</span>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-gray-800 truncate">{new Date(snap.createdAt).toLocaleString()}</div>
-                        <div className="text-xs text-gray-500">{Math.round((snap.sizeBytes || 0)/1024)} KB · {snap.totalRecords || 0} reg.</div>
+                        <div className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">{new Date(snap.createdAt).toLocaleString()}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{Math.round((snap.sizeBytes || 0)/1024)} KB · {snap.totalRecords || 0} reg.</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
@@ -243,13 +243,13 @@ export default function DataTab({ settings, onSettingChange, active }) {
                             notifications.showSync('❌ Error al restaurar snapshot', 'error', 5000)
                           }
                         }}
-                        className="text-indigo-700 hover:text-indigo-900 text-xs px-1.5 py-0.5 border border-indigo-200 rounded"
+                        className="text-indigo-700 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 text-xs px-1.5 py-0.5 border border-indigo-200 dark:border-indigo-600 rounded"
                       >
                         Restaurar
                       </button>
                       <button
                         onClick={() => downloadSnapshot(snap)}
-                        className="text-emerald-700 hover:text-emerald-900 text-xs px-1.5 py-0.5 border border-emerald-200 rounded"
+                        className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300 text-xs px-1.5 py-0.5 border border-emerald-200 dark:border-emerald-600 rounded"
                       >
                         Descargar
                       </button>
@@ -258,7 +258,7 @@ export default function DataTab({ settings, onSettingChange, active }) {
                           await deleteById(snap.id)
                           notifications.showSync('🗑️ Snapshot eliminado', 'warning', 1500)
                         }}
-                        className="text-red-700 hover:text-red-900 text-xs px-1.5 py-0.5 border border-red-200 rounded"
+                        className="text-red-700 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 text-xs px-1.5 py-0.5 border border-red-200 dark:border-red-600 rounded"
                       >
                         Eliminar
                       </button>

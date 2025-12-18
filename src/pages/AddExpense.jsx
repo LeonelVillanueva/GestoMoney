@@ -163,8 +163,8 @@ const AddExpense = ({ onExpenseAdded }) => {
     <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
       {/* Header Compacto */}
       <div className="glass-card rounded-xl p-4">
-        <h2 className="text-2xl font-bold text-gray-800">➕ Agregar Gasto</h2>
-        <p className="text-sm text-gray-500 mt-1">Registra un nuevo gasto o ingreso</p>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">➕ Agregar Gasto</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Registra un nuevo gasto o ingreso</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -175,7 +175,7 @@ const AddExpense = ({ onExpenseAdded }) => {
               {/* Primera fila: Monto, Moneda y Tipo */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                     💰 Monto
                   </label>
                   <input
@@ -187,19 +187,19 @@ const AddExpense = ({ onExpenseAdded }) => {
                     step="0.01"
                     min="0"
                     required
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg font-semibold"
+                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg font-semibold bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                     💱 Moneda
                   </label>
                   <select
                     name="currency"
                     value={formData.currency}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                   >
                     <option value="LPS">LPS</option>
                     <option value="USD">USD</option>
@@ -209,8 +209,8 @@ const AddExpense = ({ onExpenseAdded }) => {
 
               {/* Conversión automática compacta */}
               {formData.currency === 'USD' && formData.amount && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
-                  <div className="flex items-center gap-2 text-sm text-blue-700">
+                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-2.5">
+                  <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
                     <span>💱</span>
                     <span className="font-medium">
                       ${formData.amount} USD = L {calculateConvertedAmount()} LPS
@@ -222,7 +222,7 @@ const AddExpense = ({ onExpenseAdded }) => {
               {/* Segunda fila: Fecha y Tipo (Gasto/Ingreso) */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                     📅 Fecha
                   </label>
                   <CustomDatePicker
@@ -233,18 +233,18 @@ const AddExpense = ({ onExpenseAdded }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                     Tipo
                   </label>
-                  <div className="flex items-center gap-2 p-2.5 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg h-[42px]">
+                  <div className="flex items-center gap-2 p-2.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 border border-blue-200 dark:border-blue-800 rounded-lg h-[42px]">
                     <input
                       type="checkbox"
                       id="es_entrada"
                       checked={formData.es_entrada}
                       onChange={(e) => setFormData(prev => ({ ...prev, es_entrada: e.target.checked }))}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                      className="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-slate-600 border-gray-300 dark:border-slate-500 rounded focus:ring-blue-500 focus:ring-2"
                     />
-                    <label htmlFor="es_entrada" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center gap-2 flex-1">
+                    <label htmlFor="es_entrada" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer flex items-center gap-2 flex-1">
                       <span className="text-lg">{formData.es_entrada ? '💰' : '💸'}</span>
                       <span>{formData.es_entrada ? 'Ingreso' : 'Gasto'}</span>
                     </label>
@@ -254,7 +254,7 @@ const AddExpense = ({ onExpenseAdded }) => {
 
               {/* Descripción */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
                   📝 Descripción
                 </label>
                 <input
@@ -264,23 +264,23 @@ const AddExpense = ({ onExpenseAdded }) => {
                   onChange={handleInputChange}
                   placeholder="Ej: Almuerzo en restaurante"
                   required
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
               {/* Categoría */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
                   🏷️ Categoría
                 </label>
                 {loadingCategories ? (
-                  <div className="text-center py-3 text-gray-500">
+                  <div className="text-center py-3 text-gray-500 dark:text-gray-400">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 mx-auto"></div>
                     <p className="mt-2 text-xs">Cargando...</p>
                   </div>
                 ) : categories.length === 0 ? (
-                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-xs text-yellow-800">
+                  <div className="p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <p className="text-xs text-yellow-800 dark:text-yellow-300">
                       ⚠️ Crea categorías en <strong>Configuración</strong>
                     </p>
                   </div>
@@ -293,13 +293,13 @@ const AddExpense = ({ onExpenseAdded }) => {
                         onClick={() => setFormData(prev => ({ ...prev, category: category.id }))}
                         className={`p-3 rounded-lg border-2 transition-all ${
                           formData.category === category.id || formData.category === String(category.id)
-                            ? 'border-blue-500 bg-blue-50 shadow-sm scale-105'
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 shadow-sm scale-105'
+                            : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500 hover:bg-gray-50 dark:hover:bg-slate-700'
                         }`}
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-xl">{category.icon}</span>
-                          <span className="text-xs font-medium text-gray-700 text-center leading-tight">
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">
                             {category.label}
                           </span>
                         </div>
@@ -336,26 +336,26 @@ const AddExpense = ({ onExpenseAdded }) => {
           {/* Resumen de la transacción */}
           {(formData.category || formData.amount) && (
             <div className="glass-card rounded-xl p-4">
-              <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">📋 Resumen</h3>
+              <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3 uppercase tracking-wide">📋 Resumen</h3>
               <div className="space-y-3">
                 {formData.category && (
-                  <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
                     <span className="text-2xl">{getSelectedCategory()?.icon}</span>
                     <div className="flex-1">
-                      <div className="font-semibold text-sm text-gray-800">{getSelectedCategory()?.label}</div>
-                      <div className="text-xs text-gray-500">Categoría</div>
+                      <div className="font-semibold text-sm text-gray-800 dark:text-gray-200">{getSelectedCategory()?.label}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Categoría</div>
                     </div>
                   </div>
                 )}
                 
                 {formData.amount && (
-                  <div className="p-2.5 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-                    <div className="text-xs text-gray-600 mb-1">Monto {formData.es_entrada ? '(Ingreso)' : '(Gasto)'}</div>
-                    <div className="font-bold text-lg text-gray-800">
+                  <div className="p-2.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Monto {formData.es_entrada ? '(Ingreso)' : '(Gasto)'}</div>
+                    <div className="font-bold text-lg text-gray-800 dark:text-gray-100">
                       {formData.currency} {parseFloat(formData.amount || 0).toFixed(2)}
                     </div>
                     {formData.currency === 'USD' && (
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         ≈ L {calculateConvertedAmount()} LPS
                       </div>
                     )}
@@ -363,9 +363,9 @@ const AddExpense = ({ onExpenseAdded }) => {
                 )}
 
                 {formData.description && (
-                  <div className="p-2.5 bg-gray-50 rounded-lg">
-                    <div className="text-xs text-gray-600 mb-1">Descripción</div>
-                    <div className="text-sm font-medium text-gray-800 truncate">{formData.description}</div>
+                  <div className="p-2.5 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Descripción</div>
+                    <div className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{formData.description}</div>
                   </div>
                 )}
               </div>
@@ -374,8 +374,8 @@ const AddExpense = ({ onExpenseAdded }) => {
 
           {/* Consejos Compactos */}
           <div className="glass-card rounded-xl p-4">
-            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">💡 Tips</h3>
-            <div className="space-y-2 text-xs text-gray-600">
+            <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">💡 Tips</h3>
+            <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
               <div className="flex items-start gap-2">
                 <span>💡</span>
                 <span>Usa descripciones claras</span>

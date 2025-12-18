@@ -31,8 +31,8 @@ const DistributionCharts = ({ chartData, chartOptions, barOptions }) => {
       {/* Gráfico de Barras con Zoom */}
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-slate-800">📊 Gastos por Categoría</h3>
-          <div className="flex items-center gap-2 text-xs text-gray-600">
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">📊 Gastos por Categoría</h3>
+          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
             <span>🔍 Zoom: Rueda</span>
           </div>
         </div>

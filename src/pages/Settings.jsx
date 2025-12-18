@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import settingsManager from '../utils/services/settings'
 import DataTab from './settings/DataTab'
 import CategoriesTab from './settings/CategoriesTab'
@@ -7,7 +7,9 @@ import SupermarketsTab from './settings/SupermarketsTab'
 import GeneralTab from './settings/GeneralTab'
 import NotificationsTab from './settings/NotificationsTab'
 import InterfaceTab from './settings/InterfaceTab'
+import SecurityTab from './settings/SecurityTab'
 import DangerTab from './settings/DangerTab'
+import DeleteConfirmModal from '../components/DeleteConfirmModal'
 import notifications from '../utils/services/notifications'
 import database from '../database/index.js'
 import useCategories from '../hooks/useCategories'
@@ -16,6 +18,16 @@ import useSupermarkets from '../hooks/useSupermarkets'
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general')
+  
+  // Estado para el modal de confirmación de eliminación
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    itemId: null,
+    itemType: null, // 'category', 'cut', 'supermarket', 'all'
+    itemName: '',
+    isDangerous: false
+  })
+  
   const [settings, setSettings] = useState({
     // Configuración General
     exchangeRate: 26.18,
@@ -93,6 +105,7 @@ const Settings = () => {
     { id: 'notifications', label: 'Notificaciones', icon: '🔔' },
     { id: 'data', label: 'Datos', icon: '💾' },
     { id: 'interface', label: 'Interfaz', icon: '🎨' },
+    { id: 'security', label: 'Seguridad', icon: '🔐' },
     { id: 'categories', label: 'Categorías', icon: '🏷️' },
     { id: 'cuts', label: 'Cortes', icon: '💇' },
     { id: 'supermarkets', label: 'Supermercados', icon: '🛒' },
@@ -234,24 +247,77 @@ const Settings = () => {
     return labels[key] || key
   }
 
-  const handleClearData = async () => {
-    const confirmed = window.confirm('⚠️ ¿Estás seguro de que quieres eliminar TODOS los datos?\n\nEsto incluye:\n• Todos los gastos registrados\n• Todas las categorías personalizadas\n• Configuraciones guardadas\n\nEsta acción NO se puede deshacer.')
+  // Función para abrir el modal de confirmación de eliminación
+  const openDeleteModal = useCallback((itemId, itemType, itemName, isDangerous = false) => {
+    setDeleteModal({
+      isOpen: true,
+      itemId,
+      itemType,
+      itemName,
+      isDangerous
+    })
+  }, [])
+
+  // Función para cerrar el modal
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModal({
+      isOpen: false,
+      itemId: null,
+      itemType: null,
+      itemName: '',
+      isDangerous: false
+    })
+  }, [])
+
+  // Función para confirmar la eliminación (llamada después de verificar el PIN)
+  const confirmDelete = useCallback(async () => {
+    const { itemId, itemType } = deleteModal
     
-    if (confirmed) {
-      const doubleConfirmed = window.confirm('🔥 ÚLTIMA CONFIRMACIÓN 🔥\n\n¿Realmente quieres eliminar TODOS los datos?')
-      
-      if (doubleConfirmed) {
-        try {
+    try {
+      switch (itemType) {
+        case 'category':
+          await handleDeleteCategory(itemId, true) // true = skipConfirm
+          break
+        case 'cut':
+          await handleDeleteCutType(itemId, true)
+          break
+        case 'supermarket':
+          await handleDeleteSupermarket(itemId, true)
+          break
+        case 'all':
           await database.clearAllData()
           notifications.showSync('Todos los datos han sido eliminados', 'warning', 3000)
           setTimeout(() => window.location.reload(), 2000)
-        } catch (error) {
-          console.error('Error clearing data:', error)
-          notifications.showSync('Error al eliminar los datos', 'error')
-        }
+          break
+        default:
+          break
       }
+    } catch (error) {
+      console.error('Error en confirmDelete:', error)
+      notifications.showSync('Error al eliminar', 'error')
     }
-  }
+    
+    closeDeleteModal()
+  }, [deleteModal, handleDeleteCategory, handleDeleteCutType, handleDeleteSupermarket, closeDeleteModal])
+
+  // Wrappers para abrir el modal desde los tabs
+  const requestDeleteCategory = useCallback((categoryId) => {
+    const category = categories.find(c => c.id === categoryId)
+    const categoryName = category?.name || 'Categoría'
+    openDeleteModal(categoryId, 'category', categoryName)
+  }, [categories, openDeleteModal])
+
+  const requestDeleteCutType = useCallback((cutType) => {
+    openDeleteModal(cutType, 'cut', cutType)
+  }, [openDeleteModal])
+
+  const requestDeleteSupermarket = useCallback((supermarket) => {
+    openDeleteModal(supermarket, 'supermarket', supermarket)
+  }, [openDeleteModal])
+
+  const handleClearData = useCallback(() => {
+    openDeleteModal(null, 'all', 'TODOS los datos (gastos, categorías, configuraciones)', true)
+  }, [openDeleteModal])
 
   const renderGeneralTab = () => (
     <GeneralTab settings={settings} onSettingChange={handleSettingChange} />
@@ -273,6 +339,10 @@ const Settings = () => {
     <InterfaceTab settings={settings} onSettingChange={handleSettingChange} />
   )
 
+  const renderSecurityTab = () => (
+    <SecurityTab />
+  )
+
   // Lógica de categorías/cortes/supermercados manejada por hooks
 
   // Constantes para categorías
@@ -292,7 +362,7 @@ const Settings = () => {
       editingCategory={editingCategory}
       setEditingCategory={setEditingCategory}
       onAddCategory={handleAddCategory}
-      onDeleteCategory={handleDeleteCategory}
+      onDeleteCategory={requestDeleteCategory}
       onUpdateCategory={handleUpdateCategory}
       settings={settings}
       onSettingChange={handleSettingChange}
@@ -309,7 +379,7 @@ const Settings = () => {
       editingCutType={editingCutType}
       setEditingCutType={setEditingCutType}
       onAddCutType={handleAddCutType}
-      onDeleteCutType={handleDeleteCutType}
+      onDeleteCutType={requestDeleteCutType}
       onUpdateCutType={handleUpdateCutType}
       settings={settings}
     />
@@ -323,7 +393,7 @@ const Settings = () => {
       editingSupermarket={editingSupermarket}
       setEditingSupermarket={setEditingSupermarket}
       onAddSupermarket={handleAddSupermarket}
-      onDeleteSupermarket={handleDeleteSupermarket}
+      onDeleteSupermarket={requestDeleteSupermarket}
       onUpdateSupermarket={handleUpdateSupermarket}
     />
   )
@@ -338,6 +408,7 @@ const Settings = () => {
       case 'notifications': return renderNotificationsTab()
       case 'data': return renderDataTab()
       case 'interface': return renderInterfaceTab()
+      case 'security': return renderSecurityTab()
       case 'categories': return renderCategoriesTab()
       case 'cuts': return renderCutsTab()
       case 'supermarkets': return renderSupermarketsTab()
@@ -350,7 +421,7 @@ const Settings = () => {
     <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
       {/* Header Compacto */}
       <div className="glass-card rounded-xl p-4">
-        <h2 className="text-2xl font-bold text-slate-800">⚙️ Configuración</h2>
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">⚙️ Configuración</h2>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -365,7 +436,7 @@ const Settings = () => {
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     activeTab === tab.id
                       ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-800 dark:hover:text-gray-200'
                   }`}
                 >
                   <span className="text-base">{tab.icon}</span>
@@ -383,6 +454,20 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title={deleteModal.isDangerous ? '⚠️ Eliminar TODOS los datos' : '¿Eliminar este elemento?'}
+        message={deleteModal.isDangerous 
+          ? 'Esta acción eliminará permanentemente todos tus datos. Esta acción NO se puede deshacer.'
+          : 'Esta acción no se puede deshacer.'
+        }
+        itemName={deleteModal.itemName}
+        isDangerous={deleteModal.isDangerous}
+      />
     </div>
   )
 }

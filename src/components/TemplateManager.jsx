@@ -1,13 +1,22 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import templateEngine from '../utils/generators/templateEngine'
 import notifications from '../utils/services/notifications'
+import DeleteConfirmModal from './DeleteConfirmModal'
 import logger from '../utils/logger'
 
 const TemplateManager = ({ onTemplateSelect, onClose }) => {
   const [templates, setTemplates] = useState([])
   const [showEditor, setShowEditor] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
+  
+  // Estado para el modal de confirmación de eliminación
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    templateId: null,
+    templateName: ''
+  })
+  
   const [templateForm, setTemplateForm] = useState({
     name: '',
     description: '',
@@ -118,17 +127,39 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
     }
   }
 
-  const handleDeleteTemplate = (templateId) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta plantilla?')) {
-      try {
-        templateEngine.deleteTemplate(templateId)
-        notifications.showSync('✅ Plantilla eliminada', 'success')
-        loadTemplates()
-      } catch (error) {
-        logger.error('Error deleting template:', error)
-        notifications.showSync('❌ Error al eliminar plantilla', 'error')
-      }
+  // Función para abrir el modal de eliminación
+  const openDeleteModal = useCallback((templateId, templateName) => {
+    setDeleteModal({
+      isOpen: true,
+      templateId,
+      templateName
+    })
+  }, [])
+
+  // Función para cerrar el modal
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModal({
+      isOpen: false,
+      templateId: null,
+      templateName: ''
+    })
+  }, [])
+
+  // Función para confirmar la eliminación
+  const confirmDelete = useCallback(() => {
+    try {
+      templateEngine.deleteTemplate(deleteModal.templateId)
+      notifications.showSync('✅ Plantilla eliminada', 'success')
+      loadTemplates()
+    } catch (error) {
+      logger.error('Error deleting template:', error)
+      notifications.showSync('❌ Error al eliminar plantilla', 'error')
     }
+    closeDeleteModal()
+  }, [deleteModal.templateId, closeDeleteModal])
+
+  const handleDeleteTemplate = (template) => {
+    openDeleteModal(template.id, template.name)
   }
 
   const handleSelectTemplate = (template) => {
@@ -427,7 +458,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
                   ✏️
                 </button>
                 <button
-                  onClick={() => handleDeleteTemplate(template.id)}
+                  onClick={() => handleDeleteTemplate(template)}
                   className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                   title="Eliminar plantilla"
                 >
@@ -470,6 +501,16 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
           </button>
         </div>
       )}
+
+      {/* Modal de confirmación de eliminación */}
+      <DeleteConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        title="¿Eliminar esta plantilla?"
+        message="Esta acción no se puede deshacer."
+        itemName={deleteModal.templateName}
+      />
     </div>
     </>
   )

@@ -111,11 +111,7 @@ const BudgetList = ({
                     ✏️
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm(`¿Eliminar presupuesto de ${budget.category}?`)) {
-                        onDeleteBudget(budget.id)
-                      }
-                    }}
+                    onClick={() => onDeleteBudget(budget.id, budget.category)}
                     className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                     title="Eliminar presupuesto"
                   >
