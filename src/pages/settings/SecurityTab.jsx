@@ -430,13 +430,21 @@ export default function SecurityTab() {
         <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
           ℹ️ ¿Qué protege el PIN?
         </h4>
+        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">🗑️ Eliminación:</p>
+        <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1 mb-3">
+          <li>• Gastos individuales</li>
+          <li>• Compras de supermercado</li>
+          <li>• Cortes</li>
+          <li>• Categorías y configuraciones</li>
+          <li>• Presupuestos</li>
+        </ul>
+        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2">✏️ Edición:</p>
         <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
-          <li>• Eliminación de gastos individuales</li>
-          <li>• Eliminación de compras de supermercado</li>
-          <li>• Eliminación de cortes</li>
-          <li>• Eliminación de categorías y configuraciones</li>
-          <li>• Eliminación de presupuestos</li>
-          <li>• Eliminación masiva de todos los datos</li>
+          <li>• Gastos individuales</li>
+          <li>• Compras de supermercado</li>
+          <li>• Cortes</li>
+          <li>• Categorías, tipos de corte y supermercados</li>
+          <li>• Presupuestos</li>
         </ul>
       </div>
     </div>

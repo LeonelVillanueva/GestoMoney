@@ -9,6 +9,7 @@ export default function SupermarketsTab({
   onAddSupermarket,
   onDeleteSupermarket,
   onUpdateSupermarket,
+  onRequestEdit,
 }) {
   return (
     <div className="space-y-4">
@@ -64,7 +65,7 @@ export default function SupermarketsTab({
                   </div>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => setEditingSupermarket(editingSupermarket === supermarket ? null : supermarket)} className="text-blue-600 hover:text-blue-800 text-xs">✏️</button>
+                  <button onClick={() => onRequestEdit ? onRequestEdit(supermarket) : setEditingSupermarket(editingSupermarket === supermarket ? null : supermarket)} className="text-blue-600 hover:text-blue-800 text-xs">✏️</button>
                   <button onClick={() => onDeleteSupermarket(supermarket)} className="text-red-600 hover:text-red-800 text-xs">🗑️</button>
                 </div>
               </div>

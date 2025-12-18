@@ -8,7 +8,6 @@ import GeneralTab from './settings/GeneralTab'
 import NotificationsTab from './settings/NotificationsTab'
 import InterfaceTab from './settings/InterfaceTab'
 import SecurityTab from './settings/SecurityTab'
-import DangerTab from './settings/DangerTab'
 import DeleteConfirmModal from '../components/DeleteConfirmModal'
 import notifications from '../utils/services/notifications'
 import database from '../database/index.js'
@@ -26,6 +25,14 @@ const Settings = () => {
     itemType: null, // 'category', 'cut', 'supermarket', 'all'
     itemName: '',
     isDangerous: false
+  })
+
+  // Estado para el modal de confirmación de edición
+  const [editModal, setEditModal] = useState({
+    isOpen: false,
+    itemId: null,
+    itemType: null, // 'category', 'cut', 'supermarket'
+    itemName: ''
   })
   
   const [settings, setSettings] = useState({
@@ -108,8 +115,7 @@ const Settings = () => {
     { id: 'security', label: 'Seguridad', icon: '🔐' },
     { id: 'categories', label: 'Categorías', icon: '🏷️' },
     { id: 'cuts', label: 'Cortes', icon: '💇' },
-    { id: 'supermarkets', label: 'Supermercados', icon: '🛒' },
-    { id: 'danger', label: 'Peligro', icon: '⚠️' }
+    { id: 'supermarkets', label: 'Supermercados', icon: '🛒' }
   ]
 
   useEffect(() => {
@@ -284,11 +290,6 @@ const Settings = () => {
         case 'supermarket':
           await handleDeleteSupermarket(itemId, true)
           break
-        case 'all':
-          await database.clearAllData()
-          notifications.showSync('Todos los datos han sido eliminados', 'warning', 3000)
-          setTimeout(() => window.location.reload(), 2000)
-          break
         default:
           break
       }
@@ -315,9 +316,61 @@ const Settings = () => {
     openDeleteModal(supermarket, 'supermarket', supermarket)
   }, [openDeleteModal])
 
-  const handleClearData = useCallback(() => {
-    openDeleteModal(null, 'all', 'TODOS los datos (gastos, categorías, configuraciones)', true)
-  }, [openDeleteModal])
+  // Función para abrir el modal de confirmación de edición
+  const openEditModal = useCallback((itemId, itemType, itemName) => {
+    setEditModal({
+      isOpen: true,
+      itemId,
+      itemType,
+      itemName
+    })
+  }, [])
+
+  // Función para cerrar el modal de edición
+  const closeEditModal = useCallback(() => {
+    setEditModal({
+      isOpen: false,
+      itemId: null,
+      itemType: null,
+      itemName: ''
+    })
+  }, [])
+
+  // Función para confirmar la edición (llamada después de verificar el PIN)
+  const confirmEdit = useCallback(() => {
+    const { itemId, itemType } = editModal
+    
+    switch (itemType) {
+      case 'category':
+        setEditingCategory(editingCategory === itemId ? null : itemId)
+        break
+      case 'cut':
+        setEditingCutType(editingCutType === itemId ? null : itemId)
+        break
+      case 'supermarket':
+        setEditingSupermarket(editingSupermarket === itemId ? null : itemId)
+        break
+      default:
+        break
+    }
+    
+    closeEditModal()
+  }, [editModal, editingCategory, editingCutType, editingSupermarket, setEditingCategory, setEditingCutType, setEditingSupermarket, closeEditModal])
+
+  // Wrappers para abrir el modal de edición desde los tabs
+  const requestEditCategory = useCallback((categoryId) => {
+    const category = categories.find(c => c.id === categoryId)
+    const categoryName = category?.name || 'Categoría'
+    openEditModal(categoryId, 'category', categoryName)
+  }, [categories, openEditModal])
+
+  const requestEditCutType = useCallback((cutType) => {
+    openEditModal(cutType, 'cut', cutType)
+  }, [openEditModal])
+
+  const requestEditSupermarket = useCallback((supermarket) => {
+    openEditModal(supermarket, 'supermarket', supermarket)
+  }, [openEditModal])
 
   const renderGeneralTab = () => (
     <GeneralTab settings={settings} onSettingChange={handleSettingChange} />
@@ -364,6 +417,7 @@ const Settings = () => {
       onAddCategory={handleAddCategory}
       onDeleteCategory={requestDeleteCategory}
       onUpdateCategory={handleUpdateCategory}
+      onRequestEdit={requestEditCategory}
       settings={settings}
       onSettingChange={handleSettingChange}
       colors={colors}
@@ -381,6 +435,7 @@ const Settings = () => {
       onAddCutType={handleAddCutType}
       onDeleteCutType={requestDeleteCutType}
       onUpdateCutType={handleUpdateCutType}
+      onRequestEdit={requestEditCutType}
       settings={settings}
     />
   )
@@ -395,11 +450,8 @@ const Settings = () => {
       onAddSupermarket={handleAddSupermarket}
       onDeleteSupermarket={requestDeleteSupermarket}
       onUpdateSupermarket={handleUpdateSupermarket}
+      onRequestEdit={requestEditSupermarket}
     />
-  )
-
-  const renderDangerTab = () => (
-    <DangerTab onClearData={handleClearData} />
   )
 
   const renderTabContent = () => {
@@ -412,7 +464,6 @@ const Settings = () => {
       case 'categories': return renderCategoriesTab()
       case 'cuts': return renderCutsTab()
       case 'supermarkets': return renderSupermarketsTab()
-      case 'danger': return renderDangerTab()
       default: return renderGeneralTab()
     }
   }
@@ -467,6 +518,17 @@ const Settings = () => {
         }
         itemName={deleteModal.itemName}
         isDangerous={deleteModal.isDangerous}
+      />
+
+      {/* Modal de confirmación de edición */}
+      <DeleteConfirmModal
+        isOpen={editModal.isOpen}
+        onClose={closeEditModal}
+        onConfirm={confirmEdit}
+        title="¿Editar este elemento?"
+        message="Ingresa tu PIN para continuar con la edición."
+        itemName={editModal.itemName}
+        actionType="edit"
       />
     </div>
   )

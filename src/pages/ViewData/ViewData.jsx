@@ -23,6 +23,14 @@ const ViewData = ({ onDataChanged }) => {
     itemName: ''
   })
 
+  // Estado para el modal de confirmación de edición
+  const [editModal, setEditModal] = useState({
+    isOpen: false,
+    item: null,
+    itemType: null,
+    itemName: ''
+  })
+
   // Hooks personalizados
   const {
     expenses,
@@ -149,6 +157,44 @@ const ViewData = ({ onDataChanged }) => {
     setDeleteModal({ isOpen: false, itemId: null, itemType: null, itemName: '' })
   }, [])
 
+  // Función para abrir el modal de confirmación de edición
+  const openEditModal = useCallback((item, type) => {
+    let itemName = ''
+    switch (type) {
+      case 'gastos':
+        itemName = `${item.descripcion || 'Gasto'} - ${formatCurrency(item.monto)}`
+        break
+      case 'supermercado':
+        itemName = `${item.supermercado} - ${formatCurrency(item.monto)}`
+        break
+      case 'cortes':
+        itemName = `${item.tipo_corte} - ${formatDate(item.fecha)}`
+        break
+      default:
+        itemName = 'Este registro'
+    }
+
+    setEditModal({
+      isOpen: true,
+      item,
+      itemType: type,
+      itemName
+    })
+  }, [])
+
+  // Función para confirmar la edición (llamada después de verificar el PIN)
+  const confirmEdit = useCallback(() => {
+    if (editModal.item && editModal.itemType) {
+      startEdit(editModal.item, editModal.itemType)
+    }
+    setEditModal({ isOpen: false, item: null, itemType: null, itemName: '' })
+  }, [editModal, startEdit])
+
+  // Cerrar modal sin editar
+  const closeEditModal = useCallback(() => {
+    setEditModal({ isOpen: false, item: null, itemType: null, itemName: '' })
+  }, [])
+
   const tabs = [
     { id: 'gastos', label: 'Gastos', icon: '💰', count: expenses.length },
     { id: 'supermercado', label: 'Supermercado', icon: '🛒', count: supermarketPurchases.length },
@@ -212,7 +258,7 @@ const ViewData = ({ onDataChanged }) => {
                       </div>
                       <div className="flex gap-1">
                         <button
-                          onClick={() => startEdit(expense, 'gastos')}
+                          onClick={() => openEditModal(expense, 'gastos')}
                           className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
                           title="Editar"
                         >
@@ -305,7 +351,7 @@ const ViewData = ({ onDataChanged }) => {
                       </div>
                       <div className="flex gap-1">
                         <button
-                          onClick={() => startEdit(purchase, 'supermercado')}
+                          onClick={() => openEditModal(purchase, 'supermercado')}
                           className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
                           title="Editar"
                         >
@@ -395,7 +441,7 @@ const ViewData = ({ onDataChanged }) => {
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
-                        onClick={() => startEdit(cut, 'cortes')}
+                        onClick={() => openEditModal(cut, 'cortes')}
                         className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
                         title="Editar"
                       >
@@ -589,6 +635,17 @@ const ViewData = ({ onDataChanged }) => {
         title="¿Eliminar este registro?"
         message="Esta acción no se puede deshacer."
         itemName={deleteModal.itemName}
+      />
+
+      {/* Modal de confirmación de edición */}
+      <DeleteConfirmModal
+        isOpen={editModal.isOpen}
+        onClose={closeEditModal}
+        onConfirm={confirmEdit}
+        title="¿Editar este registro?"
+        message="Ingresa tu PIN para continuar con la edición."
+        itemName={editModal.itemName}
+        actionType="edit"
       />
     </div>
   )
