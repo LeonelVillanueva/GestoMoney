@@ -36,7 +36,7 @@ class ErrorBoundary extends React.Component {
       const showDetails = isDevelopment
       
       return (
-        <div className="min-h-screen bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center p-6">
+        <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center p-6" style={{ minHeight: '100vh', minWidth: '100vw' }}>
           <div className="bg-white rounded-xl p-8 max-w-2xl w-full shadow-2xl">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">⚠️</div>
