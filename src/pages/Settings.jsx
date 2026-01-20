@@ -41,6 +41,7 @@ const Settings = () => {
     defaultCurrency: 'LPS',
     defaultCategory: 'Otros',
     autoSave: true,
+    expenseBreakdownYearScope: 'current', // 'current' o 'all'
     
     // Configuración de Notificaciones
     notifications: true,
@@ -135,6 +136,7 @@ const Settings = () => {
         defaultCurrency: dbConfig.moneda_por_defecto || 'LPS',
         defaultCategory: dbConfig.categoria_por_defecto || 'Otros',
         autoSave: dbConfig.guardado_automatico !== 'false',
+        expenseBreakdownYearScope: dbConfig.alcance_desglose_gasto || 'current', // 'current' o 'all'
         
         notifications: dbConfig.notificaciones !== 'false',
         notificationSound: dbConfig.sonido_notificaciones !== 'false',
@@ -178,6 +180,7 @@ const Settings = () => {
         defaultCurrency: 'moneda_por_defecto',
         defaultCategory: 'categoria_por_defecto',
         autoSave: 'guardado_automatico',
+        expenseBreakdownYearScope: 'alcance_desglose_gasto',
         notifications: 'notificaciones',
         notificationSound: 'sonido_notificaciones',
         reminderFrequency: 'frecuencia_recordatorios',
@@ -237,6 +240,7 @@ const Settings = () => {
       defaultCurrency: 'Moneda por defecto',
       defaultCategory: 'Categoría por defecto',
       autoSave: 'Guardado automático',
+      expenseBreakdownYearScope: 'Alcance del desglose de gastos',
       notifications: 'Notificaciones',
       notificationSound: 'Sonido de notificaciones',
       reminderFrequency: 'Frecuencia de recordatorios',

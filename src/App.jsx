@@ -9,6 +9,7 @@ import database from './database/index.js'
 import currencyConverter from './utils/services/currency'
 import settingsManager from './utils/services/settings'
 import notifications from './utils/services/notifications'
+import supabasePingService from './utils/services/supabasePing'
 import logger from './utils/logger'
 
 // Lazy-load de componentes de páginas (mejora el rendimiento inicial)
@@ -59,6 +60,27 @@ function AppContent() {
   // Cargar datos iniciales
   useEffect(() => {
     loadInitialData()
+  }, [])
+
+  // Iniciar servicio de ping para mantener Supabase activo
+  useEffect(() => {
+    // Esperar a que la base de datos esté inicializada antes de iniciar el ping
+    const initPingService = async () => {
+      try {
+        await database.init()
+        // Iniciar el servicio de ping después de que la DB esté lista
+        supabasePingService.start()
+      } catch (error) {
+        logger.error('Error al inicializar servicio de ping:', error)
+      }
+    }
+
+    initPingService()
+
+    // Limpiar al desmontar
+    return () => {
+      supabasePingService.stop()
+    }
   }, [])
 
   const loadInitialData = async () => {

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import notifications from '../utils/services/notifications'
 import database from '../database/index.js'
 import CustomDatePicker from '../components/CustomDatePicker'
-import { formatDateLocal, getTodayLocal } from '../utils/normalizers'
+import { formatDateLocal, getTodayLocal, parseDateLocal } from '../utils/normalizers'
+import settingsManager from '../utils/services/settings'
 
 const AddExpense = ({ onExpenseAdded }) => {
   const [formData, setFormData] = useState({
@@ -102,13 +103,53 @@ const AddExpense = ({ onExpenseAdded }) => {
 
       // Obtener total de gastos actual para la notificación
       const allExpenses = await database.getExpenses()
-      const gastos = allExpenses.filter(expense => !expense.es_entrada)
-      const ingresos = allExpenses.filter(expense => expense.es_entrada)
-      const totalGastos = gastos.reduce((sum, expense) => sum + expense.monto, 0)
-      const totalIngresos = ingresos.reduce((sum, expense) => sum + expense.monto, 0)
-      const totalActual = totalGastos - totalIngresos
+      
+      // Obtener configuración de alcance del desglose
+      // Primero intentar desde settingsManager (localStorage), luego desde base de datos
+      let yearScope = settingsManager.get('expenseBreakdownYearScope', 'current')
+      if (!yearScope || yearScope === 'current') {
+        try {
+          const dbConfig = await database.getConfig('alcance_desglose_gasto')
+          if (dbConfig) {
+            yearScope = dbConfig
+            settingsManager.set('expenseBreakdownYearScope', dbConfig)
+          }
+        } catch (error) {
+          console.warn('No se pudo cargar configuración desde la base de datos:', error)
+        }
+      }
+      const currentYear = new Date().getFullYear()
+      
+      // Filtrar gastos según la configuración
+      let filteredExpenses = allExpenses
+      if (yearScope === 'current') {
+        filteredExpenses = allExpenses.filter(expense => {
+          if (!expense.fecha) return false
+          const expenseDate = parseDateLocal(expense.fecha)
+          if (!expenseDate) return false
+          return expenseDate.getFullYear() === currentYear
+        })
+      }
+      
+      const gastos = filteredExpenses.filter(expense => !expense.es_entrada)
+      const ingresos = filteredExpenses.filter(expense => expense.es_entrada)
+      const totalGastosActual = gastos.reduce((sum, expense) => sum + expense.monto, 0)
+      const totalIngresosActual = ingresos.reduce((sum, expense) => sum + expense.monto, 0)
+      const totalNetoActual = totalIngresosActual - totalGastosActual
 
       await database.createExpense(expenseData)
+      
+      // Calcular los nuevos totales después de agregar el gasto/ingreso
+      let nuevoTotalGastos = totalGastosActual
+      let nuevoTotalIngresos = totalIngresosActual
+      
+      if (expenseData.es_entrada) {
+        nuevoTotalIngresos += finalAmount
+      } else {
+        nuevoTotalGastos += finalAmount
+      }
+      
+      const nuevoTotalNeto = nuevoTotalIngresos - nuevoTotalGastos
       
       // Limpiar formulario manteniendo la fecha anterior
       setFormData({
@@ -126,9 +167,17 @@ const AddExpense = ({ onExpenseAdded }) => {
         {
           amount: finalAmount,
           category: categoryName,
-          description: formData.description
+          description: formData.description,
+          es_entrada: expenseData.es_entrada
         },
-        totalActual + finalAmount, // Total actual + el nuevo gasto
+        {
+          totalGastosAnterior: totalGastosActual,
+          totalIngresosAnterior: totalIngresosActual,
+          totalNetoAnterior: totalNetoActual,
+          totalGastosNuevo: nuevoTotalGastos,
+          totalIngresosNuevo: nuevoTotalIngresos,
+          totalNetoNuevo: nuevoTotalNeto
+        },
         () => {
           // Callback cuando se cierra la notificación
           if (onExpenseAdded) {

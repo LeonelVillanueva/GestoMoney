@@ -65,17 +65,14 @@ class NotificationService {
 
   /**
    * Muestra una notificación de progreso para gastos
-   * @param {Object} expenseData - Datos del gasto
-   * @param {number} newTotal - Nuevo total
+   * @param {Object} expenseData - Datos del gasto/ingreso
+   * @param {Object} totalsData - Datos de los totales (gastos, ingresos, neto)
    * @param {Function} callback - Callback cuando se cierra
    */
-  showExpenseProgress(expenseData, newTotal, callback) {
+  showExpenseProgress(expenseData, totalsData, callback) {
     if (!this.settings.enabled || this.progressNotificationVisible) return
 
     this.progressNotificationVisible = true
-
-    // Calcular total anterior
-    const currentTotal = newTotal - expenseData.amount
 
     // Crear contenedor
     const container = document.createElement('div')
@@ -100,8 +97,7 @@ class NotificationService {
         isVisible={true}
         onClose={handleClose}
         expenseData={expenseData}
-        currentTotal={currentTotal}
-        newTotal={newTotal}
+        totalsData={totalsData}
         duration={this.settings.duration || 5000}
       />
     )

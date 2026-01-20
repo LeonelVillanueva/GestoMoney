@@ -9,7 +9,8 @@ export const useYearFilter = (data = []) => {
   const currentYear = new Date().getFullYear()
   
   // Estado del filtro: 'current' (año actual), 'previous' (años anteriores), 'all' (todos)
-  const [yearFilter, setYearFilter] = useState('all')
+  // Por defecto mostrar solo el año actual
+  const [yearFilter, setYearFilter] = useState('current')
   // Año específico seleccionado (para cuando se elige un año anterior específico)
   const [selectedYear, setSelectedYear] = useState(null)
 

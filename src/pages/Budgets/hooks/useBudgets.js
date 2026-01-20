@@ -11,7 +11,7 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
   const [loading, setLoading] = useState(false)
   const [editingBudget, setEditingBudget] = useState(null)
   const [budgetForm, setBudgetForm] = useState({
-    category: '',
+    category: [], // Cambiar a array para soportar múltiples categorías
     amount: '',
     month: currentMonth
   })
@@ -45,31 +45,100 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
     setBudgetForm(prev => ({ ...prev, month: currentMonth }))
   }, [currentMonth])
 
-  // Crear presupuesto
+  // Crear presupuesto(s)
   const createBudget = useCallback(async (e) => {
     e?.preventDefault()
     
+    // Validar que todos los campos estén completos
     if (!budgetForm.category || !budgetForm.amount || !budgetForm.month) {
       notifications.showSync('Por favor completa todos los campos', 'error')
       return
     }
 
+    // Normalizar category a array
+    let categoriesArray = []
+    if (Array.isArray(budgetForm.category)) {
+      categoriesArray = budgetForm.category.filter(cat => cat && cat.trim() !== '')
+    } else if (budgetForm.category) {
+      // Si es string, convertir a array
+      const categoryValue = String(budgetForm.category).trim()
+      if (categoryValue) {
+        categoriesArray = [categoryValue]
+      }
+    }
+
+    // Validar que haya al menos una categoría
+    if (categoriesArray.length === 0) {
+      notifications.showSync('Por favor selecciona al menos una categoría', 'error')
+      return
+    }
+
+    // Validar que amount sea un número válido
+    const amountValue = parseFloat(budgetForm.amount)
+    if (isNaN(amountValue) || amountValue <= 0) {
+      notifications.showSync('Por favor ingresa un monto válido mayor a 0', 'error')
+      return
+    }
+
+    // Validar formato del mes (YYYY-MM)
+    const monthRegex = /^\d{4}-\d{2}$/
+    if (!monthRegex.test(budgetForm.month)) {
+      notifications.showSync('Formato de mes inválido. Debe ser YYYY-MM', 'error')
+      return
+    }
+
     try {
+      // Verificar si ya existe un presupuesto que use alguna de estas categorías en ese mes
+      const existingBudgets = await database.getBudgets(budgetForm.month)
+      
+      // Crear un set de todas las categorías que ya tienen presupuesto (separadas por |)
+      const existingCategorySet = new Set()
+      existingBudgets.forEach(budget => {
+        const budgetCategories = String(budget.category || '').split('|').map(c => c.trim().toLowerCase())
+        budgetCategories.forEach(cat => {
+          if (cat) existingCategorySet.add(cat)
+        })
+      })
+
+      // Verificar si alguna de las categorías seleccionadas ya tiene presupuesto
+      const normalizedSelectedCategories = categoriesArray.map(c => String(c).trim().toLowerCase())
+      const conflictingCategories = normalizedSelectedCategories.filter(cat => 
+        existingCategorySet.has(cat)
+      )
+
+      // Si hay categorías que ya tienen presupuesto, informar al usuario
+      if (conflictingCategories.length > 0) {
+        notifications.showSync(
+          `⚠️ Las siguientes categorías ya tienen presupuesto en ${budgetForm.month}: ${conflictingCategories.join(', ')}. Elimina o edita esos presupuestos primero.`, 
+          'warning'
+        )
+        return
+      }
+
+      // Crear UN SOLO presupuesto para TODAS las categorías seleccionadas
+      // Unir todas las categorías con un delimitador "|"
+      const categoriesString = categoriesArray.join('|')
+      
       const budgetData = {
-        category: budgetForm.category,
-        amount: parseFloat(budgetForm.amount),
+        category: categoriesString,
+        amount: amountValue,
         month: budgetForm.month
       }
       
       await database.createBudget(budgetData)
-      notifications.showSync('✅ Presupuesto creado exitosamente', 'success')
-      setBudgetForm({ category: '', amount: '', month: currentMonth })
       
+      // Mostrar mensaje de éxito
+      const categoriesDisplay = categoriesArray.length === 1 
+        ? categoriesArray[0] 
+        : `${categoriesArray.length} categorías: ${categoriesArray.join(', ')}`
+      notifications.showSync(`✅ Presupuesto creado exitosamente para ${categoriesDisplay}`, 'success')
+      
+      // Limpiar formulario
+      setBudgetForm({ category: [], amount: '', month: currentMonth })
+      
+      // Recargar presupuestos si es para el mes actual
       if (budgetForm.month === currentMonth) {
         loadBudgets()
-      } else {
-        // Si es para otro mes, cambiar la vista a ese mes
-        // Esto se manejará en el componente padre
       }
       
       if (onDataChanged) {
@@ -77,7 +146,17 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
       }
     } catch (error) {
       console.error('Error creating budget:', error)
-      notifications.showSync('❌ Error al crear presupuesto: ' + error.message, 'error')
+      let errorMessage = 'Error al crear presupuesto'
+      if (error.message) {
+        if (error.message.includes('duplicate') || error.message.includes('unique')) {
+          errorMessage = 'Ya existe un presupuesto para una o más de estas categorías en el mes seleccionado'
+        } else if (error.message.includes('violates')) {
+          errorMessage = 'Datos inválidos para el presupuesto'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      notifications.showSync(`❌ ${errorMessage}`, 'error')
     }
   }, [budgetForm, currentMonth, loadBudgets, onDataChanged])
 
