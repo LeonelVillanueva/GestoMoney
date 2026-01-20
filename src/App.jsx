@@ -133,7 +133,7 @@ function AppContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex flex-col md:flex-row">
+      <div className="flex flex-col md:flex-row" style={{ minHeight: '100vh', minWidth: '100vw', width: '100%', position: 'relative' }}>
         <Sidebar currentPage={currentPage} onNavigate={handleNavigation} />
         <ZoomControls />
         <main className="flex-1 p-4 md:p-6 overflow-y-auto">

@@ -9,11 +9,23 @@ html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  background: linear-gradient(to bottom right, #f1f5f9, #e2e8f0);
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+html.dark, body.dark {
+  background: linear-gradient(to bottom right, #0f172a, #1e293b);
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 #root {
   width: 100%;
   min-height: 100vh;
+  position: relative;
 }
 
 /* Variables CSS para temas */
@@ -190,5 +202,16 @@ button:not(.gradient-button) {
 @media (max-width: 768px) {
   .sidebar-expanded {
     @apply w-56;
+  }
+  
+  /* Asegurar que el fondo cubra toda la pantalla en móvil incluso con zoom */
+  html, body {
+    min-height: 100vh;
+    min-width: 100vw;
+  }
+  
+  #root {
+    min-height: 100vh;
+    min-width: 100vw;
   }
 }
