@@ -28,7 +28,7 @@ const ZoomControls = () => {
   }, [])
 
   const updateZoom = (newZoom) => {
-    const clamped = Math.max(75, Math.min(150, newZoom))
+    const clamped = Math.max(50, Math.min(150, newZoom))
     setZoomLevel(clamped)
     settingsManager.set('mobileZoom', clamped)
     if (isMobile) {
@@ -36,8 +36,8 @@ const ZoomControls = () => {
     }
   }
 
-  const increaseZoom = () => updateZoom(zoomLevel + 10)
-  const decreaseZoom = () => updateZoom(zoomLevel - 10)
+  const increaseZoom = () => updateZoom(zoomLevel + 5)
+  const decreaseZoom = () => updateZoom(zoomLevel - 5)
 
   // Solo mostrar en móvil
   if (!isMobile) return null
@@ -71,7 +71,7 @@ const ZoomControls = () => {
           
           <button
             onClick={decreaseZoom}
-            disabled={zoomLevel <= 75}
+            disabled={zoomLevel <= 50}
             className="w-10 h-10 flex items-center justify-center bg-blue-100 text-blue-700 rounded-lg font-bold text-lg hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             aria-label="Reducir zoom"
           >
