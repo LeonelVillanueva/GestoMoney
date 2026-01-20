@@ -28,6 +28,8 @@ export default defineConfig(({ mode }) => {
       // Exponer variables de entorno de Supabase
       'import.meta.env.SUPABASE_PROYECT_URL': JSON.stringify(env.SUPABASE_PROYECT_URL),
       'import.meta.env.SUPABASE_ANON_PUBLIC': JSON.stringify(env.SUPABASE_ANON_PUBLIC),
+      // Exponer variable de entorno de Exchange API
+      'import.meta.env.VITE_EXCHANGE_API_KEY': JSON.stringify(env.VITE_EXCHANGE_API_KEY),
     }
   }
 })

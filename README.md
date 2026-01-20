@@ -8,6 +8,10 @@ Aplicación web para el control de gastos personales desarrollada con React, Vit
 # Instalar dependencias
 npm install
 
+# Configurar variables de entorno
+# Crear archivo .env con:
+# VITE_EXCHANGE_API_KEY=tu_api_key_de_exchangerate-api.com
+
 # Ejecutar en desarrollo
 npm run dev
 

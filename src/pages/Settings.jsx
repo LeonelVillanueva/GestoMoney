@@ -131,8 +131,12 @@ const Settings = () => {
     try {
       const dbConfig = await database.getAllConfig()
       
+      // Obtener tasa actual desde la API (con fallback a BD)
+      const exchangeApiService = await import('../utils/services/exchangeApi.js')
+      const currentRate = await exchangeApiService.default.getExchangeRate()
+      
       const savedSettings = {
-        exchangeRate: dbConfig.tasa_cambio_usd ? parseFloat(dbConfig.tasa_cambio_usd) : 26.18,
+        exchangeRate: currentRate || (dbConfig.tasa_cambio_usd ? parseFloat(dbConfig.tasa_cambio_usd) : 26.18),
         defaultCurrency: dbConfig.moneda_por_defecto || 'LPS',
         defaultCategory: dbConfig.categoria_por_defecto || 'Otros',
         autoSave: dbConfig.guardado_automatico !== 'false',
@@ -204,10 +208,11 @@ const Settings = () => {
       settingsManager.set(key, safeValue)
       
       // Actualizar currency converter si cambió la tasa de cambio
+      // Nota: La tasa ahora se actualiza automáticamente desde la API
+      // Este código se mantiene por compatibilidad pero normalmente no se ejecutará
       if (key === 'exchangeRate') {
         const currencyConverter = await import('../utils/services/currency.js')
         currencyConverter.default.setExchangeRate('USD', 'LPS', safeValue)
-        currencyConverter.default.saveExchangeRates()
       }
       
       // Actualizar configuraciones de notificaciones
