@@ -283,7 +283,7 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
       </div>
 
       {/* Selector de Año Compacto */}
-      <div className="glass-card rounded-xl p-4" style={{ position: 'relative', zIndex: 1000, overflow: 'visible' }}>
+      <div className="glass-card rounded-xl p-4" style={{ position: 'relative', zIndex: window.innerWidth < 768 ? 50 : 1000, overflow: 'visible' }}>
         <YearSelector
           yearFilter={yearFilter}
           selectedYear={selectedYear}

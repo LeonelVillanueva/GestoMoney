@@ -30,11 +30,9 @@ class SupabasePingService {
 
       // Si hay error pero no es crítico, lo ignoramos
       if (error && error.code !== 'PGRST116') {
-        logger.warn('⚠️ Ping a Supabase falló:', error.message)
         return false
       }
 
-      logger.info('✅ Ping a Supabase exitoso - Proyecto activo')
       return true
     } catch (error) {
       logger.error('❌ Error en ping a Supabase:', error)
@@ -47,7 +45,6 @@ class SupabasePingService {
    */
   start() {
     if (this.isRunning) {
-      logger.warn('⚠️ El servicio de ping ya está corriendo')
       return
     }
 
@@ -62,8 +59,6 @@ class SupabasePingService {
     this.intervalId = setInterval(() => {
       this.ping()
     }, intervalMs)
-
-    logger.info(`🔄 Servicio de ping iniciado - Ping cada ${this.intervalMinutes / (24 * 60)} día(s)`)
   }
 
   /**
@@ -74,7 +69,6 @@ class SupabasePingService {
       clearInterval(this.intervalId)
       this.intervalId = null
       this.isRunning = false
-      logger.info('⏹️ Servicio de ping detenido')
     }
   }
 
