@@ -265,7 +265,7 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
   }, [expenses, currentYear])
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
+    <div className="max-w-7xl mx-auto space-y-4 animate-fade-in" style={{ position: 'relative', overflow: 'visible' }}>
       {/* Header Compacto */}
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between">
@@ -283,7 +283,7 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
       </div>
 
       {/* Selector de Año Compacto */}
-      <div className="glass-card rounded-xl p-4">
+      <div className="glass-card rounded-xl p-4" style={{ position: 'relative', zIndex: 1000, overflow: 'visible' }}>
         <YearSelector
           yearFilter={yearFilter}
           selectedYear={selectedYear}
@@ -298,12 +298,13 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
       </div>
 
       {/* Cards de Comparación por Año */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3" style={{ position: 'relative', zIndex: 1 }}>
         {/* Año Actual */}
         <div className={`glass-card rounded-xl p-4 border-2 transition-all cursor-pointer hover:shadow-lg ${
           yearFilter === 'current' ? 'border-green-400 bg-green-50/50' : 'border-transparent hover:border-green-200'
         }`}
         onClick={() => handleYearFilterChange('current')}
+        style={{ position: 'relative', zIndex: 1 }}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
