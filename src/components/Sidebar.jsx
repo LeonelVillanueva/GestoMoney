@@ -271,14 +271,14 @@ const Sidebar = ({ currentPage, onNavigate }) => {
         {/* Overlay */}
         {isMobileMenuOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+            className="fixed inset-0 bg-black/50 z-[1001] transition-opacity"
             onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
 
         {/* Sidebar móvil (drawer) */}
         <aside
-          className={`fixed left-0 top-0 h-full bg-white/95 backdrop-blur-lg border-r border-white/30 p-6 transition-transform duration-300 ease-in-out flex flex-col z-40 w-72 ${
+          className={`fixed left-0 top-0 h-full bg-white/95 backdrop-blur-lg border-r border-white/30 p-6 transition-transform duration-300 ease-in-out flex flex-col z-[1002] w-72 ${
             isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >

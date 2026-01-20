@@ -30,9 +30,12 @@ const YearSelector = ({
   // Verificar si el año actual tiene datos
   const currentYearHasData = availableYears.includes(currentYear)
 
+  // Detectar si es móvil
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
   if (compact) {
     return (
-      <div className={`flex flex-wrap items-center gap-2 ${className}`} style={{ position: 'relative', zIndex: showPreviousYears ? 1000 : 'auto' }}>
+      <div className={`flex flex-wrap items-center gap-2 ${className}`} style={{ position: 'relative', zIndex: showPreviousYears ? (isMobile ? 50 : 1000) : 'auto' }}>
         <span className="text-xs font-medium text-gray-500">📅 Año:</span>
         <div className="flex flex-wrap gap-1" style={{ position: 'relative' }}>
           <button
@@ -60,7 +63,7 @@ const YearSelector = ({
           )}
           
           {previousYears.length > 0 && (
-            <div className="relative" style={{ zIndex: showPreviousYears ? 1001 : 'auto' }}>
+            <div className="relative" style={{ zIndex: showPreviousYears ? (isMobile ? 51 : 1001) : 'auto' }}>
               <button
                 onClick={() => setShowPreviousYears(!showPreviousYears)}
                 className={`px-2 py-1 text-xs rounded-lg font-medium transition-all flex items-center gap-1 ${
@@ -77,7 +80,7 @@ const YearSelector = ({
                 <div 
                   className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl border border-gray-200 py-1 min-w-[80px]"
                   style={{ 
-                    zIndex: 1002,
+                    zIndex: isMobile ? 52 : 1002,
                     position: 'absolute'
                   }}
                 >
@@ -107,7 +110,7 @@ const YearSelector = ({
             onClick={() => setShowPreviousYears(false)}
             style={{ 
               position: 'fixed',
-              zIndex: 999,
+              zIndex: isMobile ? 49 : 999,
               backgroundColor: 'transparent'
             }}
           />

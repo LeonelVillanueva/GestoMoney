@@ -28,11 +28,9 @@ export const AuthProvider = ({ children }) => {
       if (session) {
         setIsAuthenticated(true)
         setUser(session.user)
-        logger.log('Usuario autenticado:', session.user.email)
       } else {
         setIsAuthenticated(false)
         setUser(null)
-        logger.log('Usuario desconectado')
       }
       setIsChecking(false)
     })
@@ -60,7 +58,6 @@ export const AuthProvider = ({ children }) => {
       if (session) {
         setIsAuthenticated(true)
         setUser(session.user)
-        logger.log('Sesión activa encontrada:', session.user.email)
       } else {
         setIsAuthenticated(false)
         setUser(null)
@@ -82,8 +79,6 @@ export const AuthProvider = ({ children }) => {
    */
   const login = async (email, password) => {
     try {
-      logger.log('Intentando iniciar sesión con email:', email)
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password: password
@@ -102,7 +97,6 @@ export const AuthProvider = ({ children }) => {
       if (data.session) {
         setIsAuthenticated(true)
         setUser(data.user)
-        logger.log('Login exitoso:', data.user.email)
         return { success: true }
       }
 
@@ -130,7 +124,6 @@ export const AuthProvider = ({ children }) => {
 
       setIsAuthenticated(false)
       setUser(null)
-      logger.log('Sesión cerrada correctamente')
     } catch (error) {
       logger.error('Error en logout:', error)
       throw error
