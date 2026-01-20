@@ -32,7 +32,8 @@ class SupabaseDatabase {
         categoria_id: expenseData.categoria_id,
         descripcion: expenseData.descripcion || '',
         es_entrada: expenseData.es_entrada || false,
-        moneda_original: expenseData.moneda_original || 'LPS'
+        moneda_original: expenseData.moneda_original || 'LPS',
+        tasa_cambio_usada: expenseData.tasa_cambio_usada || null
       })
       .select('*, categories(*)')
       .single()

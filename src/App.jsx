@@ -88,10 +88,13 @@ function AppContent() {
       // Initialize database
       await database.init()
       
-      // Load exchange rate from database settings
-      const savedRate = await database.getConfig('tasa_cambio_usd')
-      const exchangeRate = savedRate ? parseFloat(savedRate) : 26.18
+      // Obtener tasa de cambio desde API y actualizar currency converter
+      const exchangeApiService = await import('./utils/services/exchangeApi.js')
+      const exchangeRate = await exchangeApiService.default.getExchangeRate()
       currencyConverter.setExchangeRate('USD', 'LPS', exchangeRate)
+      
+      // Iniciar actualización automática cada 6 horas
+      exchangeApiService.default.startAutoUpdate()
       
       // Load expenses from database
       const expensesData = await database.getExpenses()

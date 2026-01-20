@@ -18,6 +18,7 @@ const AddExpense = ({ onExpenseAdded }) => {
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState([])
   const [loadingCategories, setLoadingCategories] = useState(true)
+  const [convertedAmount, setConvertedAmount] = useState('')
 
   // Cargar categorías existentes desde la base de datos
   useEffect(() => {
@@ -75,11 +76,15 @@ const AddExpense = ({ onExpenseAdded }) => {
         return
       }
 
-      // Convertir monto si es necesario
+      // Convertir monto si es necesario y obtener tasa de cambio actual
       let finalAmount = parseFloat(formData.amount)
+      let exchangeRateUsed = null
+      
       if (formData.currency === 'USD') {
-        const exchangeRate = await database.getConfig('tasa_cambio_usd')
-        const rate = exchangeRate ? parseFloat(exchangeRate) : 26.18
+        // Obtener tasa de cambio desde la API
+        const exchangeApiService = await import('../utils/services/exchangeApi.js')
+        const rate = await exchangeApiService.default.getExchangeRate()
+        exchangeRateUsed = rate
         finalAmount = finalAmount * rate
       }
 
@@ -98,7 +103,8 @@ const AddExpense = ({ onExpenseAdded }) => {
         categoria_id: selectedCategory.id,
         descripcion: formData.description,
         es_entrada: formData.es_entrada,
-        moneda_original: formData.currency // ✅ Guardar moneda original
+        moneda_original: formData.currency, // ✅ Guardar moneda original
+        tasa_cambio_usada: exchangeRateUsed // ✅ Guardar tasa de cambio usada
       }
 
       // Obtener total de gastos actual para la notificación
@@ -198,15 +204,28 @@ const AddExpense = ({ onExpenseAdded }) => {
     return categories.find(cat => cat.id === formData.category || cat.id === parseInt(formData.category))
   }
 
-  const calculateConvertedAmount = () => {
-    if (!formData.amount || formData.currency === 'LPS') {
-      return formData.amount
+  // Calcular monto convertido cuando cambia el monto o la moneda
+  useEffect(() => {
+    const updateConvertedAmount = async () => {
+      if (!formData.amount || formData.currency === 'LPS') {
+        setConvertedAmount('')
+        return
+      }
+      
+      // Obtener tasa de cambio actual desde la API o cache
+      try {
+        const exchangeApiService = await import('../utils/services/exchangeApi.js')
+        const exchangeRate = await exchangeApiService.default.getExchangeRate()
+        setConvertedAmount((parseFloat(formData.amount) * exchangeRate).toFixed(2))
+      } catch (error) {
+        // Fallback a tasa por defecto
+        const exchangeRate = 26.18
+        setConvertedAmount((parseFloat(formData.amount) * exchangeRate).toFixed(2))
+      }
     }
-    
-    // Tasa de cambio USD a LPS (esto vendrá de la configuración)
-    const exchangeRate = 26.18
-    return (parseFloat(formData.amount) * exchangeRate).toFixed(2)
-  }
+
+    updateConvertedAmount()
+  }, [formData.amount, formData.currency])
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
@@ -257,12 +276,12 @@ const AddExpense = ({ onExpenseAdded }) => {
               </div>
 
               {/* Conversión automática compacta */}
-              {formData.currency === 'USD' && formData.amount && (
+              {formData.currency === 'USD' && formData.amount && convertedAmount && (
                 <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-2.5">
                   <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
                     <span>💱</span>
                     <span className="font-medium">
-                      ${formData.amount} USD = L {calculateConvertedAmount()} LPS
+                      ${formData.amount} USD = L {convertedAmount} LPS
                     </span>
                   </div>
                 </div>
@@ -403,9 +422,9 @@ const AddExpense = ({ onExpenseAdded }) => {
                     <div className="font-bold text-lg text-gray-800 dark:text-gray-100">
                       {formData.currency} {parseFloat(formData.amount || 0).toFixed(2)}
                     </div>
-                    {formData.currency === 'USD' && (
+                    {formData.currency === 'USD' && convertedAmount && (
                       <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        ≈ L {calculateConvertedAmount()} LPS
+                        ≈ L {convertedAmount} LPS
                       </div>
                     )}
                   </div>
