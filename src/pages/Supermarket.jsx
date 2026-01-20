@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import database from '../database/index.js'
 import notifications from '../utils/services/notifications'
 import CustomDatePicker from '../components/CustomDatePicker'
 import { formatDateLocal, getTodayLocal } from '../utils/normalizers'
+import { useYearFilter } from '../hooks/useYearFilter'
+import YearSelector from '../components/YearSelector'
 
 const Supermarket = ({ onDataAdded }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +16,19 @@ const Supermarket = ({ onDataAdded }) => {
   const [loading, setLoading] = useState(false)
   const [purchases, setPurchases] = useState([])
   const [supermarkets, setSupermarkets] = useState(['La Colonia', 'Walmart'])
+
+  // Hook para filtro de año
+  const {
+    yearFilter,
+    selectedYear,
+    currentYear,
+    availableYears,
+    previousYears,
+    filterLabel,
+    filteredData: purchasesByYear,
+    statsByYear,
+    handleYearFilterChange
+  } = useYearFilter(purchases)
 
   useEffect(() => {
     loadPurchases()
@@ -146,33 +161,57 @@ const Supermarket = ({ onDataAdded }) => {
     return iconMap[supermercado] || '🏪'
   }
 
-  // Calcular estadísticas
-  const totalGastado = purchases.reduce((sum, p) => sum + p.monto, 0)
-  const promedioCompra = purchases.length > 0 ? totalGastado / purchases.length : 0
-  const ultimaCompra = purchases.length > 0 ? purchases[0] : null
-  const comprasPorSupermercado = supermarkets.map(market => {
-    const compras = purchases.filter(p => p.supermercado === market)
-    return {
-      nombre: market,
-      total: compras.reduce((sum, p) => sum + p.monto, 0),
-      cantidad: compras.length
-    }
-  })
+  // Calcular estadísticas (usando datos filtrados por año)
+  const totalGastado = purchasesByYear.reduce((sum, p) => sum + p.monto, 0)
+  const promedioCompra = purchasesByYear.length > 0 ? totalGastado / purchasesByYear.length : 0
+  const ultimaCompra = purchasesByYear.length > 0 ? purchasesByYear[0] : null
+  const comprasPorSupermercado = useMemo(() => {
+    return supermarkets.map(market => {
+      const compras = purchasesByYear.filter(p => p.supermercado === market)
+      return {
+        nombre: market,
+        total: compras.reduce((sum, p) => sum + p.monto, 0),
+        cantidad: compras.length
+      }
+    })
+  }, [purchasesByYear, supermarkets])
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
       {/* Header Compacto */}
       <div className="glass-card rounded-xl p-4">
-        <h2 className="text-2xl font-bold text-slate-800">🛒 Compras de Supermercado</h2>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">🛒 Compras de Supermercado</h2>
+            {yearFilter !== 'all' && (
+              <p className="text-sm text-blue-600 mt-1">
+                📅 Mostrando: {filterLabel}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
+      {/* Selector de Año */}
+      <YearSelector
+        yearFilter={yearFilter}
+        selectedYear={selectedYear}
+        currentYear={currentYear}
+        previousYears={previousYears}
+        availableYears={availableYears}
+        onFilterChange={handleYearFilterChange}
+        showStats={false}
+      />
+
       {/* Estadísticas Rápidas Compactas */}
-      {purchases.length > 0 && (
+      {purchasesByYear.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-600 mb-1">Total Gastado</p>
+                <p className="text-xs text-gray-600 mb-1">
+                  Total Gastado {yearFilter !== 'all' && <span className="text-blue-600">({filterLabel})</span>}
+                </p>
                 <p className="text-base sm:text-lg font-bold text-blue-700 break-words leading-tight">{formatCurrency(totalGastado)}</p>
               </div>
               <span className="text-2xl flex-shrink-0">💰</span>
@@ -193,7 +232,7 @@ const Supermarket = ({ onDataAdded }) => {
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-600 mb-1">Total Compras</p>
-                <p className="text-base sm:text-lg font-bold text-purple-700 break-words leading-tight">{purchases.length}</p>
+                <p className="text-base sm:text-lg font-bold text-purple-700 break-words leading-tight">{purchasesByYear.length}</p>
               </div>
               <span className="text-2xl flex-shrink-0">🛒</span>
             </div>
@@ -308,14 +347,14 @@ const Supermarket = ({ onDataAdded }) => {
         <div className="lg:col-span-2 glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-slate-800">📋 Compras Recientes</h3>
-            {purchases.length > 0 && (
-              <span className="text-xs text-gray-500">{purchases.length} compras</span>
+            {purchasesByYear.length > 0 && (
+              <span className="text-xs text-gray-500">{purchasesByYear.length} compras</span>
             )}
           </div>
           
-          {purchases.length > 0 ? (
+          {purchasesByYear.length > 0 ? (
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {purchases.slice(0, 10).map((purchase) => (
+              {purchasesByYear.slice(0, 10).map((purchase) => (
                 <div key={purchase.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                     <div className="p-1.5 bg-white rounded-lg flex-shrink-0">
@@ -335,9 +374,9 @@ const Supermarket = ({ onDataAdded }) => {
                   </div>
                 </div>
               ))}
-              {purchases.length > 10 && (
+              {purchasesByYear.length > 10 && (
                 <div className="text-center pt-2">
-                  <p className="text-xs text-gray-500">Y {purchases.length - 10} compras más...</p>
+                  <p className="text-xs text-gray-500">Y {purchasesByYear.length - 10} compras más...</p>
                 </div>
               )}
             </div>

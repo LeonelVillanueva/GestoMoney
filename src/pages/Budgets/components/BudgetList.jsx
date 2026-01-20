@@ -11,7 +11,8 @@ const BudgetList = ({
   formatDate, 
   onUpdateBudget, 
   onDeleteBudget,
-  onRequestEdit
+  onRequestEdit,
+  onViewDetail
 }) => {
   if (loading) {
     return (
@@ -36,15 +37,34 @@ const BudgetList = ({
     <div className="space-y-3">
       {analysis.map((budget) => {
         const remaining = budget.amount - budget.spent
+        const hasMultipleCategories = budget.categories && budget.categories.length > 1
+        const isClickable = hasMultipleCategories && onViewDetail
+        
         return (
-          <div key={budget.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+          <div 
+            key={budget.id} 
+            className={`p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200 ${
+              isClickable ? 'cursor-pointer' : ''
+            }`}
+            onClick={isClickable ? () => onViewDetail(budget) : undefined}
+          >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="p-2.5 bg-white rounded-lg flex-shrink-0 shadow-sm">
                   <span className="text-2xl">{budget.icon || '💰'}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-gray-800 mb-1">{budget.category}</h4>
+                  <h4 className="font-semibold text-gray-800 mb-1">
+                    {budget.categories && budget.categories.length > 1 
+                      ? `💰 ${budget.categories.join(', ')}` 
+                      : budget.category}
+                  </h4>
+                  {hasMultipleCategories && (
+                    <p className="text-xs text-blue-600 mb-1 font-medium flex items-center gap-1">
+                      <span>👆</span>
+                      <span>Presupuesto compartido entre {budget.categories.length} categorías - Click para ver detalle</span>
+                    </p>
+                  )}
                   <div className="flex flex-wrap items-center gap-3 text-sm">
                     <div className="flex items-center gap-1">
                       <span className="text-gray-600">Presupuesto:</span>
@@ -116,7 +136,12 @@ const BudgetList = ({
                     ✏️
                   </button>
                   <button
-                    onClick={() => onDeleteBudget(budget.id, budget.category)}
+                    onClick={() => onDeleteBudget(
+                      budget.id, 
+                      budget.categories && budget.categories.length > 1 
+                        ? budget.categories.join(', ') 
+                        : budget.category
+                    )}
                     className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                     title="Eliminar presupuesto"
                   >

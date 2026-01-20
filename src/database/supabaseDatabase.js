@@ -393,13 +393,39 @@ class SupabaseDatabase {
   // ============================================
 
   async createBudget(budgetData) {
+    // Verificar si ya existe un presupuesto exactamente igual (misma combinación de categorías y mes)
+    const { data: existing } = await supabase
+      .from('budgets')
+      .select('id')
+      .eq('category', budgetData.category)
+      .eq('month', budgetData.month)
+      .maybeSingle()
+
+    if (existing) {
+      // Si ya existe, actualizar en lugar de crear uno nuevo
+      const { data, error } = await supabase
+        .from('budgets')
+        .update({
+          amount: budgetData.amount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('category', budgetData.category)
+        .eq('month', budgetData.month)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data.id
+    }
+
+    // Si no existe, crear uno nuevo
     const { data, error } = await supabase
       .from('budgets')
-      .upsert({
+      .insert({
         category: budgetData.category,
         amount: budgetData.amount,
         month: budgetData.month
-      }, { onConflict: 'category,month' })
+      })
       .select()
       .single()
 

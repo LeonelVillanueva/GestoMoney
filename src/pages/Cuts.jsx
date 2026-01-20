@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import database from '../database/index.js'
 import notifications from '../utils/services/notifications'
 import CustomDatePicker from '../components/CustomDatePicker'
 import { formatDateLocal, getTodayLocal, parseDateLocal, compareDates, normalizeMany, normalizeCut } from '../utils/normalizers'
+import { useYearFilter } from '../hooks/useYearFilter'
+import YearSelector from '../components/YearSelector'
 
 const Cuts = ({ onDataAdded }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +16,19 @@ const Cuts = ({ onDataAdded }) => {
   const [loading, setLoading] = useState(false)
   const [cuts, setCuts] = useState([])
   const [cutTypes, setCutTypes] = useState([])
+
+  // Hook para filtro de año
+  const {
+    yearFilter,
+    selectedYear,
+    currentYear,
+    availableYears,
+    previousYears,
+    filterLabel,
+    filteredData: cutsByYear,
+    statsByYear,
+    handleYearFilterChange
+  } = useYearFilter(cuts)
 
   useEffect(() => {
     loadCuts()
@@ -161,28 +176,33 @@ const Cuts = ({ onDataAdded }) => {
     return icons[tipo] || '💇'
   }
 
-  // Calcular estadísticas
-  const ultimoCorte = cuts.length > 0 ? cuts.sort((a, b) => {
-    const dateA = parseDateLocal(a.fecha)
-    const dateB = parseDateLocal(b.fecha)
-    if (!dateA || !dateB) return 0
-    const comparison = compareDates(dateB, dateA)
-    return comparison !== null ? comparison : 0
-  })[0] : null
+  // Calcular estadísticas (usando datos filtrados por año)
+  const ultimoCorte = useMemo(() => {
+    if (cutsByYear.length === 0) return null
+    return cutsByYear.sort((a, b) => {
+      const dateA = parseDateLocal(a.fecha)
+      const dateB = parseDateLocal(b.fecha)
+      if (!dateA || !dateB) return 0
+      const comparison = compareDates(dateB, dateA)
+      return comparison !== null ? comparison : 0
+    })[0]
+  }, [cutsByYear])
 
-  const cortesPorTipo = cutTypes.map(tipo => {
-    // Normalizar el tipo para comparación (ya está normalizado con trim en normalizeCut)
-    const tipoNormalizado = tipo.trim()
-    const cortesDelTipo = cuts.filter(c => {
-      // Los cortes ya están normalizados con trim, pero por seguridad lo hacemos de nuevo
-      const corteTipo = (c.tipo_corte || '').trim()
-      return corteTipo === tipoNormalizado
+  const cortesPorTipo = useMemo(() => {
+    return cutTypes.map(tipo => {
+      // Normalizar el tipo para comparación (ya está normalizado con trim en normalizeCut)
+      const tipoNormalizado = tipo.trim()
+      const cortesDelTipo = cutsByYear.filter(c => {
+        // Los cortes ya están normalizados con trim, pero por seguridad lo hacemos de nuevo
+        const corteTipo = (c.tipo_corte || '').trim()
+        return corteTipo === tipoNormalizado
+      })
+      return {
+        tipo,
+        cantidad: cortesDelTipo.length
+      }
     })
-    return {
-      tipo,
-      cantidad: cortesDelTipo.length
-    }
-  })
+  }, [cutsByYear, cutTypes])
 
   // Calcular días desde el último corte
   const getDaysSinceLastCut = () => {
@@ -205,17 +225,39 @@ const Cuts = ({ onDataAdded }) => {
     <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
       {/* Header Compacto */}
       <div className="glass-card rounded-xl p-4">
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">💇 Gestión de Cortes</h2>
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">💇 Gestión de Cortes</h2>
+            {yearFilter !== 'all' && (
+              <p className="text-sm text-blue-600 mt-1">
+                📅 Mostrando: {filterLabel}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
+      {/* Selector de Año */}
+      <YearSelector
+        yearFilter={yearFilter}
+        selectedYear={selectedYear}
+        currentYear={currentYear}
+        previousYears={previousYears}
+        availableYears={availableYears}
+        onFilterChange={handleYearFilterChange}
+        showStats={false}
+      />
+
       {/* Estadísticas Rápidas Compactas */}
-      {cuts.length > 0 && (
+      {cutsByYear.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600 mb-1">Total Cortes</p>
-                <p className="text-lg font-bold text-purple-700">{cuts.length}</p>
+                <p className="text-xs text-gray-600 mb-1">
+                  Total Cortes {yearFilter !== 'all' && <span className="text-purple-600">({filterLabel})</span>}
+                </p>
+                <p className="text-lg font-bold text-purple-700">{cutsByYear.length}</p>
               </div>
               <span className="text-2xl">💇</span>
             </div>
@@ -319,14 +361,14 @@ const Cuts = ({ onDataAdded }) => {
         <div className="lg:col-span-2 glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">📋 Cortes Recientes</h3>
-            {cuts.length > 0 && (
-              <span className="text-xs text-gray-500">{cuts.length} cortes</span>
+            {cutsByYear.length > 0 && (
+              <span className="text-xs text-gray-500">{cutsByYear.length} cortes</span>
             )}
           </div>
           
-          {cuts.length > 0 ? (
+          {cutsByYear.length > 0 ? (
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {cuts.slice(0, 10).map((cut) => (
+              {cutsByYear.slice(0, 10).map((cut) => (
                 <div key={cut.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                     <div className="p-1.5 bg-white rounded-lg flex-shrink-0">
@@ -339,9 +381,9 @@ const Cuts = ({ onDataAdded }) => {
                   </div>
                 </div>
               ))}
-              {cuts.length > 10 && (
+              {cutsByYear.length > 10 && (
                 <div className="text-center pt-2">
-                  <p className="text-xs text-gray-500">Y {cuts.length - 10} cortes más...</p>
+                  <p className="text-xs text-gray-500">Y {cutsByYear.length - 10} cortes más...</p>
                 </div>
               )}
             </div>

@@ -4,6 +4,7 @@
 
 /**
  * Calcula análisis de presupuestos
+ * Soporta presupuestos con múltiples categorías (separadas por "|")
  */
 export const calculateBudgetAnalysis = (budgets, expenses, currentMonth) => {
   if (!Array.isArray(expenses) || !Array.isArray(budgets)) {
@@ -16,10 +17,29 @@ export const calculateBudgetAnalysis = (budgets, expenses, currentMonth) => {
   })
 
   const analysis = budgets.map(budget => {
-    const categoryExpenses = currentMonthExpenses.filter(expense => 
-      expense.categoria_nombre === budget.category || expense.categoria_id === budget.categoria_id
-    )
+    // Obtener las categorías del presupuesto (pueden ser múltiples separadas por "|")
+    const budgetCategories = String(budget.category || '').split('|').map(c => c.trim()).filter(c => c)
     
+    // Filtrar gastos que pertenecen a cualquiera de las categorías del presupuesto
+    const categoryExpenses = currentMonthExpenses.filter(expense => {
+      const expenseCategoryName = String(expense.categoria_nombre || '').trim()
+      const expenseCategoryId = expense.categoria_id
+      
+      // Verificar si la categoría del gasto está en las categorías del presupuesto
+      return budgetCategories.some(budgetCat => {
+        // Comparar por nombre
+        if (expenseCategoryName && expenseCategoryName.toLowerCase() === budgetCat.toLowerCase()) {
+          return true
+        }
+        // Comparar por ID si está disponible
+        if (expenseCategoryId && String(budgetCat).toLowerCase() === String(expenseCategoryId).toLowerCase()) {
+          return true
+        }
+        return false
+      })
+    })
+    
+    // Sumar todos los gastos de las categorías del presupuesto
     const spent = categoryExpenses.reduce((sum, expense) => sum + (parseFloat(expense.monto) || 0), 0)
     const remaining = budget.amount - spent
     const percentage = budget.amount > 0 ? (spent / budget.amount) * 100 : 0
@@ -27,6 +47,8 @@ export const calculateBudgetAnalysis = (budgets, expenses, currentMonth) => {
 
     return {
       ...budget,
+      categories: budgetCategories, // Array de categorías para fácil acceso
+      category: budgetCategories.join(', '), // String legible para mostrar
       spent,
       remaining,
       percentage: Math.min(percentage, 100),
@@ -62,6 +84,7 @@ export const calculateTotalSpent = (expenses, currentMonth) => {
 
 /**
  * Calcula total gastado solo en categorías con presupuesto
+ * Soporta presupuestos con múltiples categorías (separadas por "|")
  */
 export const calculateTotalSpentInBudgetCategories = (expenses, budgets, currentMonth) => {
   if (!Array.isArray(expenses) || !Array.isArray(budgets)) return 0
@@ -71,19 +94,21 @@ export const calculateTotalSpentInBudgetCategories = (expenses, budgets, current
     return expenseMonth === currentMonth && !expense.es_entrada
   })
 
-  // Obtener nombres de categorías con presupuesto (normalizados)
+  // Obtener todas las categorías con presupuesto (normalizadas, soporta múltiples)
   const budgetCategories = new Set()
   budgets.forEach(budget => {
     if (budget.category) {
-      // Normalizar el nombre de la categoría para comparación
-      budgetCategories.add(budget.category.trim())
+      // Dividir por "|" si tiene múltiples categorías
+      const categories = String(budget.category).split('|').map(c => c.trim().toLowerCase()).filter(c => c)
+      categories.forEach(cat => {
+        budgetCategories.add(cat)
+      })
     }
   })
 
   // Filtrar gastos que pertenecen a categorías con presupuesto
-  // Comparar tanto por nombre como por ID si existe
   const budgetCategoryExpenses = currentMonthExpenses.filter(expense => {
-    const expenseCategoryName = expense.categoria_nombre?.trim()
+    const expenseCategoryName = String(expense.categoria_nombre || '').trim().toLowerCase()
     const expenseCategoryId = expense.categoria_id
     
     // Comparar por nombre de categoría
@@ -91,8 +116,11 @@ export const calculateTotalSpentInBudgetCategories = (expenses, budgets, current
       return true
     }
     
-    // Si el presupuesto tiene categoria_id, comparar también por ID
-    // (aunque actualmente los presupuestos solo usan category como string)
+    // Comparar por ID si está disponible
+    if (expenseCategoryId && budgetCategories.has(String(expenseCategoryId).toLowerCase())) {
+      return true
+    }
+    
     return false
   })
   

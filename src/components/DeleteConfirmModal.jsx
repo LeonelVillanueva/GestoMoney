@@ -71,6 +71,19 @@ const DeleteConfirmModal = ({
     }
   }
 
+  // Auto-verificar cuando el PIN esté completo
+  useEffect(() => {
+    const fullPin = pin.join('')
+    if (fullPin.length === 6 && !isVerifying && !error && isOpen) {
+      // Pequeño delay para permitir que el usuario vea el último dígito
+      const timer = setTimeout(() => {
+        handleVerify()
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pin.join(''), isVerifying, error, isOpen]) // Usar pin.join('') como dependencia
+
   const handleKeyDown = (index, e) => {
     // Backspace: borrar y mover al anterior
     if (e.key === 'Backspace' && !pin[index] && index > 0) {

@@ -6,6 +6,7 @@ import BudgetList from './components/BudgetList'
 import BudgetStats from './components/BudgetStats'
 import BudgetCharts from './components/BudgetCharts'
 import MonthSelector from './components/MonthSelector'
+import BudgetDetailModal from './components/BudgetDetailModal'
 import DeleteConfirmModal from '../../components/DeleteConfirmModal'
 import { formatDate } from './utils/budgetFormatters'
 
@@ -37,6 +38,12 @@ const Budgets = ({ expenses, onDataChanged }) => {
     isOpen: false,
     budget: null,
     budgetCategory: ''
+  })
+
+  // Estado para el modal de detalle de presupuesto
+  const [detailModal, setDetailModal] = useState({
+    isOpen: false,
+    budget: null
   })
 
   const {
@@ -96,7 +103,9 @@ const Budgets = ({ expenses, onDataChanged }) => {
     setEditModal({
       isOpen: true,
       budget,
-      budgetCategory: budget.categoria
+      budgetCategory: budget.categories && budget.categories.length > 1 
+        ? budget.categories.join(', ') 
+        : budget.category || budget.categoria
     })
   }, [])
 
@@ -119,6 +128,22 @@ const Budgets = ({ expenses, onDataChanged }) => {
     }
     closeEditModal()
   }, [editModal.budget, updateBudget, closeEditModal])
+
+  // Función para abrir el modal de detalle
+  const openDetailModal = useCallback((budget) => {
+    setDetailModal({
+      isOpen: true,
+      budget
+    })
+  }, [])
+
+  // Función para cerrar el modal de detalle
+  const closeDetailModal = useCallback(() => {
+    setDetailModal({
+      isOpen: false,
+      budget: null
+    })
+  }, [])
 
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
@@ -191,6 +216,7 @@ const Budgets = ({ expenses, onDataChanged }) => {
           onUpdateBudget={updateBudget}
           onDeleteBudget={openDeleteModal}
           onRequestEdit={openEditModal}
+          onViewDetail={openDetailModal}
         />
       </div>
 
@@ -229,6 +255,13 @@ const Budgets = ({ expenses, onDataChanged }) => {
         message="Ingresa tu PIN para continuar con la edición."
         itemName={`Presupuesto de ${editModal.budgetCategory}`}
         actionType="edit"
+      />
+
+      {/* Modal de detalle de presupuesto */}
+      <BudgetDetailModal
+        isOpen={detailModal.isOpen}
+        onClose={closeDetailModal}
+        budget={detailModal.budget}
       />
     </div>
   )
