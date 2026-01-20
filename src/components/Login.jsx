@@ -56,7 +56,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-6">
+    <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-6" style={{ minHeight: '100vh', minWidth: '100vw' }}>
       <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🔒</div>

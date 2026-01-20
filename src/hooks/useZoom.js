@@ -42,13 +42,13 @@ const useZoom = () => {
   }, [zoomLevel, isMobile])
 
   const increaseZoom = () => {
-    const newZoom = Math.min(150, zoomLevel + 10) // Máximo 150%
+    const newZoom = Math.min(150, zoomLevel + 5) // Máximo 150%
     setZoomLevel(newZoom)
     settingsManager.set('mobileZoom', newZoom)
   }
 
   const decreaseZoom = () => {
-    const newZoom = Math.max(75, zoomLevel - 10) // Mínimo 75%
+    const newZoom = Math.max(50, zoomLevel - 5) // Mínimo 50%
     setZoomLevel(newZoom)
     settingsManager.set('mobileZoom', newZoom)
   }
@@ -65,7 +65,7 @@ const useZoom = () => {
     decreaseZoom,
     resetZoom,
     setZoomLevel: (level) => {
-      const clamped = Math.max(75, Math.min(150, level))
+      const clamped = Math.max(50, Math.min(150, level))
       setZoomLevel(clamped)
       settingsManager.set('mobileZoom', clamped)
     }

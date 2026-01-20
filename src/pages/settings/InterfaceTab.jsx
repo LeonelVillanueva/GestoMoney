@@ -16,7 +16,7 @@ export default function InterfaceTab({ settings, onSettingChange }) {
   }, [])
 
   const handleZoomChange = (newZoom) => {
-    const clamped = Math.max(75, Math.min(150, newZoom))
+    const clamped = Math.max(50, Math.min(150, newZoom))
     setMobileZoom(clamped)
     settingsManager.set('mobileZoom', clamped)
     
@@ -86,8 +86,8 @@ export default function InterfaceTab({ settings, onSettingChange }) {
               
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => handleZoomChange(mobileZoom - 10)}
-                  disabled={mobileZoom <= 75}
+                  onClick={() => handleZoomChange(mobileZoom - 5)}
+                  disabled={mobileZoom <= 50}
                   className="w-10 h-10 flex items-center justify-center bg-white border-2 border-blue-300 rounded-lg text-blue-600 font-bold text-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   aria-label="Reducir zoom"
                 >
@@ -97,7 +97,7 @@ export default function InterfaceTab({ settings, onSettingChange }) {
                 <div className="flex-1">
                   <input
                     type="range"
-                    min="75"
+                    min="50"
                     max="150"
                     step="5"
                     value={mobileZoom}
@@ -105,14 +105,14 @@ export default function InterfaceTab({ settings, onSettingChange }) {
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
                   <div className="flex justify-between text-xs text-gray-600 mt-1">
-                    <span>75%</span>
+                    <span>50%</span>
                     <span className="font-bold text-blue-600">{mobileZoom}%</span>
                     <span>150%</span>
                   </div>
                 </div>
                 
                 <button
-                  onClick={() => handleZoomChange(mobileZoom + 10)}
+                  onClick={() => handleZoomChange(mobileZoom + 5)}
                   disabled={mobileZoom >= 150}
                   className="w-10 h-10 flex items-center justify-center bg-white border-2 border-blue-300 rounded-lg text-blue-600 font-bold text-lg hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   aria-label="Aumentar zoom"
