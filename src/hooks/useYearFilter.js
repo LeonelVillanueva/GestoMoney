@@ -1,6 +1,35 @@
 import { useState, useMemo, useCallback } from 'react'
 
 /**
+ * Función auxiliar para parsear año de una fecha de manera segura
+ * Extraída fuera del hook para mejor rendimiento
+ */
+const getYearFromDate = (dateString) => {
+  if (!dateString) return null
+  
+  try {
+    // Si es formato YYYY-MM-DD, extraer el año directamente
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const year = parseInt(dateString.split('-')[0])
+      if (!isNaN(year) && year > 1900 && year < 2100) {
+        return year
+      }
+    }
+    
+    // Para otros formatos, usar parsing de Date
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    if (!isNaN(year) && year > 1900 && year < 2100) {
+      return year
+    }
+  } catch (error) {
+    console.warn('Error parsing date:', dateString, error)
+  }
+  
+  return null
+}
+
+/**
  * Hook reutilizable para filtrar datos por año
  * @param {Array} data - Array de datos con campo 'fecha'
  * @returns {Object} - Estado y funciones para filtrar por año
@@ -21,8 +50,10 @@ export const useYearFilter = (data = []) => {
     const years = new Set()
     data.forEach(item => {
       if (item.fecha) {
-        const year = new Date(item.fecha).getFullYear()
-        if (!isNaN(year)) years.add(year)
+        const year = getYearFromDate(item.fecha)
+        if (year !== null) {
+          years.add(year)
+        }
       }
     })
     
@@ -45,7 +76,8 @@ export const useYearFilter = (data = []) => {
     return data.filter(item => {
       if (!item.fecha) return yearFilter === 'all'
       
-      const itemYear = new Date(item.fecha).getFullYear()
+      const itemYear = getYearFromDate(item.fecha)
+      if (itemYear === null) return yearFilter === 'all'
       
       switch (yearFilter) {
         case 'current':
@@ -71,7 +103,9 @@ export const useYearFilter = (data = []) => {
     data.forEach(item => {
       if (!item.fecha) return
       
-      const year = new Date(item.fecha).getFullYear()
+      const year = getYearFromDate(item.fecha)
+      if (year === null) return
+      
       if (!stats[year]) {
         stats[year] = {
           count: 0,

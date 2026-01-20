@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 /**
  * Componente selector de año reutilizable
@@ -32,9 +32,9 @@ const YearSelector = ({
 
   if (compact) {
     return (
-      <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+      <div className={`flex flex-wrap items-center gap-2 ${className}`} style={{ position: 'relative', zIndex: showPreviousYears ? 1000 : 'auto' }}>
         <span className="text-xs font-medium text-gray-500">📅 Año:</span>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1" style={{ position: 'relative' }}>
           <button
             onClick={() => onFilterChange('all')}
             className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
@@ -60,7 +60,7 @@ const YearSelector = ({
           )}
           
           {previousYears.length > 0 && (
-            <div className="relative">
+            <div className="relative" style={{ zIndex: showPreviousYears ? 1001 : 'auto' }}>
               <button
                 onClick={() => setShowPreviousYears(!showPreviousYears)}
                 className={`px-2 py-1 text-xs rounded-lg font-medium transition-all flex items-center gap-1 ${
@@ -74,16 +74,13 @@ const YearSelector = ({
               </button>
               
               {showPreviousYears && (
-                <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[80px]">
-                  <button
-                    onClick={() => {
-                      onFilterChange('previous', null)
-                      setShowPreviousYears(false)
-                    }}
-                    className="w-full px-3 py-1.5 text-xs text-left hover:bg-gray-100 font-medium"
-                  >
-                    Todos anteriores
-                  </button>
+                <div 
+                  className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl border border-gray-200 py-1 min-w-[80px]"
+                  style={{ 
+                    zIndex: 1002,
+                    position: 'absolute'
+                  }}
+                >
                   {previousYears.map(year => (
                     <button
                       key={year}
@@ -103,6 +100,18 @@ const YearSelector = ({
             </div>
           )}
         </div>
+        {/* Overlay para cerrar al hacer click fuera cuando el dropdown está abierto */}
+        {showPreviousYears && (
+          <div
+            className="fixed inset-0"
+            onClick={() => setShowPreviousYears(false)}
+            style={{ 
+              position: 'fixed',
+              zIndex: 999,
+              backgroundColor: 'transparent'
+            }}
+          />
+        )}
       </div>
     )
   }
@@ -167,7 +176,7 @@ const YearSelector = ({
         </button>
 
         {/* Años Anteriores */}
-        <div className="relative">
+        <div className="relative" style={{ zIndex: showPreviousYears ? 1001 : 'auto' }}>
           <button
             onClick={() => setShowPreviousYears(!showPreviousYears)}
             className={`w-full p-3 rounded-lg text-center transition-all ${
@@ -191,16 +200,13 @@ const YearSelector = ({
 
           {/* Dropdown de años anteriores */}
           {showPreviousYears && previousYears.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 max-h-48 overflow-y-auto">
-              <button
-                onClick={() => {
-                  onFilterChange('previous', null)
-                  setShowPreviousYears(false)
-                }}
-                className="w-full px-3 py-2 text-xs text-left hover:bg-gray-100 font-medium border-b border-gray-100"
-              >
-                📚 Todos los anteriores
-              </button>
+            <div 
+              className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-2xl border border-gray-200 py-1 max-h-48 overflow-y-auto"
+              style={{ 
+                zIndex: 1002,
+                position: 'absolute'
+              }}
+            >
               {previousYears.map(year => (
                 <button
                   key={year}
@@ -223,6 +229,18 @@ const YearSelector = ({
             </div>
           )}
         </div>
+        {/* Overlay para cerrar al hacer click fuera cuando el dropdown está abierto */}
+        {showPreviousYears && (
+          <div
+            className="fixed inset-0"
+            onClick={() => setShowPreviousYears(false)}
+            style={{ 
+              position: 'fixed',
+              zIndex: 999,
+              backgroundColor: 'transparent'
+            }}
+          />
+        )}
       </div>
 
       {/* Estadísticas del filtro actual */}
