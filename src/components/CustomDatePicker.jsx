@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 const CustomDatePicker = ({ 
   value, 
@@ -11,6 +12,8 @@ const CustomDatePicker = ({
   const [isOpen, setIsOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState(value || '')
   const [displayDate, setDisplayDate] = useState(value || '')
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
+  const triggerRef = useRef(null)
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -18,9 +21,63 @@ const CustomDatePicker = ({
     setDisplayDate(value || '')
   }, [value])
 
+  // Calcular la posición del dropdown cuando se abre
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const dropdownHeight = 400 // Altura aproximada del dropdown
+      
+      // Determinar si hay espacio abajo o debe abrirse arriba
+      const spaceBelow = viewportHeight - rect.bottom
+      const openAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight
+      
+      setDropdownPosition({
+        top: openAbove ? rect.top - dropdownHeight - 8 : rect.bottom + 8,
+        left: rect.left,
+        width: rect.width,
+        openAbove
+      })
+    }
+  }, [isOpen])
+
+  // Actualizar posición en scroll/resize
+  useEffect(() => {
+    if (!isOpen) return
+
+    const updatePosition = () => {
+      if (triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect()
+        const viewportHeight = window.innerHeight
+        const dropdownHeight = 400
+        
+        const spaceBelow = viewportHeight - rect.bottom
+        const openAbove = spaceBelow < dropdownHeight && rect.top > dropdownHeight
+        
+        setDropdownPosition({
+          top: openAbove ? rect.top - dropdownHeight - 8 : rect.bottom + 8,
+          left: rect.left,
+          width: rect.width,
+          openAbove
+        })
+      }
+    }
+
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+    
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
+  }, [isOpen])
+
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      const isClickInsideDropdown = dropdownRef.current && dropdownRef.current.contains(event.target)
+      const isClickInsideTrigger = triggerRef.current && triggerRef.current.contains(event.target)
+      
+      if (!isClickInsideDropdown && !isClickInsideTrigger) {
         setIsOpen(false)
       }
     }
@@ -119,7 +176,7 @@ const CustomDatePicker = ({
               className={`px-3 py-2 text-sm rounded-lg transition-colors ${
                 selectedDate && selectedDate.split('-')[0] === year.toString()
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  : 'bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200'
               }`}
             >
               {year}
@@ -137,7 +194,7 @@ const CustomDatePicker = ({
                 className={`px-3 py-2 text-sm rounded-lg transition-colors ${
                   selectedDate === monthValue
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    : 'bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200'
                 }`}
               >
                 {month.substring(0, 3)}
@@ -192,8 +249,8 @@ const CustomDatePicker = ({
               isSelected
                 ? 'bg-blue-600 text-white'
                 : isToday
-                ? 'bg-blue-100 text-blue-600 font-semibold'
-                : 'hover:bg-gray-100 text-gray-700'
+                ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold'
+                : 'hover:bg-gray-100 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200'
             }`}
           >
             {day}
@@ -226,16 +283,16 @@ const CustomDatePicker = ({
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => changeMonth(-1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition-colors text-gray-700 dark:text-gray-200"
           >
             ←
           </button>
-          <h3 className="font-semibold text-gray-800">
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100">
             {monthNames[selectedMonth - 1]} {selectedYear}
           </h3>
           <button
             onClick={() => changeMonth(1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-lg transition-colors text-gray-700 dark:text-gray-200"
           >
             →
           </button>
@@ -244,7 +301,7 @@ const CustomDatePicker = ({
         {/* Días de la semana */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {days.map(day => (
-            <div key={day} className="text-center text-xs font-medium text-gray-500 py-1">
+            <div key={day} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-1">
               {day}
             </div>
           ))}
@@ -258,19 +315,61 @@ const CustomDatePicker = ({
     )
   }
 
+  // Renderizar el dropdown usando un portal para evitar problemas de z-index
+  const renderDropdown = () => {
+    if (!isOpen || disabled) return null
+
+    return createPortal(
+      <div 
+        ref={dropdownRef}
+        className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl shadow-2xl"
+        style={{
+          position: 'fixed',
+          top: `${dropdownPosition.top}px`,
+          left: `${dropdownPosition.left}px`,
+          width: `${Math.max(dropdownPosition.width, 280)}px`,
+          zIndex: 99999,
+          maxHeight: '400px'
+        }}
+      >
+        <div className="max-h-80 overflow-auto">
+          {type === 'month' ? renderMonthPicker() : renderDatePicker()}
+        </div>
+        
+        {/* Footer con botones */}
+        <div className="border-t border-gray-200 dark:border-slate-600 p-3 flex justify-between">
+          <button
+            onClick={() => handleDateSelect(getCurrentDate())}
+            className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+          >
+            Hoy
+          </button>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>,
+      document.body
+    )
+  }
+
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
+    <div className={`relative ${className}`}>
       {/* Input personalizado */}
       <div
+        ref={triggerRef}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`
-          w-full px-3 py-2.5 border border-gray-300 rounded-lg 
+          w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg 
           focus:ring-2 focus:ring-blue-500 focus:border-transparent 
           transition-all cursor-pointer flex items-center justify-between
-          ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white hover:border-gray-400'}
+          ${disabled ? 'bg-gray-100 dark:bg-slate-700 cursor-not-allowed' : 'bg-white dark:bg-slate-700 hover:border-gray-400 dark:hover:border-slate-500'}
         `}
       >
-        <span className={`${selectedDate ? 'text-gray-800' : 'text-gray-500'}`}>
+        <span className={`${selectedDate ? 'text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400'}`}>
           {formatDisplayValue(displayDate)}
         </span>
         <div className="flex items-center space-x-2">
@@ -280,7 +379,7 @@ const CustomDatePicker = ({
                 e.stopPropagation()
                 clearDate()
               }}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               ✕
             </button>
@@ -300,30 +399,8 @@ const CustomDatePicker = ({
         tabIndex={-1}
       />
 
-      {/* Dropdown del calendario */}
-      {isOpen && !disabled && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl z-[9999]">
-          <div className="max-h-80 overflow-auto">
-            {type === 'month' ? renderMonthPicker() : renderDatePicker()}
-          </div>
-          
-          {/* Footer con botones */}
-          <div className="border-t border-gray-200 p-3 flex justify-between">
-            <button
-              onClick={() => handleDateSelect(getCurrentDate())}
-              className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 transition-colors"
-            >
-              Hoy
-            </button>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-700 transition-colors"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Dropdown del calendario (renderizado en portal) */}
+      {renderDropdown()}
     </div>
   )
 }
