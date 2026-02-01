@@ -186,7 +186,8 @@ class ExchangeApiService {
   }
 
   /**
-   * Fuerza una actualización manual
+   * Fuerza una actualización manual desde la API
+   * Actualiza el cache y la base de datos con el nuevo valor
    */
   async forceUpdate() {
     return await this.fetchExchangeRate()

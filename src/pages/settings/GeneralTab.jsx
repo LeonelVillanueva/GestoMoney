@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import exchangeApiService from '../../utils/services/exchangeApi'
+import notifications from '../../utils/services/notifications'
 
 export default function GeneralTab({ settings, onSettingChange }) {
   const [isUpdating, setIsUpdating] = useState(false)
@@ -21,9 +22,19 @@ export default function GeneralTab({ settings, onSettingChange }) {
       if (newRate) {
         onSettingChange('exchangeRate', newRate)
         await loadLastUpdate()
+        notifications.showSync('Tasa de cambio actualizada correctamente', 'success')
+      } else {
+        // Verificar si hay API key configurada
+        const apiKey = import.meta.env.VITE_EXCHANGE_API_KEY
+        if (!apiKey) {
+          notifications.showSync('Error: No hay API key configurada para el servicio de exchange', 'error')
+        } else {
+          notifications.showSync('Error: No se pudo obtener la tasa de cambio. Verifica tu conexión a internet.', 'error')
+        }
       }
     } catch (error) {
       console.error('Error actualizando tasa:', error)
+      notifications.showSync('Error al actualizar la tasa de cambio', 'error')
     } finally {
       setIsUpdating(false)
     }

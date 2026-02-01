@@ -17,6 +17,40 @@ class NotificationService {
     this.notificationQueue = []
     this.currentNotifications = []
     this.progressNotificationVisible = false
+    // Referencias para la notificación actual (para reemplazarla)
+    this.currentNotificationRoot = null
+    this.currentNotificationContainer = null
+    this.currentNotificationTimeout = null
+    // Referencias para la notificación de progreso (para reemplazarla)
+    this.progressNotificationRoot = null
+    this.progressNotificationContainer = null
+    this.progressNotificationTimeout = null
+  }
+
+  /**
+   * Cierra la notificación actual si existe
+   */
+  closeCurrentNotification() {
+    // Limpiar timeout anterior
+    if (this.currentNotificationTimeout) {
+      clearTimeout(this.currentNotificationTimeout)
+      this.currentNotificationTimeout = null
+    }
+
+    // Desmontar y eliminar contenedor anterior
+    if (this.currentNotificationRoot) {
+      try {
+        this.currentNotificationRoot.unmount()
+      } catch (e) {
+        // Ignorar errores si ya fue desmontado
+      }
+      this.currentNotificationRoot = null
+    }
+
+    if (this.currentNotificationContainer && this.currentNotificationContainer.parentNode) {
+      this.currentNotificationContainer.parentNode.removeChild(this.currentNotificationContainer)
+      this.currentNotificationContainer = null
+    }
   }
 
   /**
@@ -30,6 +64,9 @@ class NotificationService {
 
     const notificationDuration = duration || this.settings.duration
 
+    // Cerrar notificación anterior si existe (reemplazar)
+    this.closeCurrentNotification()
+
     // Crear contenedor para la notificación
     const container = document.createElement('div')
     container.id = `notification-${Date.now()}`
@@ -37,11 +74,34 @@ class NotificationService {
 
     const root = createRoot(container)
 
+    // Guardar referencias
+    this.currentNotificationContainer = container
+    this.currentNotificationRoot = root
+
     const handleClose = () => {
-      root.unmount()
+      // Limpiar timeout
+      if (this.currentNotificationTimeout) {
+        clearTimeout(this.currentNotificationTimeout)
+        this.currentNotificationTimeout = null
+      }
+
+      // Desmontar
+      if (this.currentNotificationRoot === root) {
+        try {
+          root.unmount()
+        } catch (e) {
+          // Ignorar errores
+        }
+        this.currentNotificationRoot = null
+      }
+
+      // Eliminar contenedor
       setTimeout(() => {
         if (container.parentNode) {
           container.parentNode.removeChild(container)
+        }
+        if (this.currentNotificationContainer === container) {
+          this.currentNotificationContainer = null
         }
       }, 300)
     }
@@ -57,10 +117,38 @@ class NotificationService {
 
     // Auto-cerrar si tiene duración
     if (notificationDuration > 0) {
-      setTimeout(() => {
+      this.currentNotificationTimeout = setTimeout(() => {
         handleClose()
       }, notificationDuration)
     }
+  }
+
+  /**
+   * Cierra la notificación de progreso actual si existe
+   */
+  closeCurrentProgressNotification() {
+    // Limpiar timeout anterior
+    if (this.progressNotificationTimeout) {
+      clearTimeout(this.progressNotificationTimeout)
+      this.progressNotificationTimeout = null
+    }
+
+    // Desmontar y eliminar contenedor anterior
+    if (this.progressNotificationRoot) {
+      try {
+        this.progressNotificationRoot.unmount()
+      } catch (e) {
+        // Ignorar errores si ya fue desmontado
+      }
+      this.progressNotificationRoot = null
+    }
+
+    if (this.progressNotificationContainer && this.progressNotificationContainer.parentNode) {
+      this.progressNotificationContainer.parentNode.removeChild(this.progressNotificationContainer)
+      this.progressNotificationContainer = null
+    }
+
+    this.progressNotificationVisible = false
   }
 
   /**
@@ -70,7 +158,10 @@ class NotificationService {
    * @param {Function} callback - Callback cuando se cierra
    */
   showExpenseProgress(expenseData, totalsData, callback) {
-    if (!this.settings.enabled || this.progressNotificationVisible) return
+    if (!this.settings.enabled) return
+
+    // Cerrar notificación de progreso anterior si existe (reemplazar)
+    this.closeCurrentProgressNotification()
 
     this.progressNotificationVisible = true
 
@@ -81,12 +172,36 @@ class NotificationService {
 
     const root = createRoot(container)
 
+    // Guardar referencias
+    this.progressNotificationContainer = container
+    this.progressNotificationRoot = root
+
     const handleClose = () => {
+      // Limpiar timeout
+      if (this.progressNotificationTimeout) {
+        clearTimeout(this.progressNotificationTimeout)
+        this.progressNotificationTimeout = null
+      }
+
       this.progressNotificationVisible = false
-      root.unmount()
+
+      // Desmontar
+      if (this.progressNotificationRoot === root) {
+        try {
+          root.unmount()
+        } catch (e) {
+          // Ignorar errores
+        }
+        this.progressNotificationRoot = null
+      }
+
+      // Eliminar contenedor
       setTimeout(() => {
         if (container.parentNode) {
           container.parentNode.removeChild(container)
+        }
+        if (this.progressNotificationContainer === container) {
+          this.progressNotificationContainer = null
         }
         if (callback) callback()
       }, 300)
