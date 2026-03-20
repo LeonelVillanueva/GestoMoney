@@ -55,6 +55,11 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // No interceptar endpoints internos de Vercel (analytics/insights)
+  if (requestUrl.pathname.startsWith('/_vercel/')) {
+    return
+  }
+
   // No cachear peticiones a Supabase (debe ser siempre en tiempo real)
   if (event.request.url.includes('supabase.co') || event.request.url.includes('supabase.in')) {
     return
