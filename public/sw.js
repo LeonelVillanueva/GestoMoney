@@ -48,6 +48,13 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  const requestUrl = new URL(event.request.url)
+
+  // Dejar pasar cualquier petición de otro dominio sin interceptarla
+  if (requestUrl.origin !== self.location.origin) {
+    return
+  }
+
   // No cachear peticiones a Supabase (debe ser siempre en tiempo real)
   if (event.request.url.includes('supabase.co') || event.request.url.includes('supabase.in')) {
     return
@@ -83,6 +90,8 @@ self.addEventListener('fetch', (event) => {
             if (event.request.mode === 'navigate') {
               return caches.match('/index.html')
             }
+            // Para requests que no sean navegación, retornar una respuesta válida de error
+            return Response.error()
           })
       })
   )
