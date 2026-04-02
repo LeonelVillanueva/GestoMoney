@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, Filler } from 'chart.js'
 import zoomPlugin from 'chartjs-plugin-zoom'
 import { useDateRange } from './hooks/useDateRange'
 import { useExpenseCalculation } from './hooks/useExpenseCalculation'
@@ -22,6 +22,7 @@ ChartJS.register(
   ArcElement,
   PointElement,
   LineElement,
+  Filler,
   zoomPlugin
 )
 

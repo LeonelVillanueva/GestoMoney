@@ -9,8 +9,13 @@ const ChartFilters = ({
   showFilters, 
   onFilterChange, 
   onClearFilters, 
-  onToggleFilters 
+  onToggleFilters,
+  yearOptions = [],
+  currentYear = new Date().getFullYear()
 }) => {
+  const selectableYears = Array.from(new Set([currentYear, ...yearOptions]))
+    .sort((a, b) => b - a)
+
   if (!showFilters) {
     return (
       <div className="flex items-center justify-between mb-3">
@@ -67,7 +72,7 @@ const ChartFilters = ({
                 onChange={(e) => onFilterChange('year', parseInt(e.target.value))}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {Array.from({length: 5}, (_, i) => new Date().getFullYear() - i).map(year => (
+                {selectableYears.map(year => (
                   <option key={year} value={year}>{year}</option>
                 ))}
               </select>

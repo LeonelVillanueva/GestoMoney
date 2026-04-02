@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from 'chart.js'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler } from 'chart.js'
 import zoomPlugin from 'chartjs-plugin-zoom'
 import database from '../../database/index.js'
 import notifications from '../../utils/services/notifications'
@@ -15,7 +15,7 @@ import QuarterlyAnalysis from './components/QuarterlyAnalysis'
 import { formatCurrency } from './utils/chartFormatters'
 import { createChartOptions, createBarOptions, createLineOptions } from './utils/chartOptions'
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, zoomPlugin)
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler, zoomPlugin)
 
 const Charts = ({ expenses, onDataAdded }) => {
   const [showFilters, setShowFilters] = useState(false)
@@ -50,6 +50,19 @@ const Charts = ({ expenses, onDataAdded }) => {
   } = useChartData(filteredExpenses, gastos, ingresos, filters)
 
   const quarterlyData = useQuarterlyData(expensesByYear, filters.year)
+
+  // Mantener sincronizado el año del análisis trimestral con el filtro principal por año
+  useEffect(() => {
+    if (yearFilter === 'all') return
+
+    const targetYear = yearFilter === 'previous' && selectedYear
+      ? selectedYear
+      : currentYear
+
+    if (filters.year !== targetYear) {
+      handleFilterChange('year', targetYear)
+    }
+  }, [yearFilter, selectedYear, currentYear, filters.year, handleFilterChange])
 
   // Opciones de gráficos
   const chartOptions = useMemo(() => createChartOptions(), [])
@@ -327,6 +340,8 @@ const Charts = ({ expenses, onDataAdded }) => {
           onFilterChange={handleFilterChange}
           onClearFilters={clearFilters}
           onToggleFilters={() => setShowFilters(!showFilters)}
+          yearOptions={availableYears}
+          currentYear={currentYear}
         />
 
         {/* Contenido según gráfico activo */}
