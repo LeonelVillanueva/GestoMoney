@@ -130,9 +130,9 @@ const database = {
     return await db.getConfig(key);
   },
   
-  async setConfig(key, value, description = '') {
+  async setConfig(key, value, description = '', options = {}) {
     const db = await initDatabase();
-    return await db.setConfig(key, value, description);
+    return await db.setConfig(key, value, description, options);
   },
   
   async getAllConfig() {

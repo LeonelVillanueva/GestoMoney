@@ -92,9 +92,13 @@ class ExchangeApiService {
    * Guarda la tasa en la base de datos
    */
   async saveToDatabase(rate) {
+    const silent = { silentIfNoSession: true }
     try {
-      await database.setConfig('tasa_cambio_usd', rate.toString())
-      await database.setConfig('tasa_cambio_ultima_actualizacion', new Date().toISOString())
+      const ok1 = await database.setConfig('tasa_cambio_usd', rate.toString(), '', silent)
+      const ok2 = await database.setConfig('tasa_cambio_ultima_actualizacion', new Date().toISOString(), '', silent)
+      if (!ok1 || !ok2) {
+        logger.debug('Tasa no guardada en config (sesión aún no lista); queda en cache local.')
+      }
     } catch (error) {
       logger.error('Error guardando tasa en base de datos:', error)
     }
