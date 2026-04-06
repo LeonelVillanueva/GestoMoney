@@ -39,6 +39,7 @@ lerna-debug.log*
 
 # Supabase migration data
 local-data.json
+supabase/.temp/
 
 # Archivos de backup de localStorage (ya migrados a Supabase)
 *.backup
