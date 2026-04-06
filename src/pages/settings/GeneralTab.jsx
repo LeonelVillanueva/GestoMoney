@@ -24,13 +24,10 @@ export default function GeneralTab({ settings, onSettingChange }) {
         await loadLastUpdate()
         notifications.showSync('Tasa de cambio actualizada correctamente', 'success')
       } else {
-        // Verificar si hay API key configurada
-        const apiKey = import.meta.env.VITE_EXCHANGE_API_KEY
-        if (!apiKey) {
-          notifications.showSync('Error: No hay API key configurada para el servicio de exchange', 'error')
-        } else {
-          notifications.showSync('Error: No se pudo obtener la tasa de cambio. Verifica tu conexión a internet.', 'error')
-        }
+        notifications.showSync(
+          'No se pudo obtener la tasa. Configura EXCHANGE_API_KEY en el servidor (Vercel) o en .env local y reinicia el dev server.',
+          'error'
+        )
       }
     } catch (error) {
       console.error('Error actualizando tasa:', error)
