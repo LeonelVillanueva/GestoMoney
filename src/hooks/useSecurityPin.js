@@ -1,31 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../database/supabase'
 import logger from '../utils/logger'
+import { hashSecurityPin, SECURITY_PIN_SALT_SUFFIX } from '../utils/pinHash'
+
+export { SECURITY_PIN_SALT_SUFFIX }
 
 /**
  * Hook para manejar el PIN de seguridad para eliminaciones
- * El PIN se guarda hasheado en Supabase (tabla config)
+ * El PIN se guarda hasheado en Supabase (tabla config).
+ * La verificación usa RPC verify_security_pin (límite de intentos en servidor).
  */
 const useSecurityPin = () => {
   const [hasPin, setHasPin] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  /**
-   * Genera un hash SHA-256 del PIN
-   * @param {string} pin - PIN en texto plano
-   * @returns {Promise<string>} - Hash en hexadecimal
-   */
-  const hashPin = async (pin) => {
-    const encoder = new TextEncoder()
-    const data = encoder.encode(pin + '_gestor_gastos_salt_2025')
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  }
-
-  /**
-   * Verifica si existe un PIN configurado
-   */
   const checkPinExists = useCallback(async () => {
     try {
       setLoading(true)
@@ -64,20 +52,25 @@ const useSecurityPin = () => {
    */
   const setPin = async (pin) => {
     try {
-      // Validar que sea un PIN de 6 dígitos
       if (!/^\d{6}$/.test(pin)) {
         return { success: false, error: 'El PIN debe ser de 6 dígitos numéricos' }
       }
 
-      const hashedPin = await hashPin(pin)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return { success: false, error: 'No hay sesión' }
+      }
+
+      const hashedPin = await hashSecurityPin(pin)
 
       const { error } = await supabase
         .from('config')
         .upsert({
+          user_id: user.id,
           key: 'security_pin_hash',
           value: hashedPin,
           description: 'PIN de seguridad hasheado para eliminaciones'
-        }, { onConflict: 'key' })
+        }, { onConflict: 'user_id,key' })
 
       if (error) {
         logger.error('Error guardando PIN:', error)
@@ -94,58 +87,49 @@ const useSecurityPin = () => {
   }
 
   /**
-   * Verifica si el PIN ingresado es correcto
-   * @param {string} pin - PIN a verificar
-   * @returns {Promise<{valid: boolean, error?: string}>}
+   * Verifica el PIN vía RPC (contador de fallos y bloqueo en base de datos).
    */
   const verifyPin = async (pin) => {
     try {
-      // Validar formato
       if (!/^\d{6}$/.test(pin)) {
         return { valid: false, error: 'PIN inválido' }
       }
 
-      // Obtener el hash guardado
-      const { data, error } = await supabase
-        .from('config')
-        .select('value')
-        .eq('key', 'security_pin_hash')
-        .single()
+      const { data, error } = await supabase.rpc('verify_security_pin', { p_pin: pin })
 
-      if (error || !data?.value) {
-        return { valid: false, error: 'No hay PIN configurado' }
+      if (error) {
+        logger.error('Error en verify_security_pin:', error)
+        return { valid: false, error: 'Error al verificar el PIN' }
       }
 
-      // Comparar hashes
-      const inputHash = await hashPin(pin)
-      const isValid = inputHash === data.value
+      const valid = data?.valid === true
+      let errMsg = data?.error
 
-      if (!isValid) {
-        logger.log('Intento de PIN incorrecto')
+      if (!valid && errMsg) {
+        logger.log('Verificación PIN:', errMsg)
       }
 
-      return { valid: isValid, error: isValid ? undefined : 'PIN incorrecto' }
+      // Tras migración RLS: fila security_pin_hash con user_id NULL o ajeno → RPC no encuentra hash
+      if (!valid && errMsg === 'No hay PIN configurado') {
+        errMsg =
+          'El PIN no está vinculado a tu usuario (suele pasar tras migrar la base). ' +
+          'En Supabase ejecuta el script supabase/fix_pin_user_id.sql o borra la fila en config y define un PIN nuevo en Ajustes → Seguridad.'
+      }
+
+      return { valid, error: valid ? undefined : errMsg }
     } catch (error) {
       logger.error('Error en verifyPin:', error)
       return { valid: false, error: 'Error al verificar el PIN' }
     }
   }
 
-  /**
-   * Cambia el PIN (requiere el PIN actual)
-   * @param {string} currentPin - PIN actual
-   * @param {string} newPin - Nuevo PIN
-   * @returns {Promise<{success: boolean, error?: string}>}
-   */
   const changePin = async (currentPin, newPin) => {
     try {
-      // Verificar PIN actual
       const verification = await verifyPin(currentPin)
       if (!verification.valid) {
         return { success: false, error: 'PIN actual incorrecto' }
       }
 
-      // Establecer nuevo PIN
       return await setPin(newPin)
     } catch (error) {
       logger.error('Error en changePin:', error)
@@ -153,14 +137,8 @@ const useSecurityPin = () => {
     }
   }
 
-  /**
-   * Elimina el PIN (requiere el PIN actual)
-   * @param {string} currentPin - PIN actual para confirmar
-   * @returns {Promise<{success: boolean, error?: string}>}
-   */
   const removePin = async (currentPin) => {
     try {
-      // Verificar PIN actual
       const verification = await verifyPin(currentPin)
       if (!verification.valid) {
         return { success: false, error: 'PIN incorrecto' }

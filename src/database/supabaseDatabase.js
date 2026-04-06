@@ -6,10 +6,14 @@ class SupabaseDatabase {
   }
 
   async init() {
-    // Verificar conexión
-    const { data, error } = await supabase.from('categories').select('count').limit(1)
+    const { error } = await supabase.from('categories').select('count').limit(1)
     if (error && error.code !== 'PGRST116') { // PGRST116 = tabla vacía, es OK
-      throw new Error(`Error conectando a Supabase: ${error.message}`)
+      const msg = error.message || String(error)
+      const hint =
+        /fetch|network|failed to fetch/i.test(msg)
+          ? ' Comprueba conexión, que el proyecto Supabase no esté pausado y las variables SUPABASE_PROYECT_URL / SUPABASE_ANON_PUBLIC en .env.'
+          : ''
+      throw new Error(`Error conectando a Supabase: ${msg}${hint}`)
     }
     this.initialized = true
     return true
@@ -362,14 +366,26 @@ class SupabaseDatabase {
     return data?.value || null
   }
 
-  async setConfig(key, value, description = '') {
+  /**
+   * Guarda clave en config (por usuario).
+   * @param {{ silentIfNoSession?: boolean }} [options] — si true, sin sesión devuelve false en lugar de lanzar (p. ej. tasa al arrancar).
+   */
+  async setConfig(key, value, description = '', options = {}) {
+    const { silentIfNoSession = false } = options
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      if (silentIfNoSession) return false
+      throw new Error('No hay sesión activa')
+    }
+
     const { error } = await supabase
       .from('config')
       .upsert({
+        user_id: user.id,
         key,
         value: typeof value === 'string' ? value : JSON.stringify(value),
         description
-      }, { onConflict: 'key' })
+      }, { onConflict: 'user_id,key' })
 
     if (error) throw error
     return true
@@ -1227,11 +1243,13 @@ class SupabaseDatabase {
   }
 
   async clearAllData() {
-    // ⚠️ CUIDADO: Esto elimina todos los datos
-    const tables = ['expenses', 'supermarket_purchases', 'cuts', 'budgets', 'config']
-    for (const table of tables) {
+    // ⚠️ CUIDADO: Esto elimina todos los datos visibles para el usuario (RLS)
+    const tablesWithUuidId = ['expenses', 'supermarket_purchases', 'cuts', 'budgets']
+    for (const table of tablesWithUuidId) {
       await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000')
     }
+    // config puede no usar uuid `id`; borrar filas con key definida
+    await supabase.from('config').delete().neq('key', '')
     return true
   }
 
