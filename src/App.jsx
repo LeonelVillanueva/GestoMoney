@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react'
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Analytics } from '@vercel/analytics/react'
 import Sidebar from './components/Sidebar'
 import ProtectedRoute from './components/ProtectedRoute'
 import ZoomControls from './components/ZoomControls'
@@ -170,6 +171,7 @@ function App() {
       <Router>
         <AppContent />
         <SpeedInsights />
+        <Analytics />
       </Router>
     </AuthProvider>
   )
