@@ -13,6 +13,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>,
 )
 
-// Registrar Service Worker para PWA
-registerServiceWorker()
+// Registrar Service Worker solo en producción para evitar cache de bundles viejos en desarrollo.
+if (import.meta.env.PROD) {
+  registerServiceWorker()
+}
 

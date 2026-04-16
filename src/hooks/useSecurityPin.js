@@ -63,18 +63,56 @@ const useSecurityPin = () => {
 
       const hashedPin = await hashSecurityPin(pin)
 
-      const { error } = await supabase
-        .from('config')
-        .upsert({
-          user_id: user.id,
-          key: 'security_pin_hash',
-          value: hashedPin,
-          description: 'PIN de seguridad hasheado para eliminaciones'
-        }, { onConflict: 'user_id,key' })
+      const pinPayload = {
+        user_id: user.id,
+        key: 'security_pin_hash',
+        value: hashedPin,
+        description: 'PIN de seguridad hasheado para eliminaciones'
+      }
 
-      if (error) {
-        logger.error('Error guardando PIN:', error)
+      // Evita depender de UNIQUE(user_id,key): primero UPDATE y luego INSERT si no había fila.
+      const { data: updatedRows, error: updateError } = await supabase
+        .from('config')
+        .update({
+          value: pinPayload.value,
+          description: pinPayload.description
+        })
+        .eq('user_id', user.id)
+        .eq('key', 'security_pin_hash')
+        .select('key')
+
+      if (updateError) {
+        logger.error('Error guardando PIN (update):', updateError)
         return { success: false, error: 'Error al guardar el PIN' }
+      }
+
+      if (!Array.isArray(updatedRows) || updatedRows.length === 0) {
+        const { error: insertError } = await supabase
+          .from('config')
+          .insert(pinPayload)
+
+        if (insertError) {
+          // Compatibilidad con esquemas legacy donde `key` es PK/UNIQUE global.
+          if (insertError.code === '23505') {
+            const { data: migratedRows, error: migrateError } = await supabase
+              .from('config')
+              .update({
+                user_id: user.id,
+                value: pinPayload.value,
+                description: pinPayload.description
+              })
+              .eq('key', 'security_pin_hash')
+              .select('key')
+
+            if (migrateError || !Array.isArray(migratedRows) || migratedRows.length === 0) {
+              logger.error('Error guardando PIN (migración legacy):', migrateError || insertError)
+              return { success: false, error: 'Error al guardar el PIN' }
+            }
+          } else {
+            logger.error('Error guardando PIN (insert):', insertError)
+            return { success: false, error: 'Error al guardar el PIN' }
+          }
+        }
       }
 
       setHasPin(true)

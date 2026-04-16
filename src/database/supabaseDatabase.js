@@ -378,16 +378,50 @@ class SupabaseDatabase {
       throw new Error('No hay sesión activa')
     }
 
-    const { error } = await supabase
-      .from('config')
-      .upsert({
-        user_id: user.id,
-        key,
-        value: typeof value === 'string' ? value : JSON.stringify(value),
-        description
-      }, { onConflict: 'user_id,key' })
+    const payload = {
+      user_id: user.id,
+      key,
+      value: typeof value === 'string' ? value : JSON.stringify(value),
+      description
+    }
 
-    if (error) throw error
+    // Evita depender de UNIQUE(user_id,key): primero intenta UPDATE y, si no existe fila, hace INSERT.
+    const { data: updatedRows, error: updateError } = await supabase
+      .from('config')
+      .update({
+        value: payload.value,
+        description: payload.description
+      })
+      .eq('user_id', user.id)
+      .eq('key', key)
+      .select('key')
+
+    if (updateError) throw updateError
+    if (Array.isArray(updatedRows) && updatedRows.length > 0) return true
+
+    const { error: insertError } = await supabase
+      .from('config')
+      .insert(payload)
+
+    if (!insertError) return true
+
+    // Compatibilidad con esquemas legacy donde `key` es PK/UNIQUE global (ej: config_pkey).
+    if (insertError.code === '23505') {
+      const { data: migratedRows, error: migrateError } = await supabase
+        .from('config')
+        .update({
+          user_id: user.id,
+          value: payload.value,
+          description: payload.description
+        })
+        .eq('key', key)
+        .select('key')
+
+      if (migrateError) throw migrateError
+      if (Array.isArray(migratedRows) && migratedRows.length > 0) return true
+    }
+
+    throw insertError
     return true
   }
 

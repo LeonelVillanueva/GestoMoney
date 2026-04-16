@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const mockGetUser = vi.fn()
 const mockUpsert = vi.fn()
+const mockUpdate = vi.fn()
+const mockInsert = vi.fn()
 const mockFrom = vi.fn()
 
 vi.mock('./supabase.js', () => ({
@@ -22,10 +24,20 @@ describe('SupabaseDatabase', () => {
     vi.clearAllMocks()
     mockGetUser.mockResolvedValue({ data: { user: { id: '11111111-1111-1111-1111-111111111111' } } })
     mockUpsert.mockResolvedValue({ error: null })
+    mockUpdate.mockResolvedValue({ data: [{ key: 'k' }], error: null })
+    mockInsert.mockResolvedValue({ error: null })
     mockFrom.mockImplementation((table) => {
       if (table === 'config') {
         return {
-          upsert: (...args) => mockUpsert(...args)
+          upsert: (...args) => mockUpsert(...args),
+          update: (...args) => ({
+            eq: () => ({
+              eq: () => ({
+                select: () => mockUpdate(...args)
+              })
+            })
+          }),
+          insert: (...args) => mockInsert(...args)
         }
       }
       if (table === 'categories') {
@@ -92,16 +104,29 @@ describe('SupabaseDatabase', () => {
       await expect(db.setConfig('k', 'v')).rejects.toThrow('No hay sesión activa')
     })
 
-    it('con sesión: upsert con user_id y onConflict user_id,key', async () => {
+    it('con sesión: actualiza config por user_id+key', async () => {
       await db.setConfig('tasa_cambio_usd', '26.5')
-      expect(mockUpsert).toHaveBeenCalledWith(
+      expect(mockUpdate).toHaveBeenCalledWith(
+        {
+          value: '26.5',
+          description: ''
+        }
+      )
+      expect(mockInsert).not.toHaveBeenCalled()
+    })
+
+    it('si no existe fila, inserta config', async () => {
+      mockUpdate.mockResolvedValueOnce({ data: [], error: null })
+
+      await db.setConfig('tasa_cambio_usd', '26.5')
+
+      expect(mockInsert).toHaveBeenCalledWith(
         {
           user_id: '11111111-1111-1111-1111-111111111111',
           key: 'tasa_cambio_usd',
           value: '26.5',
           description: ''
-        },
-        { onConflict: 'user_id,key' }
+        }
       )
     })
   })
