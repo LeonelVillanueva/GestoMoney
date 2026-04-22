@@ -17,10 +17,12 @@ class ExchangeApiService {
    */
   async fetchExchangeRate() {
     try {
-      const response = await fetch('/api/exchange-rate')
+      const response = await fetch('/api/exchange-rate', {
+        credentials: 'same-origin'
+      })
 
       if (response.status === 501) {
-        logger.warn('⚠️ EXCHANGE_API_KEY no configurada en el servidor')
+        logger.warn('⚠️ Servicio de tasas no configurado en el servidor')
         return null
       }
 
