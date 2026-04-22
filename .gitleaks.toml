@@ -1,0 +1,37 @@
+# Amplía las reglas por defecto de gitleaks (useDefault) y reduce ruido solo en rutas seguras.
+# Documentación: https://github.com/gitleaks/gitleaks
+
+title = "GestorGastos"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Dependencias y artefactos generados"
+paths = [
+  '''package-lock\.json''',
+  '''node_modules/''',
+  '''dist/''',
+  '''coverage/''',
+  '''playwright-report/''',
+  '''test-results/''',
+]
+
+[[allowlists]]
+description = "Metadatos de escaneo y entorno local (no deben versionarse con secretos)"
+paths = [
+  '''\.gitleaks\.toml''',
+  '''\.gitleaksignore''',
+  '''\.secretlintignore''',
+  '''\.secretlintrc\.json''',
+  '''\.env$''',
+  '''\.env\.[^/]+$''',
+  '''.*\.backup$''',
+  '''local-data\.json$''',
+]
+
+[[allowlists]]
+description = "Plantilla sin valores reales"
+paths = [
+  '''\.env\.example$''',
+]

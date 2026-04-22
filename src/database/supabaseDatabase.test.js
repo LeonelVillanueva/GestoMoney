@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const mockGetUser = vi.fn()
-const mockUpsert = vi.fn()
 const mockUpdate = vi.fn()
 const mockInsert = vi.fn()
 const mockFrom = vi.fn()
@@ -23,13 +22,11 @@ describe('SupabaseDatabase', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetUser.mockResolvedValue({ data: { user: { id: '11111111-1111-1111-1111-111111111111' } } })
-    mockUpsert.mockResolvedValue({ error: null })
     mockUpdate.mockResolvedValue({ data: [{ key: 'k' }], error: null })
     mockInsert.mockResolvedValue({ error: null })
     mockFrom.mockImplementation((table) => {
       if (table === 'config') {
         return {
-          upsert: (...args) => mockUpsert(...args),
           update: (...args) => ({
             eq: () => ({
               eq: () => ({
@@ -96,7 +93,8 @@ describe('SupabaseDatabase', () => {
       mockGetUser.mockResolvedValue({ data: { user: null } })
       const r = await db.setConfig('k', 'v', '', { silentIfNoSession: true })
       expect(r).toBe(false)
-      expect(mockUpsert).not.toHaveBeenCalled()
+      expect(mockUpdate).not.toHaveBeenCalled()
+      expect(mockInsert).not.toHaveBeenCalled()
     })
 
     it('sin sesión y sin silent: lanza', async () => {
