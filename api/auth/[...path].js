@@ -41,7 +41,11 @@ async function readBody(req) {
 }
 
 function getPath(req) {
-  return req.url?.split('?')[0] || ''
+  const rawPath = req.url?.split('?')[0] || ''
+  if (rawPath.length > 1 && rawPath.endsWith('/')) {
+    return rawPath.slice(0, -1)
+  }
+  return rawPath
 }
 
 function createAuthAdminClient() {
@@ -99,68 +103,75 @@ async function handleLogin(req, res) {
     return sendJson(res, 401, { error: 'Credenciales inválidas' })
   }
 
-  const userScopedClient = await createUserScopedClient(data.session)
-  const userId = data.session.user?.id
-  const fingerprintHash = hashDeviceFingerprint(body.deviceFingerprint)
-  const ipHash = hashClientIp(extractClientIp(req))
-  const nowIso = new Date().toISOString()
+  try {
+    const userScopedClient = await createUserScopedClient(data.session)
+    const userId = data.session.user?.id
+    const fingerprintHash = hashDeviceFingerprint(body.deviceFingerprint)
+    const ipHash = hashClientIp(extractClientIp(req))
+    const nowIso = new Date().toISOString()
 
-  const { data: mfaSettings } = await userScopedClient
-    .from('user_mfa_totp')
-    .select('enabled')
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (Boolean(mfaSettings?.enabled)) {
-    const { data: trustedDevice } = await userScopedClient
-      .from('trusted_devices')
-      .select('id')
+    const { data: mfaSettings } = await userScopedClient
+      .from('user_mfa_totp')
+      .select('enabled')
       .eq('user_id', userId)
-      .eq('device_hash', fingerprintHash)
-      .eq('ip_hash', ipHash)
-      .gt('expires_at', nowIso)
       .maybeSingle()
 
-    if (!trustedDevice) {
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
-      const { data: challenge, error: challengeError } = await userScopedClient
-        .from('auth_challenges')
-        .insert({
-          user_id: userId,
-          challenge_type: 'login_2fa',
-          reason: 'new_device_or_ip',
-          device_hash: fingerprintHash,
-          ip_hash: ipHash,
-          session_access_encrypted: encryptSensitive(data.session.access_token),
-          session_refresh_encrypted: encryptSensitive(data.session.refresh_token),
-          expires_at: expiresAt
-        })
-        .select('id, expires_at')
-        .single()
+    if (Boolean(mfaSettings?.enabled)) {
+      const { data: trustedDevice } = await userScopedClient
+        .from('trusted_devices')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('device_hash', fingerprintHash)
+        .eq('ip_hash', ipHash)
+        .gt('expires_at', nowIso)
+        .maybeSingle()
 
-      if (challengeError || !challenge?.id) {
-        registerLoginFailure(req)
+      if (!trustedDevice) {
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
+        const { data: challenge, error: challengeError } = await userScopedClient
+          .from('auth_challenges')
+          .insert({
+            user_id: userId,
+            challenge_type: 'login_2fa',
+            reason: 'new_device_or_ip',
+            device_hash: fingerprintHash,
+            ip_hash: ipHash,
+            session_access_encrypted: encryptSensitive(data.session.access_token),
+            session_refresh_encrypted: encryptSensitive(data.session.refresh_token),
+            expires_at: expiresAt
+          })
+          .select('id, expires_at')
+          .single()
+
+        if (challengeError || !challenge?.id) {
+          registerLoginFailure(req)
+          clearAuthCookies(res)
+          return sendJson(res, 500, { error: 'No se pudo iniciar el desafío 2FA' })
+        }
+
+        clearLoginFailures(req)
         clearAuthCookies(res)
-        return sendJson(res, 500, { error: 'No se pudo iniciar el desafío 2FA' })
+        return sendJson(res, 200, {
+          ok: true,
+          requires2fa: true,
+          challengeId: challenge.id,
+          challengeExpiresAt: challenge.expires_at
+        })
       }
 
-      clearLoginFailures(req)
-      clearAuthCookies(res)
-      return sendJson(res, 200, {
-        ok: true,
-        requires2fa: true,
-        challengeId: challenge.id,
-        challengeExpiresAt: challenge.expires_at
-      })
+      await userScopedClient
+        .from('trusted_devices')
+        .update({
+          last_seen: nowIso,
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        })
+        .eq('id', trustedDevice.id)
     }
-
-    await userScopedClient
-      .from('trusted_devices')
-      .update({
-        last_seen: nowIso,
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-      })
-      .eq('id', trustedDevice.id)
+  } catch (authError) {
+    console.error('[auth/login] Error interno en flujo de login:', authError)
+    registerLoginFailure(req)
+    clearAuthCookies(res)
+    return sendJson(res, 500, { error: 'No se pudo completar el inicio de sesión' })
   }
 
   clearLoginFailures(req)
@@ -401,14 +412,19 @@ async function handle2faSetupConfirm(req, res) {
 }
 
 export default async function handler(req, res) {
-  const path = getPath(req)
-  if (path === '/api/auth/login') return handleLogin(req, res)
-  if (path === '/api/auth/logout') return handleLogout(req, res)
-  if (path === '/api/auth/session') return handleSession(req, res)
-  if (path === '/api/auth/2fa/status') return handle2faStatus(req, res)
-  if (path === '/api/auth/2fa/verify') return handle2faVerify(req, res)
-  if (path === '/api/auth/2fa/disable') return handle2faDisable(req, res)
-  if (path === '/api/auth/2fa/setup/init') return handle2faSetupInit(req, res)
-  if (path === '/api/auth/2fa/setup/confirm') return handle2faSetupConfirm(req, res)
-  return sendJson(res, 404, { error: 'Ruta auth no encontrada' })
+  try {
+    const path = getPath(req)
+    if (path === '/api/auth/login') return handleLogin(req, res)
+    if (path === '/api/auth/logout') return handleLogout(req, res)
+    if (path === '/api/auth/session') return handleSession(req, res)
+    if (path === '/api/auth/2fa/status') return handle2faStatus(req, res)
+    if (path === '/api/auth/2fa/verify') return handle2faVerify(req, res)
+    if (path === '/api/auth/2fa/disable') return handle2faDisable(req, res)
+    if (path === '/api/auth/2fa/setup/init') return handle2faSetupInit(req, res)
+    if (path === '/api/auth/2fa/setup/confirm') return handle2faSetupConfirm(req, res)
+    return sendJson(res, 404, { error: 'Ruta auth no encontrada' })
+  } catch (error) {
+    console.error('[auth/router] Error no controlado:', error)
+    return sendJson(res, 500, { error: 'Error interno en auth' })
+  }
 }
