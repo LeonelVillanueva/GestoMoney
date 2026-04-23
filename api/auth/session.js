@@ -46,9 +46,7 @@ export default async function handler(req, res) {
   setAuthCookies(res, data.session)
   return sendJson(res, 200, {
     authenticated: true,
-    user: safeAuthUser(data.session),
-    accessToken: data.session.access_token,
-    refreshToken: data.session.refresh_token
+    user: safeAuthUser(data.session)
   })
 }
 

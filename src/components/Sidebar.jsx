@@ -28,6 +28,8 @@ const Icons = {
     icon('M12 6v12M9.75 9.75A3 3 0 0112 6a3 3 0 012.25.75M9.75 14.25A3 3 0 0012 18a3 3 0 002.25-.75'),
   line: () =>
     icon('M2.25 18L9 11.25l3.75 3.75L21.75 4.5M2.25 4.5h3.75V8.25'),
+  shield: () =>
+    icon('M12 3l7.5 3v5.625c0 4.68-3.04 8.924-7.5 10.5-4.46-1.576-7.5-5.82-7.5-10.5V6L12 3z'),
   cart: () =>
     icon('M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a1.5 1.5 0 00-1.5 1.5v1.5a.75.75 0 00.75.75H18a.75.75 0 00.75-.75v-1.5a1.5 1.5 0 00-1.5-1.5H7.5zM5.25 4.5h15l-1.5 6.75H6.75L5.25 4.5z'),
   scissor: () =>
@@ -142,6 +144,13 @@ const Sidebar = ({ currentPage, onNavigate }) => {
       icon: Icons.gear,
       isSingle: true,
       path: '/settings'
+    },
+    {
+      id: 'security',
+      label: 'Seguridad',
+      icon: Icons.shield,
+      isSingle: true,
+      path: '/security'
     }
   ]
 

@@ -30,6 +30,13 @@ export default function SecurityTab() {
   const [emailPassword, setEmailPassword] = useState('')
   const [emailError, setEmailError] = useState('')
   const [isChangingEmail, setIsChangingEmail] = useState(false)
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
+  const [twoFactorLoading, setTwoFactorLoading] = useState(false)
+  const [twoFactorSecret, setTwoFactorSecret] = useState('')
+  const [twoFactorQrUrl, setTwoFactorQrUrl] = useState('')
+  const [twoFactorCode, setTwoFactorCode] = useState('')
+  const [disable2faPassword, setDisable2faPassword] = useState('')
+  const [trustedDevices, setTrustedDevices] = useState([])
   
   const newPinRefs = useRef([])
   const confirmPinRefs = useRef([])
@@ -38,7 +45,24 @@ export default function SecurityTab() {
 
   useEffect(() => {
     checkPinExists()
+    loadTwoFactorStatus()
   }, [checkPinExists])
+
+  const loadTwoFactorStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/2fa/status', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const payload = await response.json()
+      if (!response.ok || !payload?.ok) return
+      setTwoFactorEnabled(Boolean(payload.enabled))
+      setTrustedDevices(Array.isArray(payload.trustedDevices) ? payload.trustedDevices : [])
+    } catch (err) {
+      console.error('Error cargando estado 2FA:', err)
+    }
+  }
 
   const resetForm = () => {
     setNewPin(['', '', '', '', '', ''])
@@ -81,7 +105,7 @@ export default function SecurityTab() {
       return
     }
 
-    const result = await changePassword(newPassword)
+    const result = await changePassword(newPassword, currentPassword)
     setIsChangingPassword(false)
     if (result.success) {
       notifications.showSync('✅ Contraseña cambiada', 'success')
@@ -108,7 +132,7 @@ export default function SecurityTab() {
       return
     }
 
-    const result = await changeEmail(newEmail)
+    const result = await changeEmail(newEmail, emailPassword)
     setIsChangingEmail(false)
     if (result.success) {
       notifications.showSync('📧 Enlace de confirmación enviado', 'success')
@@ -205,6 +229,99 @@ export default function SecurityTab() {
       setError(result.error)
       setCurrentPinForRemove(['', '', '', '', '', ''])
       removePinRefs.current[0]?.focus()
+    }
+  }
+
+  const handleInitTwoFactor = async () => {
+    setTwoFactorLoading(true)
+    try {
+      const response = await fetch('/api/auth/2fa/setup/init', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const payload = await response.json()
+      if (!response.ok || !payload?.ok) {
+        notifications.showSync(payload?.error || 'No se pudo iniciar 2FA', 'error')
+        return
+      }
+
+      const otpUrl = payload.otpauthUrl
+      setTwoFactorSecret(payload.secret || '')
+      setTwoFactorQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpUrl)}`)
+      notifications.showSync('Escanea el QR y confirma el primer código', 'info')
+    } catch (err) {
+      notifications.showSync('Error al iniciar configuración 2FA', 'error')
+    } finally {
+      setTwoFactorLoading(false)
+    }
+  }
+
+  const handleConfirmTwoFactor = async () => {
+    if (!/^\d{6}$/.test(twoFactorCode)) {
+      notifications.showSync('Ingresa un código de 6 dígitos', 'error')
+      return
+    }
+    setTwoFactorLoading(true)
+    try {
+      const response = await fetch('/api/auth/2fa/setup/confirm', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: twoFactorCode })
+      })
+      const payload = await response.json()
+      if (!response.ok || !payload?.ok) {
+        notifications.showSync(payload?.error || 'Código inválido', 'error')
+        return
+      }
+      setTwoFactorEnabled(true)
+      setTwoFactorCode('')
+      setTwoFactorSecret('')
+      setTwoFactorQrUrl('')
+      notifications.showSync('✅ 2FA activado correctamente', 'success')
+      await loadTwoFactorStatus()
+    } catch (err) {
+      notifications.showSync('Error al confirmar 2FA', 'error')
+    } finally {
+      setTwoFactorLoading(false)
+    }
+  }
+
+  const handleDisableTwoFactor = async () => {
+    if (!/^\d{6}$/.test(twoFactorCode)) {
+      notifications.showSync('Ingresa el código del autenticador para desactivar', 'error')
+      return
+    }
+    if (!disable2faPassword) {
+      notifications.showSync('Ingresa tu contraseña actual para desactivar 2FA', 'error')
+      return
+    }
+    setTwoFactorLoading(true)
+    try {
+      const response = await fetch('/api/auth/2fa/disable', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: twoFactorCode,
+          currentPassword: disable2faPassword
+        })
+      })
+      const payload = await response.json()
+      if (!response.ok || !payload?.ok) {
+        notifications.showSync(payload?.error || 'No se pudo desactivar 2FA', 'error')
+        return
+      }
+      setTwoFactorEnabled(false)
+      setTwoFactorCode('')
+      setDisable2faPassword('')
+      notifications.showSync('2FA desactivado', 'warning')
+      await loadTwoFactorStatus()
+    } catch (err) {
+      notifications.showSync('Error al desactivar 2FA', 'error')
+    } finally {
+      setTwoFactorLoading(false)
     }
   }
 
@@ -454,6 +571,104 @@ export default function SecurityTab() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="space-y-3">
+        <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium text-zinc-100">Autenticación 2FA (TOTP)</p>
+              <p className="text-[11px] text-zinc-400">
+                Estado: {twoFactorEnabled ? 'Activo' : 'Inactivo'}
+              </p>
+            </div>
+            {!twoFactorEnabled && (
+              <button
+                onClick={handleInitTwoFactor}
+                disabled={twoFactorLoading}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+              >
+                Activar 2FA
+              </button>
+            )}
+          </div>
+
+          {!twoFactorEnabled && twoFactorSecret && (
+            <div className="mt-3 space-y-3 border-t border-zinc-700 pt-3">
+              {twoFactorQrUrl && (
+                <img
+                  src={twoFactorQrUrl}
+                  alt="Código QR para configurar 2FA"
+                  className="mx-auto h-44 w-44 rounded-lg border border-zinc-700 bg-zinc-900 p-2"
+                />
+              )}
+              <div className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-[11px] text-zinc-300">
+                Clave manual: <span className="break-all font-mono">{twoFactorSecret}</span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Código de 6 dígitos"
+                  className="flex-1 rounded-lg border border-zinc-600 bg-zinc-900 px-3 py-2 text-sm text-zinc-100"
+                />
+                <button
+                  onClick={handleConfirmTwoFactor}
+                  disabled={twoFactorLoading}
+                  className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {twoFactorEnabled && (
+            <div className="mt-3 space-y-2 border-t border-zinc-700 pt-3">
+              <p className="text-xs text-zinc-400">
+                Se pedirá código en conexiones desde nuevo dispositivo o IP distinta.
+              </p>
+              <input
+                type="password"
+                value={disable2faPassword}
+                onChange={(e) => setDisable2faPassword(e.target.value)}
+                placeholder="Contraseña actual"
+                className="w-full rounded-lg border border-zinc-600 bg-zinc-900 px-3 py-2 text-xs text-zinc-100"
+              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Código TOTP para desactivar"
+                  className="flex-1 rounded-lg border border-zinc-600 bg-zinc-900 px-3 py-2 text-xs text-zinc-100"
+                />
+                <button
+                  onClick={handleDisableTwoFactor}
+                  disabled={twoFactorLoading}
+                  className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+                >
+                  Desactivar
+                </button>
+              </div>
+              {trustedDevices.length > 0 && (
+                <div className="rounded-lg border border-zinc-700 bg-zinc-900/70 p-2">
+                  <p className="mb-1 text-[11px] font-medium text-zinc-300">Dispositivos/IP confiables</p>
+                  <ul className="space-y-1 text-[11px] text-zinc-400">
+                    {trustedDevices.slice(0, 3).map((item) => (
+                      <li key={item.id}>
+                        Último acceso: {new Date(item.last_seen).toLocaleString('es-HN')}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Info PIN */}

@@ -1,5 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import {
   applyCorsHeaders,
   corsHeadersForAllowedOrigin,
@@ -89,8 +91,62 @@ function attachExchangeRateProxy(server, env) {
   })
 }
 
+/**
+ * Proxy en dev/preview para funciones de auth API.
+ * Permite usar /api/auth/* con `npm run dev` sin depender de `vercel dev`.
+ */
+function attachAuthApiProxy(server) {
+  const routeToModule = {
+    '/api/auth/login': './api/auth/login.js',
+    '/api/auth/logout': './api/auth/logout.js',
+    '/api/auth/session': './api/auth/session.js',
+    '/api/auth/2fa/status': './api/auth/2fa/status.js',
+    '/api/auth/2fa/verify': './api/auth/2fa/verify.js',
+    '/api/auth/2fa/disable': './api/auth/2fa/disable.js',
+    '/api/auth/2fa/setup/init': './api/auth/2fa/setup/init.js',
+    '/api/auth/2fa/setup/confirm': './api/auth/2fa/setup/confirm.js',
+    '/api/security/pin/status': './api/security/pin/status.js',
+    '/api/security/pin/set': './api/security/pin/set.js',
+    '/api/security/pin/verify': './api/security/pin/verify.js',
+    '/api/security/pin/change': './api/security/pin/change.js',
+    '/api/security/pin/remove': './api/security/pin/remove.js',
+    '/api/security/settings/status': './api/security/settings/status.js',
+    '/api/security/settings/set': './api/security/settings/set.js',
+    '/api/account/verify-password': './api/account/verify-password.js',
+    '/api/account/change-password': './api/account/change-password.js',
+    '/api/account/change-email': './api/account/change-email.js'
+  }
+
+  server.middlewares.use(async (req, res, next) => {
+    const path = req.url?.split('?')[0]
+    const target = routeToModule[path]
+    if (!target) return next()
+
+    try {
+      const moduleUrl = `${pathToFileURL(resolve(process.cwd(), target)).href}?t=${Date.now()}`
+      const mod = await import(moduleUrl)
+      const handler = mod?.default
+      if (typeof handler !== 'function') {
+        res.statusCode = 500
+        res.setHeader('Content-Type', 'application/json; charset=utf-8')
+        res.end(JSON.stringify({ error: 'Handler de auth inválido' }))
+        return
+      }
+      await handler(req, res)
+    } catch (error) {
+      console.error('[auth-dev-proxy] Error en ruta', path, error)
+      res.statusCode = 500
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+      res.end(JSON.stringify({ error: 'Error interno en proxy auth dev' }))
+    }
+  })
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  if (mode === 'development') {
+    Object.assign(process.env, env)
+  }
 
   return {
     plugins: [
@@ -99,6 +155,7 @@ export default defineConfig(({ mode }) => {
         name: 'exchange-rate-proxy',
         configureServer(server) {
           attachExchangeRateProxy(server, env)
+          attachAuthApiProxy(server)
         },
         configurePreviewServer(server) {
           attachExchangeRateProxy(server, env)

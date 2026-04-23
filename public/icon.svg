@@ -1,21 +1,34 @@
-<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    <linearGradient id="bg" x1="64" y1="56" x2="448" y2="456" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563EB" />
+      <stop offset="1" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="card" x1="138" y1="150" x2="382" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0B1220" />
+      <stop offset="1" stop-color="#1E293B" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60A5FA" />
+      <stop offset="1" stop-color="#22D3EE" />
     </linearGradient>
   </defs>
-  
-  <!-- Background Circle -->
-  <circle cx="128" cy="128" r="120" fill="url(#grad1)" stroke="#fff" stroke-width="8"/>
-  
-  <!-- Money Symbol -->
-  <text x="128" y="160" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="white" text-anchor="middle">💰</text>
-  
-  <!-- Decorative Elements -->
-  <circle cx="80" cy="80" r="8" fill="white" opacity="0.3"/>
-  <circle cx="176" cy="80" r="6" fill="white" opacity="0.3"/>
-  <circle cx="80" cy="176" r="6" fill="white" opacity="0.3"/>
-  <circle cx="176" cy="176" r="8" fill="white" opacity="0.3"/>
+
+  <rect x="32" y="32" width="448" height="448" rx="116" fill="url(#bg)" />
+  <rect x="40" y="40" width="432" height="432" rx="108" stroke="white" stroke-opacity="0.08" stroke-width="2" />
+
+  <rect x="124" y="138" width="264" height="236" rx="52" fill="url(#card)" />
+  <rect x="124" y="138" width="264" height="236" rx="52" stroke="white" stroke-opacity="0.12" stroke-width="2" />
+
+  <path d="M178 214H334" stroke="url(#accent)" stroke-width="20" stroke-linecap="round" />
+  <path d="M178 262H300" stroke="#94A3B8" stroke-opacity="0.9" stroke-width="16" stroke-linecap="round" />
+  <path d="M178 304H270" stroke="#94A3B8" stroke-opacity="0.72" stroke-width="14" stroke-linecap="round" />
+
+  <circle cx="336" cy="296" r="34" fill="#0EA5E9" fill-opacity="0.18" />
+  <path d="M336 278V314M320 292H352" stroke="#E2E8F0" stroke-width="10" stroke-linecap="round" />
+
+  <path d="M360 116L382 128V156C382 178 371 198 352 210C333 198 322 178 322 156V128L344 116C349 113 355 113 360 116Z" fill="#0B1220" />
+  <path d="M360 116L382 128V156C382 178 371 198 352 210C333 198 322 178 322 156V128L344 116C349 113 355 113 360 116Z" stroke="#67E8F9" stroke-opacity="0.85" stroke-width="5" />
+  <path d="M342 155L350 163L365 148" stroke="#67E8F9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
 </svg>
 

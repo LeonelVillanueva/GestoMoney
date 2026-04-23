@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../database/supabase'
 import logger from '../utils/logger'
-import { hashSecurityPin, SECURITY_PIN_SALT_SUFFIX } from '../utils/pinHash'
+import { SECURITY_PIN_SALT_SUFFIX } from '../utils/pinHash'
 
 export { SECURITY_PIN_SALT_SUFFIX }
 
@@ -17,19 +16,19 @@ const useSecurityPin = () => {
   const checkPinExists = useCallback(async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('config')
-        .select('value')
-        .eq('key', 'security_pin_hash')
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        logger.error('Error verificando PIN:', error)
+      const response = await fetch('/api/security/pin/status', {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok || !payload?.ok) {
+        logger.error('Error verificando PIN:', payload?.error || 'Respuesta inválida')
         setHasPin(false)
         return false
       }
 
-      const exists = !!data?.value
+      const exists = Boolean(payload?.hasPin)
       setHasPin(exists)
       return exists
     } catch (error) {
@@ -56,63 +55,15 @@ const useSecurityPin = () => {
         return { success: false, error: 'El PIN debe ser de 6 dígitos numéricos' }
       }
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        return { success: false, error: 'No hay sesión' }
-      }
-
-      const hashedPin = await hashSecurityPin(pin)
-
-      const pinPayload = {
-        user_id: user.id,
-        key: 'security_pin_hash',
-        value: hashedPin,
-        description: 'PIN de seguridad hasheado para eliminaciones'
-      }
-
-      // Evita depender de UNIQUE(user_id,key): primero UPDATE y luego INSERT si no había fila.
-      const { data: updatedRows, error: updateError } = await supabase
-        .from('config')
-        .update({
-          value: pinPayload.value,
-          description: pinPayload.description
-        })
-        .eq('user_id', user.id)
-        .eq('key', 'security_pin_hash')
-        .select('key')
-
-      if (updateError) {
-        logger.error('Error guardando PIN (update):', updateError)
-        return { success: false, error: 'Error al guardar el PIN' }
-      }
-
-      if (!Array.isArray(updatedRows) || updatedRows.length === 0) {
-        const { error: insertError } = await supabase
-          .from('config')
-          .insert(pinPayload)
-
-        if (insertError) {
-          // Compatibilidad con esquemas legacy donde `key` es PK/UNIQUE global.
-          if (insertError.code === '23505') {
-            const { data: migratedRows, error: migrateError } = await supabase
-              .from('config')
-              .update({
-                user_id: user.id,
-                value: pinPayload.value,
-                description: pinPayload.description
-              })
-              .eq('key', 'security_pin_hash')
-              .select('key')
-
-            if (migrateError || !Array.isArray(migratedRows) || migratedRows.length === 0) {
-              logger.error('Error guardando PIN (migración legacy):', migrateError || insertError)
-              return { success: false, error: 'Error al guardar el PIN' }
-            }
-          } else {
-            logger.error('Error guardando PIN (insert):', insertError)
-            return { success: false, error: 'Error al guardar el PIN' }
-          }
-        }
+      const response = await fetch('/api/security/pin/set', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok || !payload?.ok) {
+        return { success: false, error: payload?.error || 'Error al guardar el PIN' }
       }
 
       setHasPin(true)
@@ -133,15 +84,20 @@ const useSecurityPin = () => {
         return { valid: false, error: 'PIN inválido' }
       }
 
-      const { data, error } = await supabase.rpc('verify_security_pin', { p_pin: pin })
-
-      if (error) {
-        logger.error('Error en verify_security_pin:', error)
-        return { valid: false, error: 'Error al verificar el PIN' }
+      const response = await fetch('/api/security/pin/verify', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin })
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok || !payload?.ok) {
+        logger.error('Error en verify PIN:', payload?.error || 'Respuesta inválida')
+        return { valid: false, error: payload?.error || 'Error al verificar el PIN' }
       }
 
-      const valid = data?.valid === true
-      let errMsg = data?.error
+      const valid = payload?.valid === true
+      let errMsg = payload?.error
 
       if (!valid && errMsg) {
         logger.log('Verificación PIN:', errMsg)
@@ -163,12 +119,17 @@ const useSecurityPin = () => {
 
   const changePin = async (currentPin, newPin) => {
     try {
-      const verification = await verifyPin(currentPin)
-      if (!verification.valid) {
-        return { success: false, error: 'PIN actual incorrecto' }
+      const response = await fetch('/api/security/pin/change', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPin, newPin })
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok || !payload?.ok) {
+        return { success: false, error: payload?.error || 'Error al cambiar el PIN' }
       }
-
-      return await setPin(newPin)
+      return { success: true }
     } catch (error) {
       logger.error('Error en changePin:', error)
       return { success: false, error: 'Error al cambiar el PIN' }
@@ -177,19 +138,16 @@ const useSecurityPin = () => {
 
   const removePin = async (currentPin) => {
     try {
-      const verification = await verifyPin(currentPin)
-      if (!verification.valid) {
-        return { success: false, error: 'PIN incorrecto' }
-      }
-
-      const { error } = await supabase
-        .from('config')
-        .delete()
-        .eq('key', 'security_pin_hash')
-
-      if (error) {
-        logger.error('Error eliminando PIN:', error)
-        return { success: false, error: 'Error al eliminar el PIN' }
+      const response = await fetch('/api/security/pin/remove', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: currentPin })
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok || !payload?.ok) {
+        logger.error('Error eliminando PIN:', payload?.error || 'Respuesta inválida')
+        return { success: false, error: payload?.error || 'Error al eliminar el PIN' }
       }
 
       setHasPin(false)

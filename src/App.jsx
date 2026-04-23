@@ -22,6 +22,7 @@ const Cuts = lazy(() => import('./pages/Cuts'))
 const ViewData = lazy(() => import('./pages/ViewData/ViewData'))
 const Charts = lazy(() => import('./pages/Charts/Charts'))
 const Settings = lazy(() => import('./pages/Settings'))
+const Security = lazy(() => import('./pages/Security'))
 
 // Carga perezosa: solo ocupa el área principal
 const LoadingFallback = () => (
@@ -201,6 +202,7 @@ function AppContent() {
                     <Route path="/view-data" element={<ViewData onDataChanged={handleDataChanged} />} />
                     <Route path="/charts" element={<Charts expenses={expenses} onDataAdded={handleDataChanged} />} />
                     <Route path="/settings" element={<Settings />} />
+                    <Route path="/security" element={<Security />} />
                     <Route path="*" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={handleDataChanged} />} />
                   </Routes>
                 </Suspense>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { supabase } from '../database/supabase'
 import logger from '../utils/logger'
+import { getDeviceFingerprint } from '../utils/security/deviceFingerprint'
 
 const LOGIN_GUARD_KEY = 'auth_login_guard_v1'
 const LOGIN_MAX_ATTEMPTS = 5
@@ -61,17 +62,6 @@ async function parseJsonSafe(response) {
   }
 }
 
-async function syncSupabaseSessionFromApiPayload(payload) {
-  const accessToken = payload?.accessToken
-  const refreshToken = payload?.refreshToken
-  if (!accessToken || !refreshToken) return false
-  const { error } = await supabase.auth.setSession({
-    access_token: accessToken,
-    refresh_token: refreshToken
-  })
-  return !error
-}
-
 /**
  * Mensaje seguro para la UI (sin detalles internos de Supabase).
  */
@@ -110,12 +100,17 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   /** Solo true tras un login explícito; al terminar la animación de bienvenida se pone en false. */
   const [postLoginTransition, setPostLoginTransition] = useState(false)
+  const [pending2fa, setPending2fa] = useState(null)
   /** Se incrementa al completar post-login para disparar la animación de entrada del layout. */
   const [shellEntranceTick, setShellEntranceTick] = useState(0)
 
   // Verificar sesión al cargar y escuchar cambios
   useEffect(() => {
     checkSession()
+
+    if (USE_HTTPONLY_AUTH) {
+      return undefined
+    }
 
     // Escuchar cambios en el estado de autenticación
     const {
@@ -162,7 +157,7 @@ export const AuthProvider = ({ children }) => {
           return
         }
 
-        await syncSupabaseSessionFromApiPayload(payload)
+        // /api/auth/session ya no devuelve tokens para evitar exposición innecesaria.
         setIsAuthenticated(true)
         setUser(payload.user || null)
         return
@@ -213,17 +208,33 @@ export const AuthProvider = ({ children }) => {
       await sleep(LOGIN_MIN_DELAY_MS)
 
       if (USE_HTTPONLY_AUTH) {
+        const deviceFingerprint = await getDeviceFingerprint()
         const response = await fetch('/api/auth/login', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: email.trim().toLowerCase(),
-            password
+            password,
+            deviceFingerprint
           })
         })
 
         const payload = await parseJsonSafe(response)
+        if (response.ok && payload?.requires2fa && payload?.challengeId) {
+          setPending2fa({
+            challengeId: payload.challengeId,
+            challengeExpiresAt: payload.challengeExpiresAt || null,
+            email: email.trim().toLowerCase()
+          })
+          return {
+            success: false,
+            requires2fa: true,
+            challengeId: payload.challengeId,
+            challengeExpiresAt: payload.challengeExpiresAt || null
+          }
+        }
+
         if (!response.ok || !payload?.ok) {
           logger.warn('Intento de login rechazado por backend')
           const next = registerFailedAttempt()
@@ -236,13 +247,8 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
-        const synced = await syncSupabaseSessionFromApiPayload(payload)
-        if (!synced) {
-          logger.error('No se pudo sincronizar sesión local de Supabase tras login backend')
-          return { success: false, error: 'No se pudo iniciar sesión. Intenta nuevamente.' }
-        }
-
         clearLoginGuard()
+        setPending2fa(null)
         setIsAuthenticated(true)
         setUser(payload.user || null)
         setPostLoginTransition(true)
@@ -268,6 +274,7 @@ export const AuthProvider = ({ children }) => {
 
       if (data.session) {
         clearLoginGuard()
+        setPending2fa(null)
         setIsAuthenticated(true)
         setUser(data.user)
         setPostLoginTransition(true)
@@ -284,6 +291,43 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  const verifySecondFactor = async (challengeId, code) => {
+    try {
+      const deviceFingerprint = await getDeviceFingerprint()
+      const response = await fetch('/api/auth/2fa/verify', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          challengeId,
+          code,
+          deviceFingerprint
+        })
+      })
+
+      const payload = await parseJsonSafe(response)
+      if (!response.ok || !payload?.ok) {
+        return {
+          success: false,
+          error: payload?.error || 'No se pudo verificar el código 2FA'
+        }
+      }
+
+      clearLoginGuard()
+      setPending2fa(null)
+      setIsAuthenticated(true)
+      setUser(payload.user || null)
+      setPostLoginTransition(true)
+      return { success: true }
+    } catch (error) {
+      logger.error('Error verificando segundo factor:', error)
+      return {
+        success: false,
+        error: 'Error al verificar el código de autenticación'
+      }
+    }
+  }
+
   /**
    * Cierra la sesión
    */
@@ -295,18 +339,19 @@ export const AuthProvider = ({ children }) => {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
         })
-      }
-
-      const { error } = await supabase.auth.signOut()
-      
-      if (error) {
-        logger.error('Error al cerrar sesión:', error)
-        throw error
+        await supabase.auth.signOut().catch(() => {})
+      } else {
+        const { error } = await supabase.auth.signOut()
+        if (error) {
+          logger.error('Error al cerrar sesión:', error)
+          throw error
+        }
       }
 
       setIsAuthenticated(false)
       setUser(null)
       setPostLoginTransition(false)
+      setPending2fa(null)
     } catch (error) {
       logger.error('Error en logout:', error)
       throw error
@@ -327,7 +372,7 @@ export const AuthProvider = ({ children }) => {
         })
         const payload = await parseJsonSafe(response)
         if (!response.ok || !payload?.authenticated) return null
-        await syncSupabaseSessionFromApiPayload(payload)
+        return { user: payload.user || null }
       }
 
       const { data: { session }, error } = await supabase.auth.getSession()
@@ -344,9 +389,23 @@ export const AuthProvider = ({ children }) => {
    * @param {string} newPassword - Nueva contraseña
    * @returns {Promise<{success: boolean, error?: string}>}
    */
-  const changePassword = async (newPassword) => {
+  const changePassword = async (newPassword, currentPassword = '') => {
     try {
       logger.log('Intentando cambiar contraseña')
+
+      if (USE_HTTPONLY_AUTH) {
+        const response = await fetch('/api/account/change-password', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentPassword, newPassword })
+        })
+        const payload = await parseJsonSafe(response)
+        if (!response.ok || !payload?.ok) {
+          return { success: false, error: payload?.error || 'No se pudo cambiar la contraseña' }
+        }
+        return { success: true }
+      }
       
       const { data, error } = await supabase.auth.updateUser({
         password: newPassword
@@ -380,9 +439,23 @@ export const AuthProvider = ({ children }) => {
    * @param {string} newEmail - Nuevo email
    * @returns {Promise<{success: boolean, error?: string, needsConfirmation?: boolean}>}
    */
-  const changeEmail = async (newEmail) => {
+  const changeEmail = async (newEmail, currentPassword = '') => {
     try {
       logger.log('Intentando cambiar email a:', newEmail)
+
+      if (USE_HTTPONLY_AUTH) {
+        const response = await fetch('/api/account/change-email', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newEmail: newEmail.trim().toLowerCase(), currentPassword })
+        })
+        const payload = await parseJsonSafe(response)
+        if (!response.ok || !payload?.ok) {
+          return { success: false, error: payload?.error || 'No se pudo cambiar el email' }
+        }
+        return { success: true, needsConfirmation: payload?.needsConfirmation !== false }
+      }
       
       const { data, error } = await supabase.auth.updateUser({
         email: newEmail.trim().toLowerCase()
@@ -428,6 +501,20 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: 'No hay sesión activa' }
       }
 
+      if (USE_HTTPONLY_AUTH) {
+        const response = await fetch('/api/account/verify-password', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        })
+        const payload = await parseJsonSafe(response)
+        if (!response.ok || !payload?.ok) {
+          return { success: false, error: payload?.error || 'Contraseña incorrecta' }
+        }
+        return { success: true }
+      }
+
       // Re-autenticar con la contraseña actual
       const { error } = await supabase.auth.signInWithPassword({
         email: user.email,
@@ -451,8 +538,10 @@ export const AuthProvider = ({ children }) => {
     user,
     postLoginTransition,
     shellEntranceTick,
+    pending2fa,
     completePostLoginTransition,
     login,
+    verifySecondFactor,
     logout,
     getSession,
     changePassword,
