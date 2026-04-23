@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import database from '../database/index.js'
 import notifications from '../utils/services/notifications'
 import CustomDatePicker from '../components/CustomDatePicker'
+import AsyncStatePanel from '../components/AsyncStatePanel'
 import { formatDateLocal, getTodayLocal, parseDateLocal, compareDates, normalizeMany, normalizeCut } from '../utils/normalizers'
 import { useYearFilter } from '../hooks/useYearFilter'
 import YearSelector from '../components/YearSelector'
@@ -14,6 +15,8 @@ const Cuts = ({ onDataAdded }) => {
     descripcion: 'Corte registrado'
   })
   const [loading, setLoading] = useState(false)
+  const [loadingCuts, setLoadingCuts] = useState(false)
+  const [cutsError, setCutsError] = useState('')
   const [cuts, setCuts] = useState([])
   const [cutTypes, setCutTypes] = useState([])
 
@@ -48,6 +51,8 @@ const Cuts = ({ onDataAdded }) => {
   }
 
   const loadCuts = async () => {
+    setLoadingCuts(true)
+    setCutsError('')
     try {
       const data = await database.getCuts()
       // Normalizar los cortes para asegurar consistencia en los datos
@@ -55,7 +60,10 @@ const Cuts = ({ onDataAdded }) => {
       setCuts(normalizedCuts)
     } catch (error) {
       console.error('Error loading cuts:', error)
+      setCutsError('No se pudieron cargar los cortes.')
       notifications.showSync('Error al cargar cortes', 'error')
+    } finally {
+      setLoadingCuts(false)
     }
   }
 
@@ -83,7 +91,7 @@ const Cuts = ({ onDataAdded }) => {
         descripcion: `Corte: ${formData.tipo_corte}`
       }
 
-      await database.createCut(cutData)
+      const createResult = await database.createCut(cutData)
       
       // Limpiar formulario
       setFormData({
@@ -98,10 +106,14 @@ const Cuts = ({ onDataAdded }) => {
 
       // Notificar que se agregó
       if (onDataAdded) {
-        onDataAdded()
+        onDataAdded({ scope: 'expenses', source: 'cuts' })
       }
 
-      notifications.showSync('✅ Corte registrado exitosamente', 'success')
+      if (createResult?.queued) {
+        notifications.showSync('Sin conexión: el corte quedó pendiente de sincronización.', 'warning')
+      } else {
+        notifications.showSync('✅ Corte registrado exitosamente', 'success')
+      }
     } catch (error) {
       console.error('Error saving cut:', error)
       notifications.showSync('❌ Error al guardar el corte', 'error')
@@ -227,10 +239,10 @@ const Cuts = ({ onDataAdded }) => {
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">💇 Gestión de Cortes</h2>
+            <h2 className="text-2xl font-bold text-zinc-100 dark:text-slate-100">💇 Gestión de Cortes</h2>
             {yearFilter !== 'all' && (
-              <p className="text-sm text-blue-600 mt-1">
-                📅 Mostrando: {filterLabel}
+              <p className="text-sm text-sky-400/90 mt-1">
+                Mostrando: {filterLabel}
               </p>
             )}
           </div>
@@ -251,24 +263,24 @@ const Cuts = ({ onDataAdded }) => {
       {/* Estadísticas Rápidas Compactas */}
       {cutsByYear.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+          <div className="stat-card rounded-xl p-3 border-l-4 border-l-violet-500/50">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600 mb-1">
-                  Total Cortes {yearFilter !== 'all' && <span className="text-purple-600">({filterLabel})</span>}
+                <p className="text-xs text-zinc-500 mb-1">
+                  Total cortes {yearFilter !== 'all' && <span className="text-violet-400/80">({filterLabel})</span>}
                 </p>
-                <p className="text-lg font-bold text-purple-700">{cutsByYear.length}</p>
+                <p className="text-lg font-bold text-zinc-100">{cutsByYear.length}</p>
               </div>
-              <span className="text-2xl">💇</span>
+              <span className="text-2xl opacity-80" aria-hidden>💇</span>
             </div>
           </div>
           
           {ultimoCorte && (
-            <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+            <div className="stat-card rounded-xl p-3 border-l-4 border-l-sky-500/50">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Último Corte</p>
-                  <p className="text-lg font-bold text-blue-700">{formatDate(ultimoCorte.fecha)}</p>
+                  <p className="text-xs text-zinc-500 mb-1">Último corte</p>
+                  <p className="text-lg font-bold text-zinc-100">{formatDate(ultimoCorte.fecha)}</p>
                 </div>
                 <span className="text-2xl">{getCutIcon(ultimoCorte.tipo_corte)}</span>
               </div>
@@ -276,24 +288,24 @@ const Cuts = ({ onDataAdded }) => {
           )}
 
           {daysSinceLastCut !== null && (
-            <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+            <div className="stat-card rounded-xl p-3 border-l-4 border-l-emerald-500/50">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-600 mb-1">Días desde último</p>
-                  <p className="text-lg font-bold text-green-700">{daysSinceLastCut} días</p>
+                  <p className="text-xs text-zinc-500 mb-1">Días desde el último</p>
+                  <p className="text-lg font-bold text-zinc-100">{daysSinceLastCut} días</p>
                 </div>
-                <span className="text-2xl">📅</span>
+                <span className="text-2xl opacity-80" aria-hidden>📅</span>
               </div>
             </div>
           )}
 
-          <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+          <div className="stat-card rounded-xl p-3 border-l-4 border-l-orange-500/50">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600 mb-1">Tipos Configurados</p>
-                <p className="text-lg font-bold text-orange-700">{cutTypes.length}</p>
+                <p className="text-xs text-zinc-500 mb-1">Tipos configurados</p>
+                <p className="text-lg font-bold text-zinc-100">{cutTypes.length}</p>
               </div>
-              <span className="text-2xl">✂️</span>
+              <span className="text-2xl opacity-80" aria-hidden>✂️</span>
             </div>
           </div>
         </div>
@@ -302,12 +314,12 @@ const Cuts = ({ onDataAdded }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Formulario de Corte Compacto */}
         <div className="lg:col-span-1 glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4">➕ Nuevo Corte</h3>
+          <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-100 mb-4">➕ Nuevo Corte</h3>
           
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* Fecha */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-300 mb-1">
                 📅 Fecha
               </label>
               <CustomDatePicker
@@ -320,7 +332,7 @@ const Cuts = ({ onDataAdded }) => {
 
             {/* Tipo de Corte */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-300 mb-1">
                 💇 Tipo de Corte
               </label>
               <select
@@ -328,7 +340,7 @@ const Cuts = ({ onDataAdded }) => {
                 value={formData.tipo_corte}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-3 py-2 text-sm border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
                 <option value="">Selecciona tipo</option>
                 {cutTypes.map(type => (
@@ -360,23 +372,37 @@ const Cuts = ({ onDataAdded }) => {
         {/* Lista de Cortes Recientes Compacta */}
         <div className="lg:col-span-2 glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">📋 Cortes Recientes</h3>
+            <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-100">📋 Cortes Recientes</h3>
             {cutsByYear.length > 0 && (
               <span className="text-xs text-gray-500">{cutsByYear.length} cortes</span>
             )}
           </div>
           
-          {cutsByYear.length > 0 ? (
+          {loadingCuts ? (
+            <AsyncStatePanel
+              kind="loading"
+              title="Cargando cortes"
+              message="Obteniendo tu historial de cortes..."
+            />
+          ) : cutsError ? (
+            <AsyncStatePanel
+              kind="error"
+              title="Error al cargar cortes"
+              message={cutsError}
+              actionLabel="Reintentar"
+              onAction={loadCuts}
+            />
+          ) : cutsByYear.length > 0 ? (
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {cutsByYear.slice(0, 10).map((cut) => (
-                <div key={cut.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                <div key={cut.id} className="flex items-center justify-between p-3 bg-zinc-800/50 dark:bg-slate-700/50 rounded-lg hover:bg-zinc-800/60 dark:hover:bg-slate-700 transition-colors">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <div className="p-1.5 bg-white rounded-lg flex-shrink-0">
+                    <div className="p-1.5 bg-zinc-900 rounded-lg flex-shrink-0">
                       <span className="text-lg">{getCutIcon(cut.tipo_corte)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-gray-800 truncate">{cut.tipo_corte}</h4>
-                      <p className="text-xs text-gray-600">{formatDate(cut.fecha)}</p>
+                      <h4 className="text-sm font-medium text-zinc-100 truncate">{cut.tipo_corte}</h4>
+                      <p className="text-xs text-zinc-400">{formatDate(cut.fecha)}</p>
                     </div>
                   </div>
                 </div>
@@ -388,11 +414,11 @@ const Cuts = ({ onDataAdded }) => {
               )}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-3">💇</div>
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">No hay cortes registrados</h3>
-              <p className="text-xs text-gray-500">Registra tu primer corte usando el formulario</p>
-            </div>
+            <AsyncStatePanel
+              kind="empty"
+              title="No hay cortes registrados"
+              message="Registra tu primer corte usando el formulario."
+            />
           )}
         </div>
       </div>
@@ -400,26 +426,24 @@ const Cuts = ({ onDataAdded }) => {
       {/* Estadísticas por Tipo de Corte */}
       {cuts.length > 0 && cortesPorTipo.some(c => c.cantidad > 0) && (
         <div className="glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3">📊 Por Tipo de Corte</h3>
+          <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-100 mb-3">📊 Por Tipo de Corte</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {cortesPorTipo.map((item, index) => {
               if (item.cantidad === 0) return null
-              const colors = [
-                'from-purple-50 to-purple-100 border-purple-200 text-purple-700',
-                'from-blue-50 to-blue-100 border-blue-200 text-blue-700',
-                'from-green-50 to-green-100 border-green-200 text-green-700',
-                'from-orange-50 to-orange-100 border-orange-200 text-orange-700',
-                'from-pink-50 to-pink-100 border-pink-200 text-pink-700'
+              const accent = [
+                'border-l-violet-500/50',
+                'border-l-sky-500/50',
+                'border-l-emerald-500/50',
+                'border-l-orange-500/50',
+                'border-l-rose-500/50'
               ]
-              const colorClass = colors[index % colors.length]
-              
               return (
-                <div key={index} className={`bg-gradient-to-br ${colorClass} rounded-lg p-3 border`}>
+                <div key={index} className={`stat-card rounded-lg p-3 border-l-4 ${accent[index % accent.length]}`}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xl">{getCutIcon(item.tipo)}</span>
-                    <span className="text-xs font-medium">{item.cantidad} cortes</span>
+                    <span className="text-xs font-medium text-zinc-400">{item.cantidad} cortes</span>
                   </div>
-                  <p className="text-xs text-gray-600 mb-1">{item.tipo}</p>
+                  <p className="text-xs text-zinc-500 mb-1">{item.tipo}</p>
                 </div>
               )
             })}

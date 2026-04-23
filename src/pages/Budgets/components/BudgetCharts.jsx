@@ -43,14 +43,14 @@ const BudgetCharts = ({ analysis, currentMonth }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div className="glass-card rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">📊 Presupuesto vs Gastos</h3>
+        <h3 className="text-sm font-semibold text-zinc-300 mb-3">📊 Presupuesto vs Gastos</h3>
         <div className="h-64">
           <Bar data={chartData} options={createBarChartOptions(currentMonth)} />
         </div>
       </div>
 
       <div className="glass-card rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">🥧 Distribución</h3>
+        <h3 className="text-sm font-semibold text-zinc-300 mb-3">🥧 Distribución</h3>
         <div className="h-64">
           <Doughnut data={doughnutData} options={createDoughnutChartOptions()} />
         </div>

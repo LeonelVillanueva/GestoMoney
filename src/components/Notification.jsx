@@ -1,17 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
-const Notification = ({ message, type = 'info', duration = 3000, onClose }) => {
+const Notification = ({ message, type = 'info', onClose }) => {
   const [visible, setVisible] = useState(true)
-
-  useEffect(() => {
-    if (duration > 0) {
-      const timer = setTimeout(() => {
-        setVisible(false)
-        setTimeout(() => onClose?.(), 300)
-      }, duration)
-      return () => clearTimeout(timer)
-    }
-  }, [duration, onClose])
 
   const handleClose = () => {
     setVisible(false)
@@ -21,13 +11,13 @@ const Notification = ({ message, type = 'info', duration = 3000, onClose }) => {
   const getTypeStyles = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-500 dark:bg-green-600 text-white'
+        return 'bg-zinc-900/95 border border-zinc-800 border-l-4 border-l-emerald-500 text-zinc-100 shadow-xl shadow-black/40 backdrop-blur-sm'
       case 'error':
-        return 'bg-red-500 dark:bg-red-600 text-white'
+        return 'bg-zinc-900/95 border border-zinc-800 border-l-4 border-l-red-500 text-zinc-100 shadow-xl shadow-black/40 backdrop-blur-sm'
       case 'warning':
-        return 'bg-yellow-500 dark:bg-yellow-600 text-black dark:text-white'
+        return 'bg-zinc-900/95 border border-zinc-800 border-l-4 border-l-amber-500 text-zinc-100 shadow-xl shadow-black/40 backdrop-blur-sm'
       default:
-        return 'bg-slate-500 dark:bg-slate-600 text-white'
+        return 'bg-zinc-900/95 border border-zinc-800 border-l-4 border-l-sky-500 text-zinc-100 shadow-xl shadow-black/40 backdrop-blur-sm'
     }
   }
 
@@ -59,15 +49,21 @@ const Notification = ({ message, type = 'info', duration = 3000, onClose }) => {
     <div className={`fixed top-4 right-4 z-50 transform transition-all duration-300 ${
       visible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
     }`}>
-      <div className={`${getTypeStyles()} rounded-lg shadow-lg p-4 max-w-sm`}>
+      <div
+        className={`${getTypeStyles()} rounded-lg p-4 max-w-sm`}
+        role={type === 'error' ? 'alert' : 'status'}
+        aria-live={type === 'error' ? 'assertive' : 'polite'}
+        aria-atomic='true'
+      >
         <div className="flex items-center space-x-3">
-          {icon && <span className="text-xl">{icon}</span>}
+          {icon && <span className="text-xl opacity-90">{icon}</span>}
           <div className="flex-1">
-            <p className="font-medium">{message}</p>
+            <p className="text-sm font-medium text-zinc-100">{message}</p>
           </div>
           <button
             onClick={handleClose}
-            className="ml-2 text-white hover:text-gray-200 transition-colors"
+            className="ml-2 rounded-md p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/80 transition-colors"
+            aria-label="Cerrar"
           >
             ✕
           </button>

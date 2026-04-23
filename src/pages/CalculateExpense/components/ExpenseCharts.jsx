@@ -13,7 +13,7 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
       data: calculations.categoryBreakdown.map(cat => cat.total),
       backgroundColor: calculations.categoryBreakdown.map(cat => cat.color),
       borderWidth: 2,
-      borderColor: '#fff'
+      borderColor: 'rgba(39, 39, 42, 0.95)'
     }]
   }
 
@@ -50,16 +50,16 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Gráfico de Barras */}
         <div className="glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-gray-800 mb-3">📊 Gastos por Categoría</h3>
-          <div className={pieContainerHeight}>
+          <h3 className="text-sm font-bold text-zinc-100 mb-3">Gastos por categoría</h3>
+          <div className={`${pieContainerHeight} rounded-lg border border-zinc-800/80 bg-zinc-900/35 p-2`}>
             <Bar data={barChartData} options={chartOptions} />
           </div>
         </div>
 
         {/* Gráfico Circular */}
         <div className="glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-gray-800 mb-3">🥧 Distribución</h3>
-          <div className={pieContainerHeight}>
+          <h3 className="text-sm font-bold text-zinc-100 mb-3">Distribución</h3>
+          <div className={`${pieContainerHeight} rounded-lg border border-zinc-800/80 bg-zinc-900/35 p-2`}>
             <Pie data={pieChartData} options={pieChartOptions} />
           </div>
         </div>
@@ -68,14 +68,14 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
       {/* Gráfico de Líneas Compacto con Zoom */}
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-gray-800">📈 Tendencia Diaria</h3>
-          <div className="flex items-center gap-2 text-xs text-gray-600">
-            <span>🔍 Zoom: Rueda del ratón</span>
+          <h3 className="text-sm font-bold text-zinc-100">Tendencia diaria</h3>
+          <div className="flex items-center gap-2 text-xs text-zinc-400">
+            <span>Zoom: rueda del ratón</span>
             <span>•</span>
-            <span>🖱️ Pan: Click y arrastrar</span>
+            <span>Pan: click y arrastrar</span>
           </div>
         </div>
-        <div className="h-72 w-full">
+        <div className="h-72 w-full rounded-lg border border-zinc-800/80 bg-zinc-900/35 p-2">
           <Line 
             ref={lineChartRef}
             data={lineChartData} 
@@ -90,7 +90,11 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
               },
               legend: {
                 display: true,
-                position: 'top'
+                position: 'top',
+                labels: {
+                  color: '#a1a1aa',
+                  font: { size: 11 }
+                }
               },
               zoom: {
                 zoom: {
@@ -119,8 +123,11 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
             },
             scales: {
               y: {
+                ...chartOptions.scales?.y,
                 beginAtZero: true,
                 ticks: {
+                  ...chartOptions.scales?.y?.ticks,
+                  color: '#a1a1aa',
                   callback: function(value) {
                     return new Intl.NumberFormat('es-HN', {
                       style: 'currency',
@@ -128,12 +135,21 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
                       minimumFractionDigits: 2
                     }).format(value)
                   }
+                },
+                grid: {
+                  color: 'rgba(255,255,255,0.08)'
                 }
               },
               x: {
+                ...chartOptions.scales?.x,
                 ticks: {
+                  ...chartOptions.scales?.x?.ticks,
                   maxRotation: 45,
-                  minRotation: 45
+                  minRotation: 45,
+                  color: '#a1a1aa'
+                },
+                grid: {
+                  color: 'rgba(255,255,255,0.06)'
                 }
               }
             },
@@ -150,9 +166,10 @@ const ExpenseCharts = ({ calculations, chartOptions, pieChartOptions }) => {
                 lineChartRef.current.resetZoom()
               }
             }}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium px-3 py-1 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+            type="button"
+            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-zinc-600 bg-zinc-800/60 text-zinc-200 hover:bg-zinc-800 transition-colors"
           >
-            🔄 Restablecer Zoom
+            Restablecer zoom
           </button>
         </div>
       </div>

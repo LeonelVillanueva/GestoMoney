@@ -31,8 +31,13 @@ export default function useCuts(active) {
       const currentTypes = (await database.getAllConfig()).tipos_corte_por_defecto
       const parsed = currentTypes ? JSON.parse(currentTypes) : []
       const updated = [...parsed, newCutType]
-      await database.setConfig('tipos_corte_por_defecto', JSON.stringify(updated))
+      const result = await database.setConfig('tipos_corte_por_defecto', JSON.stringify(updated))
       setNewCutType('')
+      if (result?.queued) {
+        setCuts(updated)
+        notifications.showSync('Sin conexión: tipo de corte pendiente de sincronización', 'warning')
+        return
+      }
       await loadCuts()
       notifications.showSync('✅ Tipo de corte agregado exitosamente', 'success')
     } catch (error) {
@@ -44,14 +49,25 @@ export default function useCuts(active) {
   // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
   const deleteCutType = useCallback(async (cutType, skipConfirm = false) => {
     if (!skipConfirm) {
-      const confirmed = window.confirm(`¿Eliminar el tipo de corte "${cutType}"?`)
+      const confirmed = await notifications.confirm({
+        title: 'Eliminar tipo de corte',
+        message: `¿Eliminar el tipo de corte "${cutType}"?\nEsta acción afecta futuras selecciones.`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        tone: 'danger'
+      })
       if (!confirmed) return
     }
     try {
       const currentTypes = (await database.getAllConfig()).tipos_corte_por_defecto
       const parsed = currentTypes ? JSON.parse(currentTypes) : []
       const updated = parsed.filter(type => type !== cutType)
-      await database.setConfig('tipos_corte_por_defecto', JSON.stringify(updated))
+      const result = await database.setConfig('tipos_corte_por_defecto', JSON.stringify(updated))
+      if (result?.queued) {
+        setCuts(updated)
+        notifications.showSync('Sin conexión: eliminación pendiente de sincronización', 'warning')
+        return
+      }
       await loadCuts()
       notifications.showSync('✅ Tipo de corte eliminado', 'success')
     } catch (error) {
@@ -73,8 +89,13 @@ export default function useCuts(active) {
       const currentTypes = (await database.getAllConfig()).tipos_corte_por_defecto
       const parsed = currentTypes ? JSON.parse(currentTypes) : []
       const updated = parsed.map(type => type === oldType ? newType : type)
-      await database.setConfig('tipos_corte_por_defecto', JSON.stringify(updated))
+      const result = await database.setConfig('tipos_corte_por_defecto', JSON.stringify(updated))
       setEditingCutType(null)
+      if (result?.queued) {
+        setCuts(updated)
+        notifications.showSync('Sin conexión: actualización pendiente de sincronización', 'warning')
+        return
+      }
       await loadCuts()
       notifications.showSync('✅ Tipo de corte actualizado', 'success')
     } catch (error) {

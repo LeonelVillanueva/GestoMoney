@@ -154,7 +154,7 @@ const Budgets = ({ expenses, onDataChanged }) => {
           <div className="glass-card rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">💰 Presupuestos</h2>
+                <h2 className="text-2xl font-bold text-zinc-100">💰 Presupuestos</h2>
                 <p className="text-sm text-gray-500 mt-1">
                   Mostrando: <span className="font-semibold text-blue-600">{formatDate(currentMonth)}</span>
                 </p>
@@ -163,7 +163,7 @@ const Budgets = ({ expenses, onDataChanged }) => {
                 onClick={() => setShowForm(!showForm)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   showForm 
-                    ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
+                    ? 'bg-gray-200 text-zinc-300 hover:bg-gray-300' 
                     : 'gradient-button text-white hover:scale-105'
                 }`}
               >
@@ -196,7 +196,7 @@ const Budgets = ({ expenses, onDataChanged }) => {
       {/* Lista de Presupuestos */}
       <div className="glass-card rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-gray-800">
+          <h3 className="text-lg font-bold text-zinc-100">
             Presupuestos ({analysis.length})
           </h3>
           {analysis.length > 0 && (

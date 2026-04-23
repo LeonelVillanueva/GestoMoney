@@ -2,24 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Asegurar que html y body cubran toda la pantalla incluso con zoom */
+/* Base: tema oscuro unificado (login + app) */
 html, body {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background: linear-gradient(to bottom right, #f1f5f9, #e2e8f0);
-  background-attachment: fixed;
-  background-size: cover;
-  background-repeat: no-repeat;
 }
 
-html.dark, body.dark {
-  background: linear-gradient(to bottom right, #0f172a, #1e293b);
+html.dark,
+html.dark body,
+.app-body {
+  background-color: #09090b;
+  color: #e4e4e7;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
   background-attachment: fixed;
-  background-size: cover;
-  background-repeat: no-repeat;
+  background-image: radial-gradient(ellipse 100% 80% at 50% -20%, rgba(37, 99, 235, 0.12), transparent 55%);
 }
 
 #root {
@@ -52,17 +51,17 @@ html.dark, body.dark {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.15s ease;
 }
 
-/* Estilos personalizados para la aplicación */
+/* Tarjetas (app autenticada) */
 .glass-card {
-  @apply bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-white/20 dark:border-slate-700/50 shadow-lg;
+  @apply rounded-2xl border border-zinc-800/80 bg-zinc-900/55 text-zinc-100 shadow-lg shadow-black/25 backdrop-blur-sm;
 }
 
 .stat-card {
-  @apply bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-white/30 dark:border-slate-700/50 shadow-md hover:shadow-lg transition-all duration-300;
+  @apply rounded-2xl border border-zinc-800/70 bg-zinc-900/50 text-zinc-100 shadow-md shadow-black/20 backdrop-blur-sm transition-all duration-300 hover:border-zinc-600/80 hover:shadow-lg;
 }
 
 .gradient-button {
-  @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300;
+  @apply bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-lg shadow-blue-900/30 transition-all duration-200;
 }
 
 /* Animaciones */
@@ -141,37 +140,37 @@ html.dark, body.dark {
   margin-left: 10px;
 }
 
-/* Scrollbar personalizado */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-200 dark:bg-slate-700;
+  @apply bg-zinc-900;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 dark:bg-slate-500 rounded;
+  @apply rounded bg-zinc-600;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-500 dark:bg-slate-400;
+  @apply bg-zinc-500;
 }
 
-/* Estilos para inputs y formularios */
-input[type="number"], 
-input[type="text"], 
+/* Formularios — oscuro */
+input[type="number"],
+input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
-select, 
+select,
 textarea {
-  @apply bg-white/90 dark:bg-slate-700/90 border border-gray-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500;
+  @apply rounded-xl border border-zinc-600 bg-zinc-900/90 text-zinc-100 shadow-inner transition-all duration-200 placeholder-zinc-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-600/40;
 }
 
 input[type="checkbox"] {
-  @apply w-5 h-5 text-blue-600 bg-gray-100 dark:bg-slate-700 border-gray-300 dark:border-slate-600 rounded focus:ring-blue-500 focus:ring-2;
+  @apply h-5 w-5 rounded border-zinc-600 bg-zinc-800 text-blue-500 focus:ring-2 focus:ring-blue-600/50;
 }
 
 /* Estilos adicionales para modo oscuro */
@@ -179,9 +178,8 @@ input[type="checkbox"] {
   @apply bg-slate-900 text-gray-100;
 }
 
-/* Labels en modo oscuro */
 label {
-  @apply text-gray-700 dark:text-gray-300;
+  @apply text-zinc-300;
 }
 
 /* Botones personalizados */
@@ -189,9 +187,8 @@ button:not(.gradient-button) {
   @apply transition-all duration-200;
 }
 
-/* Efectos hover para cards */
 .stat-card:hover {
-  @apply transform -translate-y-1;
+  @apply -translate-y-0.5;
 }
 
 .glass-card:hover {
@@ -213,5 +210,75 @@ button:not(.gradient-button) {
   #root {
     min-height: 100vh;
     min-width: 100vw;
+  }
+}
+
+/* Entrada del layout tras post-login: capas con retraso */
+.app-shell-root--entering [data-app-shell] {
+  animation: appShellPartIn 0.88s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+.app-shell-root--entering [data-app-shell='sidebar'] {
+  animation-delay: 0.05s;
+}
+.app-shell-root--entering [data-app-shell='main'] {
+  animation-delay: 0.1s;
+}
+.app-shell-root--entering [data-app-shell='content'] {
+  animation-delay: 0.2s;
+}
+.app-shell-root--settled [data-app-shell] {
+  will-change: auto;
+}
+
+@keyframes appShellPartIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Contenido de rutas al terminar la carga inicial de datos */
+.app-routes-reveal {
+  animation: appRoutesReveal 0.72s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+@keyframes appRoutesReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.app-main-loader {
+  animation: appMainLoaderIn 0.5s ease-out both;
+}
+
+@keyframes appMainLoaderIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell-root--entering [data-app-shell],
+  .app-routes-reveal,
+  .app-main-loader {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

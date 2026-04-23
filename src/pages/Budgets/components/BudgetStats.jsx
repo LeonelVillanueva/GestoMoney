@@ -15,7 +15,7 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
       <div className="glass-card rounded-xl p-5">
         <div className="text-center py-8">
           <div className="text-5xl mb-4">📅</div>
-          <h3 className="text-lg font-bold text-gray-700 mb-2">
+          <h3 className="text-lg font-bold text-zinc-300 mb-2">
             No hay presupuestos configurados para {formatDate(currentMonth)}
           </h3>
           <p className="text-sm text-gray-500">
@@ -34,26 +34,26 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
           <div className="text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
               <span className="text-2xl">💰</span>
-              <p className="text-sm font-medium text-gray-600">Presupuesto Total</p>
+              <p className="text-sm font-medium text-zinc-400">Presupuesto Total</p>
             </div>
-            <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-1 break-words leading-tight">{formatCurrency(totalBudget)}</p>
+            <p className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-100 mb-1 break-words leading-tight">{formatCurrency(totalBudget)}</p>
             <p className="text-xs text-gray-500">{formatDate(currentMonth)}</p>
           </div>
-          <div className="text-center md:text-left border-y md:border-y-0 md:border-x border-gray-200 py-4 md:py-0 px-6">
+          <div className="text-center md:text-left border-y md:border-y-0 md:border-x border-zinc-700 py-4 md:py-0 px-6">
             <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
               <span className="text-2xl">💸</span>
-              <p className="text-sm font-medium text-gray-600">Gastado</p>
+              <p className="text-sm font-medium text-zinc-400">Gastado</p>
             </div>
-            <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-1 break-words leading-tight">{formatCurrency(totalSpent)}</p>
+            <p className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-100 mb-1 break-words leading-tight">{formatCurrency(totalSpent)}</p>
             <div className="flex items-center justify-center md:justify-start gap-2">
-              <span className="text-xs font-semibold text-gray-600">{percentage}%</span>
+              <span className="text-xs font-semibold text-zinc-400">{percentage}%</span>
               <span className="text-xs text-gray-400">del presupuesto</span>
             </div>
           </div>
           <div className="text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
               <span className="text-2xl">💵</span>
-              <p className="text-sm font-medium text-gray-600">Restante</p>
+              <p className="text-sm font-medium text-zinc-400">Restante</p>
             </div>
             <p className={`text-lg sm:text-xl md:text-2xl font-bold mb-1 break-words leading-tight ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(remaining)}
@@ -66,9 +66,9 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
         
         {/* Barra de progreso con información */}
         {totalBudget > 0 && (
-          <div className="mt-5 pt-5 border-t border-gray-200">
+          <div className="mt-5 pt-5 border-t border-zinc-700">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-gray-600">Progreso del mes</span>
+              <span className="text-xs font-medium text-zinc-400">Progreso del mes</span>
               <span className={`text-xs font-semibold ${
                 percentage > 100 ? 'text-red-600' : percentage > 80 ? 'text-yellow-600' : 'text-green-600'
               }`}>
@@ -99,7 +99,7 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
           <div className="space-y-2">
             {overBudgetCategories.slice(0, 3).map((category) => (
               <div key={category.id} className="flex items-center justify-between text-sm">
-                <span className="text-gray-700">
+                <span className="text-zinc-300">
                   {category.icon} {category.category}
                 </span>
                 <span className="text-red-600 font-semibold">
@@ -108,7 +108,7 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
               </div>
             ))}
             {overBudgetCategories.length > 3 && (
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-xs text-zinc-400 mt-2">
                 +{overBudgetCategories.length - 3} más...
               </p>
             )}

@@ -163,7 +163,7 @@ export const useViewData = (onDataChanged) => {
         const categoriaId = await getOrCreateCategoryId(editForm.categoria_nombre)
         
         // Actualizar gasto
-        await database.updateExpense(editingItem.id, {
+        const updateResult = await database.updateExpense(editingItem.id, {
           fecha: editForm.fecha,
           monto: parseFloat(editForm.monto),
           categoria_id: categoriaId,
@@ -171,33 +171,31 @@ export const useViewData = (onDataChanged) => {
           es_entrada: editForm.es_entrada,
           moneda_original: editForm.moneda_original
         })
-        notifications.showSync('✅ Gasto actualizado correctamente', 'success')
+        notifications.showSync(updateResult?.queued ? 'Sin conexión: actualización de gasto pendiente.' : '✅ Gasto actualizado correctamente', updateResult?.queued ? 'warning' : 'success')
       } else if (editingItem.type === 'supermercado') {
         // Actualizar compra de supermercado
-        await database.updateSupermarketPurchase(editingItem.id, {
+        const updateResult = await database.updateSupermarketPurchase(editingItem.id, {
           fecha: editForm.fecha,
           monto: parseFloat(editForm.monto),
           descripcion: editForm.descripcion,
           supermercado: editForm.supermercado
         })
-        notifications.showSync('✅ Compra de supermercado actualizada correctamente', 'success')
+        notifications.showSync(updateResult?.queued ? 'Sin conexión: actualización de compra pendiente.' : '✅ Compra de supermercado actualizada correctamente', updateResult?.queued ? 'warning' : 'success')
       } else if (editingItem.type === 'cortes') {
         // Actualizar corte
-        await database.updateCut(editingItem.id, {
+        const updateResult = await database.updateCut(editingItem.id, {
           fecha: editForm.fecha,
           tipo_corte: editForm.tipo_corte,
           descripcion: `Corte: ${editForm.tipo_corte}`
         })
-        notifications.showSync('✅ Corte actualizado correctamente', 'success')
+        notifications.showSync(updateResult?.queued ? 'Sin conexión: actualización de corte pendiente.' : '✅ Corte actualizado correctamente', updateResult?.queued ? 'warning' : 'success')
       }
 
       // Recargar datos
       await loadAllData()
       
-      // Notificar cambios
-      if (onDataChanged) {
-        onDataChanged()
-      }
+      // Notificar cambios selectivos sin recarga global costosa
+      onDataChanged?.({ source: 'view-data', scope: 'expenses' })
 
       // Limpiar edición
       cancelEdit()
@@ -210,29 +208,34 @@ export const useViewData = (onDataChanged) => {
   // Eliminar item
   // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
   const deleteItem = useCallback(async (id, type, skipConfirm = false) => {
-    if (!skipConfirm && !window.confirm('¿Estás seguro de que quieres eliminar este registro?')) {
-      return
+    if (!skipConfirm) {
+      const confirmed = await notifications.confirm({
+        title: 'Eliminar registro',
+        message: '¿Estás seguro de que quieres eliminar este registro?',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        tone: 'danger'
+      })
+      if (!confirmed) return
     }
 
     try {
       if (type === 'gastos') {
-        await database.deleteExpense(id)
-        notifications.showSync('✅ Gasto eliminado correctamente', 'success')
+        const deleteResult = await database.deleteExpense(id)
+        notifications.showSync(deleteResult?.queued ? 'Sin conexión: eliminación de gasto pendiente.' : '✅ Gasto eliminado correctamente', deleteResult?.queued ? 'warning' : 'success')
       } else if (type === 'supermercado') {
-        await database.deleteSupermarketPurchase(id)
-        notifications.showSync('✅ Compra de supermercado eliminada correctamente', 'success')
+        const deleteResult = await database.deleteSupermarketPurchase(id)
+        notifications.showSync(deleteResult?.queued ? 'Sin conexión: eliminación de compra pendiente.' : '✅ Compra de supermercado eliminada correctamente', deleteResult?.queued ? 'warning' : 'success')
       } else if (type === 'cortes') {
-        await database.deleteCut(id)
-        notifications.showSync('✅ Corte eliminado correctamente', 'success')
+        const deleteResult = await database.deleteCut(id)
+        notifications.showSync(deleteResult?.queued ? 'Sin conexión: eliminación de corte pendiente.' : '✅ Corte eliminado correctamente', deleteResult?.queued ? 'warning' : 'success')
       }
 
       // Recargar datos
       await loadAllData()
       
-      // Notificar cambios
-      if (onDataChanged) {
-        onDataChanged()
-      }
+      // Notificar cambios selectivos sin recarga global costosa
+      onDataChanged?.({ source: 'view-data', scope: 'expenses' })
     } catch (error) {
       logger.error('Error deleting item:', error)
       notifications.showSync('❌ Error al eliminar el registro', 'error')

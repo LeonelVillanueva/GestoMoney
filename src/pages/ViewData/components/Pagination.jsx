@@ -36,8 +36,8 @@ const Pagination = ({
   }
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
-      <div className="flex items-center text-sm text-gray-700">
+    <div className="flex items-center justify-between px-4 py-3 bg-zinc-900 border-t border-zinc-700">
+      <div className="flex items-center text-sm text-zinc-300">
         <span>
           Mostrando {startItem} a {endItem} de {filteredDataLength} registros
           {hasActiveFilters && (
@@ -53,7 +53,7 @@ const Pagination = ({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1 text-sm font-medium text-gray-500 bg-zinc-900 border border-zinc-600 rounded-md hover:bg-zinc-800/50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           ← Anterior
         </button>
@@ -67,7 +67,7 @@ const Pagination = ({
               className={`px-3 py-1 text-sm font-medium rounded-md ${
                 page === currentPage
                   ? 'text-white bg-blue-600 border border-blue-600'
-                  : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                  : 'text-zinc-300 bg-zinc-900 border border-zinc-600 hover:bg-zinc-800/50'
               }`}
             >
               {page}
@@ -79,7 +79,7 @@ const Pagination = ({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="px-3 py-1 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-1 text-sm font-medium text-gray-500 bg-zinc-900 border border-zinc-600 rounded-md hover:bg-zinc-800/50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Siguiente →
         </button>

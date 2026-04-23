@@ -161,19 +161,19 @@ const Reports = ({ expenses, onDataChanged }) => {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="glass-card rounded-2xl p-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">📄 Reportes</h2>
-        <p className="text-gray-600">Genera reportes detallados en PDF de tus gastos y presupuestos</p>
+        <h2 className="text-3xl font-bold text-zinc-100 mb-2">📄 Reportes</h2>
+        <p className="text-zinc-400">Genera reportes detallados en PDF de tus gastos y presupuestos</p>
       </div>
 
       {/* Pestañas */}
       <div className="glass-card rounded-2xl p-6">
-        <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-xl">
+        <div className="flex space-x-1 mb-6 bg-zinc-800/60 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('standard')}
             className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${
               activeTab === 'standard'
                 ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
+                : 'text-zinc-400 hover:text-zinc-100'
             }`}
           >
             📊 Reportes Estándar
@@ -183,7 +183,7 @@ const Reports = ({ expenses, onDataChanged }) => {
             className={`flex-1 py-3 px-6 rounded-lg font-medium transition-colors ${
               activeTab === 'templates'
                 ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-800'
+                : 'text-zinc-400 hover:text-zinc-100'
             }`}
           >
             🎨 Plantillas Personalizadas
@@ -194,7 +194,7 @@ const Reports = ({ expenses, onDataChanged }) => {
           <>
             {/* Tipo de Reporte */}
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">📋 Selecciona el Tipo de Reporte</h3>
+              <h3 className="text-xl font-bold text-zinc-100 mb-4">📋 Selecciona el Tipo de Reporte</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
                   { id: 'monthly', name: 'Reporte Mensual', icon: '📅' },
@@ -208,14 +208,14 @@ const Reports = ({ expenses, onDataChanged }) => {
                     className={`p-4 rounded-xl border-2 transition-all text-left ${
                       reportType === type.id
                         ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-zinc-700 hover:border-zinc-600'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
                       <span className="text-2xl">{type.icon}</span>
                       <div>
-                        <div className="font-medium text-gray-800">{type.name}</div>
-                        <div className="text-sm text-gray-600">{getReportDescription(type.id)}</div>
+                        <div className="font-medium text-zinc-100">{type.name}</div>
+                        <div className="text-sm text-zinc-400">{getReportDescription(type.id)}</div>
                       </div>
                     </div>
                   </button>
@@ -225,18 +225,18 @@ const Reports = ({ expenses, onDataChanged }) => {
 
             {/* Configuración del Reporte */}
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">⚙️ Configuración del Reporte</h3>
+              <h3 className="text-xl font-bold text-zinc-100 mb-4">⚙️ Configuración del Reporte</h3>
               
               {reportType === 'monthly' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
                     Selecciona el Mes
                   </label>
                   <input
                     type="month"
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="w-full md:w-64 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full md:w-64 px-4 py-3 border border-zinc-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               )}
@@ -244,25 +244,25 @@ const Reports = ({ expenses, onDataChanged }) => {
               {reportType === 'period' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">
                       Fecha de Inicio
                     </label>
                     <input
                       type="date"
                       value={customDateRange.startDate}
                       onChange={(e) => setCustomDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-zinc-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-zinc-300 mb-2">
                       Fecha Final
                     </label>
                     <input
                       type="date"
                       value={customDateRange.endDate}
                       onChange={(e) => setCustomDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-zinc-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -301,7 +301,7 @@ const Reports = ({ expenses, onDataChanged }) => {
                       notifications.showSync('❌ Error en el generador: ' + error.message, 'error')
                     }
                   }}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-medium transition-all"
+                  className="bg-zinc-800/500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-medium transition-all"
                 >
                   🧪 Probar Generador
                 </button>
@@ -317,35 +317,35 @@ const Reports = ({ expenses, onDataChanged }) => {
 
       {/* Vista Previa de Datos */}
       <div className="glass-card rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">📊 Vista Previa de Datos</h3>
+        <h3 className="text-xl font-bold text-zinc-100 mb-4">📊 Vista Previa de Datos</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-4 bg-gray-50 rounded-xl">
+          <div className="text-center p-4 bg-zinc-800/50 rounded-xl">
             <div className="text-3xl mb-2">💰</div>
             <div className="text-2xl font-bold text-blue-600">
               {formatCurrency(expenses.reduce((sum, expense) => sum + expense.monto, 0))}
             </div>
-            <div className="text-sm text-gray-600">Total de Gastos</div>
+            <div className="text-sm text-zinc-400">Total de Gastos</div>
           </div>
           
-          <div className="text-center p-4 bg-gray-50 rounded-xl">
+          <div className="text-center p-4 bg-zinc-800/50 rounded-xl">
             <div className="text-3xl mb-2">📝</div>
             <div className="text-2xl font-bold text-green-600">{expenses.length}</div>
-            <div className="text-sm text-gray-600">Transacciones</div>
+            <div className="text-sm text-zinc-400">Transacciones</div>
           </div>
           
-          <div className="text-center p-4 bg-gray-50 rounded-xl">
+          <div className="text-center p-4 bg-zinc-800/50 rounded-xl">
             <div className="text-3xl mb-2">📊</div>
             <div className="text-2xl font-bold text-purple-600">{budgets.length}</div>
-            <div className="text-sm text-gray-600">Presupuestos</div>
+            <div className="text-sm text-zinc-400">Presupuestos</div>
           </div>
         </div>
       </div>
 
       {/* Información sobre Reportes */}
       <div className="glass-card rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">ℹ️ Información sobre los Reportes</h3>
-        <div className="space-y-4 text-sm text-gray-600">
+        <h3 className="text-xl font-bold text-zinc-100 mb-4">ℹ️ Información sobre los Reportes</h3>
+        <div className="space-y-4 text-sm text-zinc-400">
           <div className="flex items-start space-x-3">
             <span className="text-blue-500 mt-1">📅</span>
             <div>

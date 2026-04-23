@@ -164,46 +164,50 @@ const MonthSelector = ({ currentMonth, onMonthChange, expenses = [] }) => {
   // Obtener clases CSS según el estado del presupuesto
   const getBudgetStatusClasses = (monthNum, isSelected, isToday) => {
     if (isSelected) {
-      return 'bg-blue-600 text-white shadow-lg scale-105'
+      return 'bg-blue-600 text-white shadow-lg ring-2 ring-blue-500/50 scale-105'
     }
-    
+
     if (isToday) {
       const status = getMonthBudgetStatus(monthNum)
       if (status === 'exceeded') {
-        return 'bg-red-100 text-red-800 border-2 border-red-400'
-      } else if (status === 'warning') {
-        return 'bg-yellow-100 text-yellow-800 border-2 border-yellow-400'
-      } else if (status === 'ok') {
-        return 'bg-green-100 text-green-800 border-2 border-green-400'
+        return 'bg-zinc-900/90 text-red-300 border-2 border-red-500/50 ring-1 ring-red-500/20'
       }
-      return 'bg-yellow-100 text-yellow-800 border-2 border-yellow-400'
+      if (status === 'warning') {
+        return 'bg-zinc-900/90 text-amber-200 border-2 border-amber-500/50'
+      }
+      if (status === 'ok') {
+        return 'bg-zinc-900/90 text-emerald-300 border-2 border-emerald-500/50'
+      }
+      return 'bg-zinc-900/80 text-amber-200/90 border-2 border-amber-500/40'
     }
 
     const status = getMonthBudgetStatus(monthNum)
     if (status === 'exceeded') {
-      return 'bg-red-50 hover:bg-red-100 text-red-700 border-2 border-red-300'
-    } else if (status === 'warning') {
-      return 'bg-yellow-50 hover:bg-yellow-100 text-yellow-700 border-2 border-yellow-300'
-    } else if (status === 'ok') {
-      return 'bg-green-50 hover:bg-green-100 text-green-700 border-2 border-green-300'
+      return 'bg-zinc-900/50 text-red-300/90 border border-red-500/35 hover:bg-zinc-800/70'
     }
-    
-    return 'bg-white hover:bg-blue-50 text-gray-700 border border-gray-200'
+    if (status === 'warning') {
+      return 'bg-zinc-900/50 text-amber-200/90 border border-amber-500/35 hover:bg-zinc-800/70'
+    }
+    if (status === 'ok') {
+      return 'bg-zinc-900/50 text-emerald-200/90 border border-emerald-500/35 hover:bg-zinc-800/70'
+    }
+
+    return 'bg-zinc-800/40 text-zinc-400 border border-zinc-700 hover:bg-zinc-800/60'
   }
 
   return (
-    <div 
-      className="glass-card rounded-xl p-5 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg"
+    <div
+      className="glass-card rounded-xl p-5 border border-zinc-800/80"
       onWheel={handleWheel}
     >
-      {/* Header con navegación de mes y selector de año */}
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => handleMonthNavigation(-1)}
-          className="p-2 hover:bg-white rounded-lg transition-colors shadow-sm"
+          className="p-2 rounded-lg border border-zinc-700 bg-zinc-800/50 text-zinc-200 hover:bg-zinc-800 transition-colors"
+          type="button"
           title="Mes anterior"
         >
-          <span className="text-xl">←</span>
+          <span className="text-xl" aria-hidden>←</span>
         </button>
         
         <div className="flex items-center gap-2">
@@ -237,7 +241,7 @@ const MonthSelector = ({ currentMonth, onMonthChange, expenses = [] }) => {
                 setCurrentYearMonth({ year: 2100, month: parseInt(month) })
               }
             }}
-            className="w-24 px-3 py-2 text-center text-lg font-bold border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
+            className="w-24 px-3 py-2 text-center text-lg font-bold text-zinc-100 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 bg-zinc-900/80"
             min="2000"
             max="2100"
             style={{ minWidth: '96px' }}
@@ -246,20 +250,21 @@ const MonthSelector = ({ currentMonth, onMonthChange, expenses = [] }) => {
         
         <button
           onClick={() => handleMonthNavigation(1)}
-          className="p-2 hover:bg-white rounded-lg transition-colors shadow-sm"
+          className="p-2 rounded-lg border border-zinc-700 bg-zinc-800/50 text-zinc-200 hover:bg-zinc-800 transition-colors"
+          type="button"
           title="Mes siguiente"
         >
-          <span className="text-xl">→</span>
+          <span className="text-xl" aria-hidden>→</span>
         </button>
       </div>
 
-      {/* Botón Hoy */}
       <div className="mb-4">
         <button
           onClick={handleTodayClick}
-          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+          type="button"
+          className="gradient-button w-full px-4 py-2 text-white font-medium rounded-lg"
         >
-          📅 Hoy
+          Hoy
         </button>
       </div>
 
@@ -292,10 +297,10 @@ const MonthSelector = ({ currentMonth, onMonthChange, expenses = [] }) => {
       </div>
 
       {/* Indicador del mes seleccionado */}
-      <div className="mt-4 pt-4 border-t border-blue-200">
+      <div className="mt-4 pt-4 border-t border-zinc-700/80">
         <div className="text-center">
-          <p className="text-xs text-gray-600 mb-1">Mes seleccionado</p>
-          <p className="text-sm font-semibold text-blue-600">
+          <p className="text-xs text-zinc-500 mb-1">Mes seleccionado</p>
+          <p className="text-sm font-semibold text-sky-400/90">
             {months.find(m => m.num === currentYearMonth.month)?.name} {currentYearMonth.year}
           </p>
         </div>

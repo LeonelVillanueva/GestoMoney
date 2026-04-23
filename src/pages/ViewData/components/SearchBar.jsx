@@ -36,25 +36,27 @@ const SearchBar = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
           <span className="text-xl">🔍</span>
-          <h3 className="text-lg font-bold text-gray-800">Búsqueda y Filtros</h3>
+          <h3 className="text-lg font-bold text-zinc-100">Búsqueda y Filtros</h3>
           {hasActiveFilters && (
-            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+            <span className="px-2 py-1 text-xs rounded-full font-medium border border-sky-500/35 bg-sky-500/10 text-sky-200">
               {filteredDataLength} resultados
             </span>
           )}
         </div>
         <div className="flex items-center space-x-2">
           <button
+            type="button"
             onClick={onToggleFilters}
-            className="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-zinc-600 bg-zinc-800/50 text-zinc-200 hover:bg-zinc-800 transition-colors"
           >
             <span>{showFilters ? '🔼' : '🔽'}</span>
             <span className="text-sm font-medium">Filtros</span>
           </button>
           {hasActiveFilters && (
             <button
+              type="button"
               onClick={onClearFilters}
-              className="flex items-center space-x-2 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-red-500/35 bg-red-500/10 text-red-200 hover:bg-red-500/20 transition-colors"
             >
               <span>❌</span>
               <span className="text-sm font-medium">Limpiar</span>
@@ -71,7 +73,7 @@ const SearchBar = ({
           placeholder="Buscar por descripción, categoría, supermercado o tipo de corte..."
           value={searchFilters.searchText}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          className="w-full px-4 py-3 pl-12 border border-zinc-600 rounded-xl bg-zinc-900/40 text-zinc-100 placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/40 transition-all"
         />
         <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
           <span className="text-gray-400">🔍</span>
@@ -80,42 +82,42 @@ const SearchBar = ({
 
       {/* Filtros avanzados */}
       {showFilters && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-zinc-800/50 rounded-xl">
           {/* Rango de fechas */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
               📅 Fecha desde
             </label>
             <input
               type="date"
               value={searchFilters.dateFrom}
               onChange={(e) => onFilterChange('dateFrom', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
               📅 Fecha hasta
             </label>
             <input
               type="date"
               value={searchFilters.dateTo}
               onChange={(e) => onFilterChange('dateTo', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           {/* Categoría (solo para gastos) */}
           {activeTab === 'gastos' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
                 🏷️ Categoría
               </label>
               <select
                 value={searchFilters.category}
                 onChange={(e) => onFilterChange('category', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Todas las categorías</option>
                 {availableCategories.map(cat => (
@@ -128,13 +130,13 @@ const SearchBar = ({
           {/* Tipo de transacción (solo para gastos) */}
           {activeTab === 'gastos' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-zinc-300 mb-2">
                 💰 Tipo
               </label>
               <select
                 value={searchFilters.transactionType}
                 onChange={(e) => onFilterChange('transactionType', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Todos los tipos</option>
                 <option value="gastos">Solo Gastos</option>
@@ -147,7 +149,7 @@ const SearchBar = ({
           {(activeTab === 'gastos' || activeTab === 'supermercado') && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-zinc-300 mb-2">
                   💰 Monto mínimo
                 </label>
                 <input
@@ -155,14 +157,14 @@ const SearchBar = ({
                   placeholder="0.00"
                   value={searchFilters.minAmount}
                   onChange={(e) => onFilterChange('minAmount', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   step="0.01"
                   min="0"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-zinc-300 mb-2">
                   💰 Monto máximo
                 </label>
                 <input
@@ -170,7 +172,7 @@ const SearchBar = ({
                   placeholder="Sin límite"
                   value={searchFilters.maxAmount}
                   onChange={(e) => onFilterChange('maxAmount', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   step="0.01"
                   min="0"
                 />

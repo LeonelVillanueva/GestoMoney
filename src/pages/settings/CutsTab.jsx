@@ -15,13 +15,13 @@ export default function CutsTab({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">➕ Agregar Nuevo Tipo</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">➕ Agregar Nuevo Tipo</h3>
         <div className="flex gap-2">
           <input
             type="text"
             value={newCutType}
             onChange={(e) => setNewCutType(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+            className="flex-1 px-3 py-2 text-sm border border-zinc-600 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-zinc-900 dark:bg-slate-700 text-gray-900 dark:text-gray-100"
             placeholder="Ej: Corte Moderno, Corte Clásico..."
           />
           <button
@@ -34,10 +34,10 @@ export default function CutsTab({
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-slate-800 mb-3">💇 Tipos Disponibles ({settings.defaultCutTypes?.length || 0})</h3>
+        <h3 className="text-sm font-bold text-zinc-100 mb-3">💇 Tipos Disponibles ({settings.defaultCutTypes?.length || 0})</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {settings.defaultCutTypes?.map((cutType, index) => (
-            <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <div key={index} className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-700">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <span className="text-lg flex-shrink-0">💇</span>
@@ -46,7 +46,7 @@ export default function CutsTab({
                       <input
                         type="text"
                         defaultValue={cutType}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-xs"
+                        className="w-full px-2 py-1 border border-zinc-600 rounded text-xs"
                         onBlur={(e) => {
                           if (e.target.value !== cutType) {
                             onUpdateCutType(cutType, e.target.value)
@@ -61,7 +61,7 @@ export default function CutsTab({
                         autoFocus
                       />
                     ) : (
-                      <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{cutType}</h4>
+                      <h4 className="text-sm font-semibold text-zinc-100 dark:text-gray-100 truncate">{cutType}</h4>
                     )}
                   </div>
                 </div>

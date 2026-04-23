@@ -1,5 +1,6 @@
 // Sistema de base de datos principal
 import SupabaseDatabase from './supabaseDatabase.js';
+import mutationQueue from '../utils/services/mutationQueue.js';
 
 // Instancia única de la base de datos
 let databaseInstance = null;
@@ -18,7 +19,45 @@ const initDatabase = async () => {
   if (!db.initialized) {
     await db.init();
   }
+  mutationQueue.init();
+  mutationQueue.setExecutor(async (operation, args) => {
+    const liveDb = await initDatabase();
+    if (typeof liveDb[operation] !== 'function') {
+      throw new Error(`Operación no soportada en cola: ${operation}`);
+    }
+    return liveDb[operation](...(args || []));
+  });
   return db;
+};
+
+const executeMutation = async (operation, args = [], options = {}) => {
+  const { queueWhenOffline = true, fallbackValue = true } = options;
+
+  const runMutation = async (op, opArgs) => {
+    const db = await initDatabase();
+    if (typeof db[op] !== 'function') {
+      throw new Error(`Operación no soportada en cola: ${op}`);
+    }
+    return db[op](...(opArgs || []));
+  };
+
+  if (queueWhenOffline && typeof navigator !== 'undefined' && !navigator.onLine) {
+    mutationQueue.enqueue({ operation, args });
+    return { queued: true, fallbackValue };
+  }
+
+  try {
+    const result = await runMutation(operation, args);
+    mutationQueue.processQueue(runMutation);
+    return result;
+  } catch (error) {
+    const isNetworkError = /network|fetch|timeout|offline|failed to fetch|connection/i.test(error?.message || '');
+    if (queueWhenOffline && isNetworkError) {
+      mutationQueue.enqueue({ operation, args });
+      return { queued: true, fallbackValue };
+    }
+    throw error;
+  }
 };
 
 // Función para cerrar la base de datos
@@ -37,8 +76,7 @@ const database = {
   
   // Métodos para gastos
   async createExpense(expenseData) {
-    const db = await initDatabase();
-    return await db.createExpense(expenseData);
+    return await executeMutation('createExpense', [expenseData], { fallbackValue: null });
   },
   
   async getExpenses(filters = {}) {
@@ -52,13 +90,11 @@ const database = {
   },
   
   async updateExpense(id, expenseData) {
-    const db = await initDatabase();
-    return await db.updateExpense(id, expenseData);
+    return await executeMutation('updateExpense', [id, expenseData], { fallbackValue: true });
   },
   
   async deleteExpense(id) {
-    const db = await initDatabase();
-    return await db.deleteExpense(id);
+    return await executeMutation('deleteExpense', [id], { fallbackValue: true });
   },
   
   // Métodos para categorías
@@ -68,24 +104,20 @@ const database = {
   },
   
   async createCategory(categoryData) {
-    const db = await initDatabase();
-    return await db.createCategory(categoryData);
+    return await executeMutation('createCategory', [categoryData], { queueWhenOffline: false, fallbackValue: null });
   },
 
   async updateCategory(categoryId, updates) {
-    const db = await initDatabase();
-    return await db.updateCategory(categoryId, updates);
+    return await executeMutation('updateCategory', [categoryId, updates], { fallbackValue: true });
   },
 
   async deleteCategory(categoryId) {
-    const db = await initDatabase();
-    return await db.deleteCategory(categoryId);
+    return await executeMutation('deleteCategory', [categoryId], { fallbackValue: true });
   },
   
   // Métodos para compras en supermercados
   async createSupermarketPurchase(purchaseData) {
-    const db = await initDatabase();
-    return await db.createSupermarketPurchase(purchaseData);
+    return await executeMutation('createSupermarketPurchase', [purchaseData], { fallbackValue: null });
   },
   
   async getSupermarketPurchases(filters = {}) {
@@ -94,19 +126,16 @@ const database = {
   },
   
   async updateSupermarketPurchase(id, data) {
-    const db = await initDatabase();
-    return await db.updateSupermarketPurchase(id, data);
+    return await executeMutation('updateSupermarketPurchase', [id, data], { fallbackValue: true });
   },
   
   async deleteSupermarketPurchase(id) {
-    const db = await initDatabase();
-    return await db.deleteSupermarketPurchase(id);
+    return await executeMutation('deleteSupermarketPurchase', [id], { fallbackValue: true });
   },
   
   // Métodos para cortes
   async createCut(cutData) {
-    const db = await initDatabase();
-    return await db.createCut(cutData);
+    return await executeMutation('createCut', [cutData], { fallbackValue: null });
   },
   
   async getCuts(filters = {}) {
@@ -115,13 +144,11 @@ const database = {
   },
   
   async updateCut(id, data) {
-    const db = await initDatabase();
-    return await db.updateCut(id, data);
+    return await executeMutation('updateCut', [id, data], { fallbackValue: true });
   },
   
   async deleteCut(id) {
-    const db = await initDatabase();
-    return await db.deleteCut(id);
+    return await executeMutation('deleteCut', [id], { fallbackValue: true });
   },
   
   // Métodos para configuración
@@ -131,8 +158,7 @@ const database = {
   },
   
   async setConfig(key, value, description = '', options = {}) {
-    const db = await initDatabase();
-    return await db.setConfig(key, value, description, options);
+    return await executeMutation('setConfig', [key, value, description, options], { fallbackValue: true });
   },
   
   async getAllConfig() {
@@ -182,8 +208,7 @@ const database = {
   
   // Métodos para presupuestos
   async createBudget(budgetData) {
-    const db = await initDatabase();
-    return await db.createBudget(budgetData);
+    return await executeMutation('createBudget', [budgetData], { fallbackValue: null });
   },
   
   async getBudgets(month) {
@@ -192,13 +217,11 @@ const database = {
   },
   
   async updateBudget(budgetId, updates) {
-    const db = await initDatabase();
-    return await db.updateBudget(budgetId, updates);
+    return await executeMutation('updateBudget', [budgetId, updates], { fallbackValue: true });
   },
   
   async deleteBudget(budgetId) {
-    const db = await initDatabase();
-    return await db.deleteBudget(budgetId);
+    return await executeMutation('deleteBudget', [budgetId], { fallbackValue: true });
   },
   
   // Limpiar todos los datos
@@ -211,6 +234,24 @@ const database = {
   async recoverExpenseCategories() {
     const db = await initDatabase();
     return await db.recoverExpenseCategories();
+  },
+
+  getMutationQueueStatus() {
+    mutationQueue.init();
+    return mutationQueue.getStatus();
+  },
+
+  subscribeMutationQueue(listener) {
+    mutationQueue.init();
+    return mutationQueue.subscribe(listener);
+  },
+
+  flushMutationQueue() {
+    mutationQueue.init();
+    return mutationQueue.processQueue(async (operation, args) => {
+      const db = await initDatabase();
+      return db[operation](...(args || []));
+    });
   }
 };
 

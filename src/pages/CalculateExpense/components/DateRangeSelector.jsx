@@ -57,14 +57,14 @@ const DateRangeSelector = ({
     <div className="glass-card rounded-xl p-4 space-y-4">
       {/* Botones de acceso rápido */}
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-2">
+        <label className="block text-xs font-medium text-zinc-400 mb-2">
           📅 Acceso Rápido
         </label>
         <div className="flex flex-wrap gap-2">
           {/* Año actual */}
           <button
             onClick={() => selectYear(currentYear)}
-            className="px-3 py-1.5 text-xs font-medium bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20 transition-colors"
           >
             🗓️ {currentYear}
           </button>
@@ -73,19 +73,19 @@ const DateRangeSelector = ({
           <div className="relative">
             <button
               onClick={() => setShowYearOptions(!showYearOptions)}
-              className="px-3 py-1.5 text-xs font-medium bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors flex items-center gap-1"
+              className="px-3 py-1.5 text-xs font-medium rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-200 hover:bg-violet-500/20 transition-colors flex items-center gap-1"
             >
               📚 Otros años
               <span className="text-[10px]">{showYearOptions ? '▲' : '▼'}</span>
             </button>
             
             {showYearOptions && (
-              <div className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[120px] max-h-48 overflow-y-auto">
+              <div className="absolute top-full left-0 mt-1 bg-zinc-900 rounded-lg shadow-lg border border-zinc-700 py-1 z-50 min-w-[120px] max-h-48 overflow-y-auto">
                 {years.filter(y => y !== currentYear).map(year => (
                   <button
                     key={year}
                     onClick={() => selectYear(year)}
-                    className="w-full px-3 py-2 text-xs text-left hover:bg-gray-100 flex items-center gap-2"
+                    className="w-full px-3 py-2 text-xs text-left hover:bg-zinc-800/60 flex items-center gap-2"
                   >
                     <span>📅</span>
                     <span>{year}</span>
@@ -98,23 +98,21 @@ const DateRangeSelector = ({
           {/* Mes actual */}
           <button
             onClick={selectCurrentMonth}
-            className="px-3 py-1.5 text-xs font-medium bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20 transition-colors"
           >
             📆 Este mes
           </button>
 
-          {/* Últimos 30 días */}
           <button
             onClick={selectLast30Days}
-            className="px-3 py-1.5 text-xs font-medium bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-orange-500/30 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20 transition-colors"
           >
             ⏱️ 30 días
           </button>
 
-          {/* Todo */}
           <button
             onClick={selectAllTime}
-            className="px-3 py-1.5 text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-600 bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800 transition-colors"
           >
             📊 Todo
           </button>
@@ -125,25 +123,25 @@ const DateRangeSelector = ({
       <div className="flex flex-col md:flex-row md:items-end gap-4">
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-zinc-400 mb-1">
               Fecha de Inicio
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="w-full px-3 py-2 border border-zinc-600 rounded-lg bg-zinc-900/50 text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">
+            <label className="block text-xs font-medium text-zinc-400 mb-1">
               Fecha Final
             </label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              className="w-full px-3 py-2 border border-zinc-600 rounded-lg bg-zinc-900/50 text-zinc-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             />
           </div>
         </div>
@@ -157,10 +155,10 @@ const DateRangeSelector = ({
 
       {/* Indicador de rango seleccionado */}
       {startDate && endDate && (
-        <div className="flex items-center justify-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg p-2">
+        <div className="flex items-center justify-center gap-2 text-xs text-zinc-500 bg-zinc-800/50 border border-zinc-700/60 rounded-lg p-2">
           <span>📅</span>
           <span>
-            Rango seleccionado: <strong className="text-gray-700">{startDate}</strong> al <strong className="text-gray-700">{endDate}</strong>
+            Rango seleccionado: <strong className="text-zinc-300">{startDate}</strong> al <strong className="text-zinc-300">{endDate}</strong>
           </span>
         </div>
       )}

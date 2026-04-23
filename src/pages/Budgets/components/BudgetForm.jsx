@@ -38,13 +38,13 @@ const BudgetForm = ({ budgetForm, onFormChange, onSubmit, currentMonth }) => {
     <form onSubmit={onSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
               Categorías {isMobile ? '(Toca para seleccionar)' : '(Puedes seleccionar múltiples)'}
             </label>
             
             {/* Versión móvil con checkboxes */}
             {isMobile ? (
-              <div className="max-h-64 overflow-y-auto border border-gray-300 rounded-xl p-3 bg-white">
+              <div className="max-h-64 overflow-y-auto border border-zinc-600 rounded-xl p-3 bg-zinc-900">
                 <div className="space-y-2">
                   {CATEGORIES.map(cat => {
                     const isSelected = selectedCategories.includes(cat.id)
@@ -54,18 +54,18 @@ const BudgetForm = ({ budgetForm, onFormChange, onSubmit, currentMonth }) => {
                         className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
                           isSelected
                             ? 'bg-blue-50 border-blue-500'
-                            : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                            : 'bg-zinc-800/50 border-zinc-700 hover:border-zinc-600'
                         }`}
                       >
                         <input
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleCheckboxChange(cat.id)}
-                          className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                          className="w-5 h-5 text-blue-600 border-zinc-600 rounded focus:ring-blue-500 focus:ring-2"
                         />
                         <span className="text-xl">{cat.icon}</span>
                         <span className={`flex-1 font-medium ${
-                          isSelected ? 'text-blue-700' : 'text-gray-700'
+                          isSelected ? 'text-blue-700' : 'text-zinc-300'
                         }`}>
                           {cat.name}
                         </span>
@@ -84,7 +84,7 @@ const BudgetForm = ({ budgetForm, onFormChange, onSubmit, currentMonth }) => {
                   multiple
                   value={selectedCategories}
                   onChange={handleCategoryChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[120px]"
+                  className="w-full px-4 py-3 border border-zinc-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[120px]"
                   required
                 >
                   {CATEGORIES.map(cat => (
@@ -107,7 +107,7 @@ const BudgetForm = ({ budgetForm, onFormChange, onSubmit, currentMonth }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
               Monto (LPS)
             </label>
             <input
@@ -117,7 +117,7 @@ const BudgetForm = ({ budgetForm, onFormChange, onSubmit, currentMonth }) => {
               placeholder="0.00"
               step="0.01"
               min="0"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-zinc-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
             {selectedCategories.length > 1 && (
@@ -128,14 +128,14 @@ const BudgetForm = ({ budgetForm, onFormChange, onSubmit, currentMonth }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
               Mes
             </label>
             <input
               type="month"
               value={budgetForm.month}
               onChange={(e) => onFormChange({ month: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-zinc-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
           </div>
