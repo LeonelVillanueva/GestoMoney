@@ -272,7 +272,11 @@ async function handle2faVerify(req, res) {
     .eq('id', challengeId)
     .eq('challenge_type', 'login_2fa')
     .maybeSingle()
-  if (challengeError || !challenge) return sendJson(res, 404, { error: 'Challenge 2FA no encontrado' })
+  if (challengeError) {
+    console.error('[auth/2fa/verify] Error consultando challenge:', challengeError)
+    return sendJson(res, 500, { error: 'No se pudo validar el desafío 2FA' })
+  }
+  if (!challenge) return sendJson(res, 404, { error: 'Challenge 2FA no encontrado' })
   if (challenge.consumed_at || challenge.expires_at < nowIso || challenge.attempts >= challenge.max_attempts) {
     return sendJson(res, 401, { error: 'Challenge 2FA expirado o inválido' })
   }
@@ -289,7 +293,11 @@ async function handle2faVerify(req, res) {
     .select('secret_encrypted, enabled')
     .eq('user_id', challenge.user_id)
     .maybeSingle()
-  if (mfaError || !mfaRow?.enabled) return sendJson(res, 401, { error: '2FA no habilitado para este usuario' })
+  if (mfaError) {
+    console.error('[auth/2fa/verify] Error consultando MFA del usuario:', mfaError)
+    return sendJson(res, 500, { error: 'No se pudo validar la configuracion 2FA' })
+  }
+  if (!mfaRow?.enabled) return sendJson(res, 401, { error: '2FA no habilitado para este usuario' })
 
   const secret = decryptSensitive(mfaRow.secret_encrypted)
   if (!verifyTotpCode({ secret, code, window: 1 })) {
