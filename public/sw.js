@@ -1,12 +1,11 @@
 // Service Worker para Gestor de Gastos PWA
 // IMPORTANTE: Cambiar el número de versión cuando quieras forzar actualización del cache
-const CACHE_NAME = 'gestor-gastos-v2'
+const CACHE_NAME = 'gestor-gastos-v3'
 const urlsToCache = [
   '/',
   '/index.html',
   '/icon.svg',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/manifest.json'
 ]
 
 // Instalación del Service Worker
@@ -60,8 +59,21 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // Nunca interceptar ni cachear API interna de la app.
+  if (requestUrl.pathname.startsWith('/api/')) {
+    return
+  }
+
   // No cachear peticiones a Supabase (debe ser siempre en tiempo real)
   if (event.request.url.includes('supabase.co') || event.request.url.includes('supabase.in')) {
+    return
+  }
+
+  // Para navegación HTML: network first sin persistir en cache (evita shell/cabeceras antiguas).
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    )
     return
   }
 
