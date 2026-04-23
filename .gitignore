@@ -43,6 +43,7 @@ supabase/.temp/
 
 # Archivos de backup de localStorage (ya migrados a Supabase)
 *.backup
+api_legacy_backup/
 
 # Documentación
 docs/
