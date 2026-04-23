@@ -4,6 +4,8 @@ import { formatCurrency } from './chartFormatters'
  * Opciones de configuración para gráficos
  */
 
+const chartFont = { family: "'IBM Plex Sans', system-ui, sans-serif", size: 12 }
+
 export const createChartOptions = () => ({
   responsive: true,
   maintainAspectRatio: false,
@@ -13,10 +15,8 @@ export const createChartOptions = () => ({
       labels: {
         padding: 20,
         usePointStyle: true,
-        font: {
-          size: 12,
-          family: 'Inter'
-        }
+        color: '#e4e4e7',
+        font: chartFont
       }
     },
     tooltip: {
@@ -48,9 +48,10 @@ export const createBarOptions = () => {
       y: {
         beginAtZero: true,
         grid: {
-          color: 'rgba(0,0,0,0.1)'
+          color: 'rgba(255,255,255,0.08)'
         },
         ticks: {
+          color: '#a1a1aa',
           callback: function(value) {
             if (isNaN(value)) {
               return 'L0'
@@ -62,6 +63,9 @@ export const createBarOptions = () => {
       x: {
         grid: {
           display: false
+        },
+        ticks: {
+          color: '#a1a1aa'
         }
       }
     }
@@ -76,9 +80,10 @@ export const createLineOptions = () => {
       y: {
         beginAtZero: false, // No forzar comenzar en cero para mejor visualización
         grid: {
-          color: 'rgba(0,0,0,0.1)'
+          color: 'rgba(255,255,255,0.08)'
         },
         ticks: {
+          color: '#a1a1aa',
           callback: function(value) {
             if (isNaN(value)) {
               return 'L0'
@@ -92,6 +97,7 @@ export const createLineOptions = () => {
           display: false
         },
         ticks: {
+          color: '#a1a1aa',
           maxRotation: 45,
           minRotation: 45,
           autoSkip: false, // Mostrar todos los labels

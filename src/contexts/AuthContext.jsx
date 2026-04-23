@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { supabase } from '../database/supabase'
 import logger from '../utils/logger'
 
@@ -108,6 +108,10 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
   const [user, setUser] = useState(null)
+  /** Solo true tras un login explícito; al terminar la animación de bienvenida se pone en false. */
+  const [postLoginTransition, setPostLoginTransition] = useState(false)
+  /** Se incrementa al completar post-login para disparar la animación de entrada del layout. */
+  const [shellEntranceTick, setShellEntranceTick] = useState(0)
 
   // Verificar sesión al cargar y escuchar cambios
   useEffect(() => {
@@ -131,6 +135,11 @@ export const AuthProvider = ({ children }) => {
     return () => {
       subscription.unsubscribe()
     }
+  }, [])
+
+  const completePostLoginTransition = useCallback(() => {
+    setPostLoginTransition(false)
+    setShellEntranceTick((n) => n + 1)
   }, [])
 
   /**
@@ -236,6 +245,7 @@ export const AuthProvider = ({ children }) => {
         clearLoginGuard()
         setIsAuthenticated(true)
         setUser(payload.user || null)
+        setPostLoginTransition(true)
         return { success: true }
       }
 
@@ -260,6 +270,7 @@ export const AuthProvider = ({ children }) => {
         clearLoginGuard()
         setIsAuthenticated(true)
         setUser(data.user)
+        setPostLoginTransition(true)
         return { success: true }
       }
 
@@ -295,6 +306,7 @@ export const AuthProvider = ({ children }) => {
 
       setIsAuthenticated(false)
       setUser(null)
+      setPostLoginTransition(false)
     } catch (error) {
       logger.error('Error en logout:', error)
       throw error
@@ -437,6 +449,9 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     isChecking,
     user,
+    postLoginTransition,
+    shellEntranceTick,
+    completePostLoginTransition,
     login,
     logout,
     getSession,

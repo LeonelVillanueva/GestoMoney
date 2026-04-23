@@ -125,13 +125,17 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
         month: budgetForm.month
       }
       
-      await database.createBudget(budgetData)
+      const createResult = await database.createBudget(budgetData)
       
       // Mostrar mensaje de éxito
       const categoriesDisplay = categoriesArray.length === 1 
         ? categoriesArray[0] 
         : `${categoriesArray.length} categorías: ${categoriesArray.join(', ')}`
-      notifications.showSync(`✅ Presupuesto creado exitosamente para ${categoriesDisplay}`, 'success')
+      if (createResult?.queued) {
+        notifications.showSync(`Sin conexión: el presupuesto para ${categoriesDisplay} quedó pendiente de sincronización.`, 'warning')
+      } else {
+        notifications.showSync(`✅ Presupuesto creado exitosamente para ${categoriesDisplay}`, 'success')
+      }
       
       // Limpiar formulario
       setBudgetForm({ category: [], amount: '', month: currentMonth })
@@ -141,9 +145,7 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
         loadBudgets()
       }
       
-      if (onDataChanged) {
-        onDataChanged()
-      }
+      onDataChanged?.({ scope: 'expenses', source: 'budgets' })
     } catch (error) {
       console.error('Error creating budget:', error)
       let errorMessage = 'Error al crear presupuesto'
@@ -163,8 +165,12 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
   // Actualizar presupuesto
   const updateBudget = useCallback(async (budgetId, newAmount) => {
     try {
-      await database.updateBudget(budgetId, { amount: parseFloat(newAmount) })
-      notifications.showSync('✅ Presupuesto actualizado', 'success')
+      const updateResult = await database.updateBudget(budgetId, { amount: parseFloat(newAmount) })
+      if (updateResult?.queued) {
+        notifications.showSync('Sin conexión: la actualización del presupuesto quedó pendiente.', 'warning')
+      } else {
+        notifications.showSync('✅ Presupuesto actualizado', 'success')
+      }
       loadBudgets()
     } catch (error) {
       console.error('Error updating budget:', error)
@@ -175,13 +181,24 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
   // Eliminar presupuesto
   // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
   const deleteBudget = useCallback(async (budgetId, skipConfirm = false) => {
-    if (!skipConfirm && !window.confirm('¿Estás seguro de que quieres eliminar este presupuesto?')) {
-      return
+    if (!skipConfirm) {
+      const confirmed = await notifications.confirm({
+        title: 'Eliminar presupuesto',
+        message: '¿Estás seguro de que quieres eliminar este presupuesto?',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        tone: 'danger'
+      })
+      if (!confirmed) return
     }
 
     try {
-      await database.deleteBudget(budgetId)
-      notifications.showSync('✅ Presupuesto eliminado', 'success')
+      const deleteResult = await database.deleteBudget(budgetId)
+      if (deleteResult?.queued) {
+        notifications.showSync('Sin conexión: la eliminación del presupuesto quedó pendiente.', 'warning')
+      } else {
+        notifications.showSync('✅ Presupuesto eliminado', 'success')
+      }
       loadBudgets()
     } catch (error) {
       console.error('Error deleting budget:', error)

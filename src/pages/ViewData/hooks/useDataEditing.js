@@ -74,7 +74,14 @@ export const useDataEditing = (loadAllData, onDataChanged) => {
   }, [editingItem, editForm, loadAllData, onDataChanged, cancelEdit])
 
   const deleteItem = useCallback(async (id, type) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este registro?')) {
+    const confirmed = await notifications.confirm({
+      title: 'Eliminar registro',
+      message: '¿Estás seguro de que quieres eliminar este registro?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      tone: 'danger'
+    })
+    if (!confirmed) {
       return
     }
 

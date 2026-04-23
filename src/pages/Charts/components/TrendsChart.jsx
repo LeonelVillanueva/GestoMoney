@@ -18,7 +18,7 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">📈</div>
-        <h3 className="text-xl font-medium text-gray-600 mb-2">No hay datos para mostrar</h3>
+        <h3 className="text-xl font-medium text-zinc-400 mb-2">No hay datos para mostrar</h3>
         <p className="text-gray-500">Intenta ajustar los filtros</p>
       </div>
     )
@@ -222,11 +222,11 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
           }}
         >
           {/* Header del modal - compacto y fijo arriba */}
-          <div className="flex items-center justify-end gap-1 p-2 flex-shrink-0 border-b border-gray-200">
+          <div className="flex items-center justify-end gap-1 p-2 flex-shrink-0 border-b border-zinc-700">
             {/* Botón de rotación */}
             <button
               onClick={() => setIsRotated(!isRotated)}
-              className="p-1.5 hover:bg-gray-100 rounded transition-colors text-gray-600 hover:text-gray-800"
+              className="p-1.5 hover:bg-zinc-800/60 rounded transition-colors text-zinc-400 hover:text-zinc-100"
               aria-label={isRotated ? "Rotar horizontal" : "Rotar vertical"}
               title={isRotated ? "Horizontal" : "Vertical"}
             >
@@ -238,7 +238,7 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
                 setIsFullscreen(false)
                 setIsRotated(false)
               }}
-              className="p-1.5 hover:bg-gray-100 rounded transition-colors text-gray-600 hover:text-gray-800"
+              className="p-1.5 hover:bg-zinc-800/60 rounded transition-colors text-zinc-400 hover:text-zinc-100"
               aria-label="Cerrar"
             >
               <span className="text-xl">✕</span>
@@ -247,7 +247,7 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
 
           {/* Gráfico en contenedor scrolleable - área principal maximizada */}
           <div 
-            className="flex-1 w-full bg-white flex flex-col items-center justify-center" 
+            className="flex-1 w-full bg-zinc-900 flex flex-col items-center justify-center" 
             style={{ 
               position: 'relative',
               overflow: 'hidden'
@@ -355,7 +355,7 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
             {scrollMax > 5 && !isRotated && (
               <div className="absolute bottom-2 left-2 right-2 z-10">
                 <div 
-                  className="relative h-2 bg-gray-200/80 rounded-full cursor-pointer backdrop-blur-sm"
+                  className="relative h-2 bg-zinc-800 rounded-full cursor-pointer backdrop-blur-sm"
                   onClick={(e) => {
                     if (!scrollContainerRef.current) return
                     const rect = e.currentTarget.getBoundingClientRect()
@@ -424,10 +424,10 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
   return (
     <div className="glass-card rounded-xl p-4 mt-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-slate-800">📈 {title}</h3>
+        <h3 className="text-sm font-bold text-zinc-100">📈 {title}</h3>
         <div className="flex items-center gap-3">
           {period === 'all' && !isMobile && (
-            <div className="flex items-center gap-2 text-xs text-gray-600">
+            <div className="flex items-center gap-2 text-xs text-zinc-400">
               <span>🔍 Zoom: Rueda del ratón</span>
               <span>•</span>
               <span>🖱️ Desplazar: Click y arrastrar</span>
@@ -435,11 +435,12 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
           )}
           {isMobile && (
             <button
+              type="button"
               onClick={() => setIsFullscreen(true)}
-              className="text-xs text-blue-600 hover:text-blue-700 font-medium px-3 py-1.5 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border border-zinc-600 bg-zinc-800/60 text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-2"
               aria-label="Abrir en pantalla completa"
             >
-              <span>🔍</span>
+              <span aria-hidden>🔍</span>
               <span>Ver completo</span>
             </button>
           )}
@@ -451,10 +452,10 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
         style={isMobile ? { cursor: 'pointer' } : {}}
       >
         {isMobile && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg z-10 pointer-events-none">
-            <div className="text-center p-4 bg-white rounded-lg shadow-lg">
+          <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 rounded-lg z-10 pointer-events-none">
+            <div className="text-center p-4 bg-zinc-900 rounded-lg shadow-lg">
               <div className="text-2xl mb-2">👆</div>
-              <p className="text-sm font-medium text-gray-700">Toca para ver completo</p>
+              <p className="text-sm font-medium text-zinc-300">Toca para ver completo</p>
               <p className="text-xs text-gray-500 mt-1">Desplázate horizontalmente</p>
             </div>
           </div>
@@ -464,14 +465,15 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
       {period !== 'all' && !isMobile && (
         <div className="mt-2 flex justify-end">
           <button
+            type="button"
             onClick={() => {
               if (lineChartRef.current) {
                 lineChartRef.current.resetZoom()
               }
             }}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium px-3 py-1 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-zinc-600 bg-zinc-800/60 text-zinc-200 hover:bg-zinc-800 transition-colors"
           >
-            🔄 Restablecer Zoom
+            Restablecer zoom
           </button>
         </div>
       )}

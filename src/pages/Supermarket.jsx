@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import database from '../database/index.js'
 import notifications from '../utils/services/notifications'
 import CustomDatePicker from '../components/CustomDatePicker'
+import AsyncStatePanel from '../components/AsyncStatePanel'
 import { formatDateLocal, getTodayLocal } from '../utils/normalizers'
 import { useYearFilter } from '../hooks/useYearFilter'
 import YearSelector from '../components/YearSelector'
@@ -14,6 +15,8 @@ const Supermarket = ({ onDataAdded }) => {
     descripcion: ''
   })
   const [loading, setLoading] = useState(false)
+  const [loadingPurchases, setLoadingPurchases] = useState(false)
+  const [purchasesError, setPurchasesError] = useState('')
   const [purchases, setPurchases] = useState([])
   const [supermarkets, setSupermarkets] = useState(['La Colonia', 'Walmart'])
 
@@ -54,12 +57,17 @@ const Supermarket = ({ onDataAdded }) => {
   }
 
   const loadPurchases = async () => {
+    setLoadingPurchases(true)
+    setPurchasesError('')
     try {
       const data = await database.getSupermarketPurchases()
       setPurchases(data)
     } catch (error) {
       console.error('Error loading purchases:', error)
+      setPurchasesError('No se pudieron cargar las compras de supermercado.')
       notifications.showSync('Error al cargar compras de supermercado', 'error')
+    } finally {
+      setLoadingPurchases(false)
     }
   }
 
@@ -85,7 +93,7 @@ const Supermarket = ({ onDataAdded }) => {
         descripcion: formData.descripcion
       }
 
-      await database.createSupermarketPurchase(purchaseData)
+      const createResult = await database.createSupermarketPurchase(purchaseData)
       
       // Limpiar formulario
       setFormData({
@@ -100,10 +108,14 @@ const Supermarket = ({ onDataAdded }) => {
 
       // Notificar que se agregó
       if (onDataAdded) {
-        onDataAdded()
+        onDataAdded({ scope: 'expenses', source: 'supermarket' })
       }
 
-      notifications.showSync('✅ Compra de supermercado registrada exitosamente', 'success')
+      if (createResult?.queued) {
+        notifications.showSync('Sin conexión: la compra quedó pendiente de sincronización.', 'warning')
+      } else {
+        notifications.showSync('✅ Compra de supermercado registrada exitosamente', 'success')
+      }
     } catch (error) {
       console.error('Error saving purchase:', error)
       notifications.showSync('❌ Error al guardar la compra', 'error')
@@ -182,10 +194,10 @@ const Supermarket = ({ onDataAdded }) => {
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">🛒 Compras de Supermercado</h2>
+            <h2 className="text-2xl font-bold text-zinc-100">🛒 Compras de Supermercado</h2>
             {yearFilter !== 'all' && (
-              <p className="text-sm text-blue-600 mt-1">
-                📅 Mostrando: {filterLabel}
+              <p className="text-sm text-sky-400/90 mt-1">
+                Mostrando: {filterLabel}
               </p>
             )}
           </div>
@@ -206,44 +218,44 @@ const Supermarket = ({ onDataAdded }) => {
       {/* Estadísticas Rápidas Compactas */}
       {purchasesByYear.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+          <div className="stat-card rounded-xl p-3 border-l-4 border-l-sky-500/50">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-600 mb-1">
-                  Total Gastado {yearFilter !== 'all' && <span className="text-blue-600">({filterLabel})</span>}
+                <p className="text-xs text-zinc-500 mb-1">
+                  Total gastado {yearFilter !== 'all' && <span className="text-sky-400/80">({filterLabel})</span>}
                 </p>
-                <p className="text-base sm:text-lg font-bold text-blue-700 break-words leading-tight">{formatCurrency(totalGastado)}</p>
+                <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(totalGastado)}</p>
               </div>
-              <span className="text-2xl flex-shrink-0">💰</span>
+              <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>💰</span>
             </div>
           </div>
           
-          <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+          <div className="stat-card rounded-xl p-3 border-l-4 border-l-emerald-500/50">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-600 mb-1">Promedio</p>
-                <p className="text-base sm:text-lg font-bold text-green-700 break-words leading-tight">{formatCurrency(promedioCompra)}</p>
+                <p className="text-xs text-zinc-500 mb-1">Promedio</p>
+                <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(promedioCompra)}</p>
               </div>
-              <span className="text-2xl flex-shrink-0">📊</span>
+              <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>📊</span>
             </div>
           </div>
 
-          <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+          <div className="stat-card rounded-xl p-3 border-l-4 border-l-violet-500/50">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-600 mb-1">Total Compras</p>
-                <p className="text-base sm:text-lg font-bold text-purple-700 break-words leading-tight">{purchasesByYear.length}</p>
+                <p className="text-xs text-zinc-500 mb-1">Total compras</p>
+                <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{purchasesByYear.length}</p>
               </div>
-              <span className="text-2xl flex-shrink-0">🛒</span>
+              <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>🛒</span>
             </div>
           </div>
 
           {ultimaCompra && (
-            <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+            <div className="stat-card rounded-xl p-3 border-l-4 border-l-orange-500/50">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-600 mb-1">Última Compra</p>
-                  <p className="text-base sm:text-lg font-bold text-orange-700 break-words leading-tight">{formatCurrency(ultimaCompra.monto)}</p>
+                  <p className="text-xs text-zinc-500 mb-1">Última compra</p>
+                  <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(ultimaCompra.monto)}</p>
                 </div>
                 <span className="text-2xl flex-shrink-0">{getSupermarketIcon(ultimaCompra.supermercado)}</span>
               </div>
@@ -255,12 +267,12 @@ const Supermarket = ({ onDataAdded }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Formulario de Compra Compacto */}
         <div className="lg:col-span-1 glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-slate-800 mb-4">➕ Nueva Compra</h3>
+          <h3 className="text-sm font-bold text-zinc-100 mb-4">➕ Nueva Compra</h3>
           
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* Fecha */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-300 mb-1">
                 📅 Fecha
               </label>
               <CustomDatePicker
@@ -274,7 +286,7 @@ const Supermarket = ({ onDataAdded }) => {
             {/* Monto y Supermercado en fila */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-300 mb-1">
                   💰 Monto
                 </label>
                 <input
@@ -286,19 +298,19 @@ const Supermarket = ({ onDataAdded }) => {
                   step="0.01"
                   min="0"
                   required
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-3 py-2 text-sm border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-300 mb-1">
                   🏪 Tienda
                 </label>
                 <select
                   name="supermercado"
                   value={formData.supermercado}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-3 py-2 text-sm border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 >
                   {supermarkets.map((market, index) => (
                     <option key={index} value={market}>
@@ -311,7 +323,7 @@ const Supermarket = ({ onDataAdded }) => {
 
             {/* Descripción */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-300 mb-1">
                 📝 Descripción
               </label>
               <textarea
@@ -321,7 +333,7 @@ const Supermarket = ({ onDataAdded }) => {
                 placeholder="Ej: Comida semanal..."
                 required
                 rows="2"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                className="w-full px-3 py-2 text-sm border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
               />
             </div>
 
@@ -346,31 +358,45 @@ const Supermarket = ({ onDataAdded }) => {
         {/* Lista de Compras Recientes Compacta */}
         <div className="lg:col-span-2 glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-slate-800">📋 Compras Recientes</h3>
+            <h3 className="text-sm font-bold text-zinc-100">📋 Compras Recientes</h3>
             {purchasesByYear.length > 0 && (
               <span className="text-xs text-gray-500">{purchasesByYear.length} compras</span>
             )}
           </div>
           
-          {purchasesByYear.length > 0 ? (
+          {loadingPurchases ? (
+            <AsyncStatePanel
+              kind="loading"
+              title="Cargando compras"
+              message="Obteniendo tus registros de supermercado..."
+            />
+          ) : purchasesError ? (
+            <AsyncStatePanel
+              kind="error"
+              title="Error al cargar compras"
+              message={purchasesError}
+              actionLabel="Reintentar"
+              onAction={loadPurchases}
+            />
+          ) : purchasesByYear.length > 0 ? (
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {purchasesByYear.slice(0, 10).map((purchase) => (
-                <div key={purchase.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div key={purchase.id} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg hover:bg-zinc-800/60 transition-colors">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <div className="p-1.5 bg-white rounded-lg flex-shrink-0">
+                    <div className="p-1.5 bg-zinc-900 rounded-lg flex-shrink-0">
                       <span className="text-lg">{getSupermarketIcon(purchase.supermercado)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-gray-800 truncate">{purchase.descripcion}</h4>
+                      <h4 className="text-sm font-medium text-zinc-100 truncate">{purchase.descripcion}</h4>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-xs text-gray-600">{purchase.supermercado}</p>
+                        <p className="text-xs text-zinc-400">{purchase.supermercado}</p>
                         <span className="text-gray-400">•</span>
-                        <p className="text-xs text-gray-600">{formatDate(purchase.fecha)}</p>
+                        <p className="text-xs text-zinc-400">{formatDate(purchase.fecha)}</p>
                       </div>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-3">
-                    <p className="text-sm font-bold text-gray-800">{formatCurrency(purchase.monto)}</p>
+                    <p className="text-sm font-bold text-zinc-100">{formatCurrency(purchase.monto)}</p>
                   </div>
                 </div>
               ))}
@@ -381,11 +407,11 @@ const Supermarket = ({ onDataAdded }) => {
               )}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-3">🛒</div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">No hay compras registradas</h3>
-              <p className="text-xs text-gray-500">Registra tu primera compra usando el formulario</p>
-            </div>
+            <AsyncStatePanel
+              kind="empty"
+              title="No hay compras registradas"
+              message="Registra tu primera compra usando el formulario."
+            />
           )}
         </div>
       </div>
@@ -393,27 +419,28 @@ const Supermarket = ({ onDataAdded }) => {
       {/* Estadísticas por Supermercado */}
       {purchases.length > 0 && comprasPorSupermercado.some(c => c.cantidad > 0) && (
         <div className="glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-slate-800 mb-3">📊 Por Supermercado</h3>
+          <h3 className="text-sm font-bold text-zinc-100 mb-3">📊 Por Supermercado</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {comprasPorSupermercado.map((item, index) => {
               if (item.cantidad === 0) return null
-              const colors = [
-                'from-green-50 to-green-100 border-green-200 text-green-700',
-                'from-orange-50 to-orange-100 border-orange-200 text-orange-700',
-                'from-blue-50 to-blue-100 border-blue-200 text-blue-700',
-                'from-purple-50 to-purple-100 border-purple-200 text-purple-700',
-                'from-red-50 to-red-100 border-red-200 text-red-700'
+              const accent = [
+                'border-l-emerald-500/50',
+                'border-l-orange-500/50',
+                'border-l-sky-500/50',
+                'border-l-violet-500/50',
+                'border-l-rose-500/50'
               ]
-              const colorClass = colors[index % colors.length]
-              
               return (
-                <div key={index} className={`bg-gradient-to-br ${colorClass} rounded-lg p-3 border`}>
+                <div
+                  key={index}
+                  className={`stat-card rounded-lg p-3 border-l-4 ${accent[index % accent.length]}`}
+                >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xl">{getSupermarketIcon(item.nombre)}</span>
-                    <span className="text-xs font-medium">{item.cantidad} compras</span>
+                    <span className="text-xs font-medium text-zinc-400">{item.cantidad} compras</span>
                   </div>
-                  <p className="text-xs text-gray-600 mb-1">{item.nombre}</p>
-                  <p className="text-base font-bold">{formatCurrency(item.total)}</p>
+                  <p className="text-xs text-zinc-500 mb-1">{item.nombre}</p>
+                  <p className="text-base font-bold text-zinc-100">{formatCurrency(item.total)}</p>
                 </div>
               )
             })}

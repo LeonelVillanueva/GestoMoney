@@ -40,26 +40,26 @@ class ErrorBoundary extends React.Component {
           <div className="bg-white rounded-xl p-8 max-w-2xl w-full shadow-2xl">
             <div className="text-center mb-6">
               <div className="text-6xl mb-4">⚠️</div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              <h1 className="text-3xl font-bold text-zinc-100 mb-2">
                 Error en la aplicación
               </h1>
-              <p className="text-gray-600">
+              <p className="text-zinc-400">
                 Ha ocurrido un error inesperado. Por favor, recarga la página.
               </p>
             </div>
             
             {/* Solo mostrar detalles en desarrollo */}
             {showDetails && this.state.error && (
-              <div className="bg-gray-100 rounded-lg p-4 mb-4">
+              <div className="bg-zinc-800/60 rounded-lg p-4 mb-4">
                 <p className="text-sm font-mono text-red-600 mb-2">
                   {this.state.error.toString()}
                 </p>
                 {this.state.errorInfo && (
                   <details className="mt-2">
-                    <summary className="text-sm text-gray-700 cursor-pointer hover:text-gray-900">
+                    <summary className="text-sm text-zinc-300 cursor-pointer hover:text-gray-900">
                       Detalles del error (solo en desarrollo)
                     </summary>
-                    <pre className="mt-2 text-xs text-gray-600 overflow-auto max-h-40">
+                    <pre className="mt-2 text-xs text-zinc-400 overflow-auto max-h-40">
                       {this.state.errorInfo.componentStack}
                     </pre>
                   </details>
@@ -76,7 +76,7 @@ class ErrorBoundary extends React.Component {
               </button>
               <button
                 onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                className="px-6 py-3 bg-gray-200 text-zinc-300 rounded-lg hover:bg-gray-300 transition-colors font-medium"
               >
                 Intentar de nuevo
               </button>

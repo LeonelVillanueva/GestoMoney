@@ -12,7 +12,7 @@ const DistributionCharts = ({ chartData, chartOptions, barOptions }) => {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">📊</div>
-        <h3 className="text-xl font-medium text-gray-600 mb-2">No hay datos para mostrar</h3>
+        <h3 className="text-xl font-medium text-zinc-400 mb-2">No hay datos para mostrar</h3>
         <p className="text-gray-500">Intenta ajustar los filtros</p>
       </div>
     )
@@ -22,7 +22,7 @@ const DistributionCharts = ({ chartData, chartOptions, barOptions }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
       {/* Gráfico de Torta */}
       <div className="glass-card rounded-xl p-4">
-        <h3 className="text-sm font-bold text-slate-800 mb-3">🥧 Distribución por Categorías</h3>
+        <h3 className="text-sm font-bold text-zinc-100 mb-3">🥧 Distribución por Categorías</h3>
         <div className="h-64">
           <Pie data={chartData.pie} options={chartOptions} />
         </div>
@@ -31,8 +31,8 @@ const DistributionCharts = ({ chartData, chartOptions, barOptions }) => {
       {/* Gráfico de Barras con Zoom */}
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">📊 Gastos por Categoría</h3>
-          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+          <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200">📊 Gastos por Categoría</h3>
+          <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-gray-400">
             <span>🔍 Zoom: Rueda</span>
           </div>
         </div>
@@ -110,14 +110,15 @@ const DistributionCharts = ({ chartData, chartOptions, barOptions }) => {
         </div>
         <div className="mt-2 flex justify-end">
           <button
+            type="button"
             onClick={() => {
               if (barChartRef.current) {
                 barChartRef.current.resetZoom()
               }
             }}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium px-3 py-1 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-zinc-600 bg-zinc-800/60 text-zinc-200 hover:bg-zinc-800 transition-colors"
           >
-            🔄 Restablecer Zoom
+            Restablecer zoom
           </button>
         </div>
       </div>

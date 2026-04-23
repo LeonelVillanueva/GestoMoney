@@ -161,7 +161,7 @@ const DateInput = ({ value, onChange, label, required = false, className = "" })
   return (
     <div className={`space-y-2 ${className}`}>
       {label && (
-        <label className="block text-xs font-medium text-gray-600">
+        <label className="block text-xs font-medium text-zinc-400">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
@@ -173,7 +173,7 @@ const DateInput = ({ value, onChange, label, required = false, className = "" })
             value={day}
             onChange={(e) => handleDayChange(e.target.value)}
             required={required}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+            className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
           >
             <option value="">Día</option>
             {days.map(d => (
@@ -188,7 +188,7 @@ const DateInput = ({ value, onChange, label, required = false, className = "" })
             value={month}
             onChange={(e) => handleMonthChange(e.target.value)}
             required={required}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+            className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
           >
             <option value="">Mes</option>
             {months.map(m => (
@@ -203,7 +203,7 @@ const DateInput = ({ value, onChange, label, required = false, className = "" })
             value={year}
             onChange={(e) => handleYearChange(e.target.value)}
             required={required}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+            className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
           >
             <option value="">Año</option>
             {years.map(y => (

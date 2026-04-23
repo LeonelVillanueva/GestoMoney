@@ -50,20 +50,14 @@ const ProgressNotification = ({
         })
       }, duration / 50)
 
-      // Auto cerrar solo en móvil
-      let closeTimeout = null
-      if (isMobile) {
-        closeTimeout = setTimeout(() => {
-          onClose()
-        }, duration)
-      }
+      const closeTimeout = setTimeout(() => {
+        onClose()
+      }, duration)
 
       return () => {
         clearInterval(progressInterval)
         clearInterval(amountInterval)
-        if (closeTimeout) {
-          clearTimeout(closeTimeout)
-        }
+        clearTimeout(closeTimeout)
       }
     }
   }, [isVisible, expenseData, duration, onClose, isMobile])
@@ -100,17 +94,23 @@ const ProgressNotification = ({
   // Versión móvil simplificada
   if (isMobile) {
     return (
-      <div className="fixed top-4 right-4 left-4 z-50 transform transition-all duration-300 ease-in-out md:hidden">
-        <div className="bg-white rounded-xl shadow-2xl border border-gray-200 p-4 animate-slide-in">
+      <div
+        className="fixed top-4 right-4 left-4 z-50 transform transition-all duration-300 ease-in-out md:hidden"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <div className="bg-zinc-900/95 backdrop-blur-md rounded-xl shadow-2xl shadow-black/40 border border-zinc-700/80 p-4 animate-slide-in">
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
               <span className="text-2xl">{isIngreso ? '💰' : '💸'}</span>
-              <h3 className="font-bold text-gray-800 text-sm">{isIngreso ? 'Ingreso Agregado' : 'Gasto Agregado'}</h3>
+              <h3 className="font-bold text-zinc-100 text-sm">{isIngreso ? 'Ingreso Agregado' : 'Gasto Agregado'}</h3>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="rounded-md p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/80 transition-colors"
+              aria-label="Cerrar notificación"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -123,36 +123,40 @@ const ProgressNotification = ({
             <div className="flex items-center space-x-2">
               <span className="text-xl">{getCategoryIcon(expenseData.category)}</span>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-800 text-sm truncate">{expenseData.category}</p>
-                <p className="text-xs text-gray-600 truncate">{expenseData.description}</p>
+                <p className="font-medium text-zinc-100 text-sm truncate">{expenseData.category}</p>
+                <p className="text-xs text-zinc-400 truncate">{expenseData.description}</p>
               </div>
             </div>
 
             {/* Monto agregado */}
-            <div className={`border rounded-lg p-2.5 ${isIngreso ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
+            <div className={`border rounded-lg p-2.5 ${
+              isIngreso
+                ? 'bg-sky-500/10 border-sky-500/30'
+                : 'bg-emerald-500/10 border-emerald-500/30'
+            }`}>
               <div className="flex items-center justify-between">
-                <span className={`text-xs font-medium ${isIngreso ? 'text-blue-800' : 'text-green-800'}`}>
+                <span className={`text-xs font-medium ${isIngreso ? 'text-sky-300' : 'text-emerald-300'}`}>
                   {isIngreso ? 'Ingreso:' : 'Gasto:'}
                 </span>
-                <span className={`text-base font-bold ${isIngreso ? 'text-blue-600' : 'text-green-600'}`}>
+                <span className={`text-base font-bold ${isIngreso ? 'text-sky-200' : 'text-emerald-200'}`}>
                   {formatCurrency(animatedAmount)}
                 </span>
               </div>
             </div>
 
             {/* Totales simplificados - Móvil */}
-            <div className="space-y-2 pt-2 border-t">
+            <div className="space-y-2 pt-2 border-t border-zinc-700/80">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-600">💸 Gastos:</span>
-                <span className="font-bold text-red-600">{formatCurrency(totals.totalGastosNuevo || 0)}</span>
+                <span className="text-zinc-400">💸 Gastos:</span>
+                <span className="font-bold text-red-400">{formatCurrency(totals.totalGastosNuevo || 0)}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-600">💰 Ingresos:</span>
-                <span className="font-bold text-green-600">{formatCurrency(totals.totalIngresosNuevo || 0)}</span>
+                <span className="text-zinc-400">💰 Ingresos:</span>
+                <span className="font-bold text-emerald-400">{formatCurrency(totals.totalIngresosNuevo || 0)}</span>
               </div>
-              <div className="flex items-center justify-between text-sm bg-gray-50 rounded p-2 border border-gray-200">
-                <span className="text-gray-700 font-semibold">Total Neto:</span>
-                <span className={`font-bold ${(totals.totalNetoNuevo || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="flex items-center justify-between text-sm bg-zinc-800/60 rounded p-2 border border-zinc-700/80">
+                <span className="text-zinc-200 font-semibold">Total neto</span>
+                <span className={`font-bold ${(totals.totalNetoNuevo || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {formatCurrency(totals.totalNetoNuevo || 0)}
                 </span>
               </div>
@@ -160,9 +164,9 @@ const ProgressNotification = ({
 
             {/* Barra de progreso - Móvil */}
             <div className="space-y-1 pt-2">
-              <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+              <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full transition-all duration-200 ease-out"
+                  className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-200 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -171,12 +175,12 @@ const ProgressNotification = ({
             {/* Mensaje de estado - Móvil */}
             <div className="text-center pt-1">
               {isAnimating ? (
-                <p className="text-xs text-blue-600 font-medium animate-pulse">
-                  Actualizando...
+                <p className="text-xs text-sky-400 font-medium animate-pulse">
+                  Actualizando…
                 </p>
               ) : (
-                <p className="text-xs text-green-600 font-medium">
-                  ✅ Actualizado
+                <p className="text-xs text-emerald-400 font-medium">
+                  Actualizado
                 </p>
               )}
             </div>
@@ -205,18 +209,24 @@ const ProgressNotification = ({
 
   // Versión PC detallada
   return (
-    <div className="fixed top-4 right-4 z-50 transform transition-all duration-300 ease-in-out hidden md:block">
-      <div className="bg-white rounded-xl shadow-2xl border border-gray-200 p-6 max-w-sm w-80 animate-slide-in">
+    <div
+      className="fixed top-4 right-4 z-50 transform transition-all duration-300 ease-in-out hidden md:block"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <div className="bg-zinc-900/95 backdrop-blur-md rounded-xl shadow-2xl shadow-black/40 border border-zinc-700/80 p-6 max-w-sm w-80 animate-slide-in">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <span className="text-2xl">{isIngreso ? '💰' : '💸'}</span>
-            <h3 className="font-bold text-gray-800">{isIngreso ? 'Ingreso Agregado' : 'Gasto Agregado'}</h3>
+            <h3 className="font-bold text-zinc-100">{isIngreso ? 'Ingreso agregado' : 'Gasto agregado'}</h3>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg p-1.5 transition-all"
+            className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/80 rounded-lg p-1.5 transition-all"
             title="Cerrar"
+            aria-label="Cerrar notificación"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -229,95 +239,94 @@ const ProgressNotification = ({
           <div className="flex items-center space-x-3">
             <span className="text-2xl">{getCategoryIcon(expenseData.category)}</span>
             <div>
-              <p className="font-medium text-gray-800">{expenseData.category}</p>
-              <p className="text-sm text-gray-600">{expenseData.description}</p>
+              <p className="font-medium text-zinc-100">{expenseData.category}</p>
+              <p className="text-sm text-zinc-400">{expenseData.description}</p>
             </div>
           </div>
 
           {/* Monto agregado con animación */}
-          <div className={`border rounded-lg p-3 ${isIngreso ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
+          <div
+            className={`border rounded-lg p-3 ${
+              isIngreso
+                ? 'bg-sky-500/10 border-sky-500/30'
+                : 'bg-emerald-500/10 border-emerald-500/30'
+            }`}
+          >
             <div className="flex items-center justify-between">
-              <span className={`text-sm font-medium ${isIngreso ? 'text-blue-800' : 'text-green-800'}`}>
-                {isIngreso ? 'Ingreso agregado:' : 'Gasto agregado:'}
+              <span className={`text-sm font-medium ${isIngreso ? 'text-sky-300' : 'text-emerald-300'}`}>
+                {isIngreso ? 'Ingreso agregado' : 'Gasto agregado'}
               </span>
-              <span className={`text-lg font-bold ${isIngreso ? 'text-blue-600' : 'text-green-600'}`}>
+              <span className={`text-lg font-bold ${isIngreso ? 'text-sky-200' : 'text-emerald-200'}`}>
                 {formatCurrency(animatedAmount)}
               </span>
             </div>
           </div>
 
           {/* Desglose de Totales */}
-          <div className="space-y-3 border-t pt-3">
+          <div className="space-y-3 border-t border-zinc-700/80 pt-3">
             <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose Anterior</h4>
+              <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Desglose anterior</h4>
               
-              {/* Total de Gastos Anterior */}
-              <div className="flex items-center justify-between text-sm bg-red-50 rounded-lg p-2">
-                <span className="text-gray-700 flex items-center gap-2">
+              <div className="flex items-center justify-between text-sm bg-red-500/10 rounded-lg p-2 border border-red-500/20">
+                <span className="text-zinc-300 flex items-center gap-2">
                   <span>💸</span>
-                  <span>Total Gastos:</span>
+                  <span>Total gastos</span>
                 </span>
-                <span className="font-bold text-red-600">
+                <span className="font-bold text-red-400">
                   {formatCurrency(totals.totalGastosAnterior || 0)}
                 </span>
               </div>
 
-              {/* Total de Ingresos Anterior */}
-              <div className="flex items-center justify-between text-sm bg-green-50 rounded-lg p-2">
-                <span className="text-gray-700 flex items-center gap-2">
+              <div className="flex items-center justify-between text-sm bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
+                <span className="text-zinc-300 flex items-center gap-2">
                   <span>💰</span>
-                  <span>Total Ingresos:</span>
+                  <span>Total ingresos</span>
                 </span>
-                <span className="font-bold text-green-600">
+                <span className="font-bold text-emerald-400">
                   {formatCurrency(totals.totalIngresosAnterior || 0)}
                 </span>
               </div>
 
-              {/* Total Neto Anterior */}
-              <div className="flex items-center justify-between text-sm bg-gray-50 rounded-lg p-2 border border-gray-200">
-                <span className="text-gray-700 font-medium">Total Neto:</span>
-                <span className={`font-bold ${(totals.totalNetoAnterior || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="flex items-center justify-between text-sm bg-zinc-800/60 rounded-lg p-2 border border-zinc-700/80">
+                <span className="text-zinc-200 font-medium">Total neto</span>
+                <span className={`font-bold ${(totals.totalNetoAnterior || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {formatCurrency(totals.totalNetoAnterior || 0)}
                 </span>
               </div>
             </div>
 
-            {/* Separador */}
             <div className="flex items-center gap-2 my-2">
-              <div className="flex-1 h-px bg-gray-300"></div>
-              <span className="text-xs text-gray-400">→</span>
-              <div className="flex-1 h-px bg-gray-300"></div>
+              <div className="flex-1 h-px bg-zinc-700" />
+              <span className="text-xs text-zinc-500">→</span>
+              <div className="flex-1 h-px bg-zinc-700" />
             </div>
 
             <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Desglose Nuevo</h4>
+              <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Desglose nuevo</h4>
               
-              {/* Total de Gastos Nuevo */}
-              <div className="flex items-center justify-between text-sm bg-red-50 rounded-lg p-2">
-                <span className="text-gray-700 flex items-center gap-2">
+              <div className="flex items-center justify-between text-sm bg-red-500/10 rounded-lg p-2 border border-red-500/20">
+                <span className="text-zinc-300 flex items-center gap-2">
                   <span>💸</span>
-                  <span>Total Gastos:</span>
+                  <span>Total gastos</span>
                 </span>
-                <span className="font-bold text-red-600">
+                <span className="font-bold text-red-400">
                   {formatCurrency(totals.totalGastosNuevo || 0)}
                 </span>
               </div>
 
-              {/* Total de Ingresos Nuevo */}
-              <div className="flex items-center justify-between text-sm bg-green-50 rounded-lg p-2">
-                <span className="text-gray-700 flex items-center gap-2">
+              <div className="flex items-center justify-between text-sm bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
+                <span className="text-zinc-300 flex items-center gap-2">
                   <span>💰</span>
-                  <span>Total Ingresos:</span>
+                  <span>Total ingresos</span>
                 </span>
-                <span className="font-bold text-green-600">
+                <span className="font-bold text-emerald-400">
                   {formatCurrency(totals.totalIngresosNuevo || 0)}
                 </span>
               </div>
 
-              {/* Total Neto Nuevo */}
-              <div className="flex items-center justify-between text-sm bg-blue-50 rounded-lg p-2 border-2 border-blue-300">
-                <span className="text-gray-800 font-semibold">Total Neto:</span>
-                <span className={`font-bold text-lg ${(totals.totalNetoNuevo || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="flex items-center justify-between text-sm bg-sky-500/10 rounded-lg p-2 border border-sky-500/30">
+                <span className="text-zinc-200 font-semibold">Total neto</span>
+                <span className={`font-bold text-lg ${(totals.totalNetoNuevo || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {formatCurrency(totals.totalNetoNuevo || 0)}
                 </span>
               </div>
@@ -326,18 +335,18 @@ const ProgressNotification = ({
 
           {/* Barra de progreso */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center justify-between text-xs text-zinc-500">
               <span>Progreso</span>
               <span>{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full transition-all duration-200 ease-out"
+                className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-200 ease-out"
                 style={{ width: `${progress}%` }}
               >
                 {/* Efecto de brillo animado */}
                 <div 
-                  className="h-full bg-white opacity-30 rounded-full transform -skew-x-12 animate-shimmer"
+                  className="h-full bg-zinc-900 opacity-30 rounded-full transform -skew-x-12 animate-shimmer"
                   style={{ 
                     width: '100%',
                     animation: isAnimating ? 'shimmer 1.5s infinite' : 'none'
@@ -350,21 +359,20 @@ const ProgressNotification = ({
           {/* Mensaje de estado */}
           <div className="text-center pt-2">
             {isAnimating ? (
-              <p className="text-sm text-blue-600 font-medium animate-pulse">
-                Actualizando total...
+              <p className="text-sm text-sky-400 font-medium animate-pulse">
+                Actualizando total…
               </p>
             ) : (
-              <p className="text-sm text-green-600 font-medium">
-                ✅ Total actualizado
+              <p className="text-sm text-emerald-400 font-medium">
+                Total actualizado
               </p>
             )}
           </div>
 
-          {/* Botón de cerrar visible en PC */}
-          <div className="mt-4 pt-3 border-t">
+          <div className="mt-4 pt-3 border-t border-zinc-700/80">
             <button
               onClick={onClose}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors text-sm"
+              className="w-full py-2 px-4 rounded-lg border border-zinc-600 bg-zinc-800/60 text-zinc-200 font-medium text-sm hover:bg-zinc-800 transition-colors"
             >
               Cerrar
             </button>

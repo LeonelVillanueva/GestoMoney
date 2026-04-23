@@ -17,6 +17,9 @@ import useSupermarkets from '../hooks/useSupermarkets'
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general')
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 1023px)').matches : false
+  )
   
   // Estado para el modal de confirmación de eliminación
   const [deleteModal, setDeleteModal] = useState({
@@ -121,6 +124,19 @@ const Settings = () => {
 
   useEffect(() => {
     loadSettings()
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+    const mediaQuery = window.matchMedia('(max-width: 1023px)')
+    const onChange = (event) => setIsMobileView(event.matches)
+    setIsMobileView(mediaQuery.matches)
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', onChange)
+      return () => mediaQuery.removeEventListener('change', onChange)
+    }
+    mediaQuery.addListener(onChange)
+    return () => mediaQuery.removeListener(onChange)
   }, [])
 
   // Cargas gestionadas por hooks (eliminar funciones locales duplicadas)
@@ -477,43 +493,96 @@ const Settings = () => {
     }
   }
 
+  const activeTabMeta = tabs.find((tab) => tab.id === activeTab) || tabs[0]
+
   return (
     <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
       {/* Header Compacto */}
-      <div className="glass-card rounded-xl p-4">
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">⚙️ Configuración</h2>
+      <div className={`glass-card rounded-xl ${isMobileView ? 'p-3' : 'p-4'}`}>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className={`${isMobileView ? 'text-xl' : 'text-2xl'} font-bold text-zinc-100 dark:text-slate-100`}>
+              ⚙️ Configuración
+            </h2>
+            {isMobileView && (
+              <p className="mt-1 text-xs text-zinc-400">
+                {activeTabMeta.icon} {activeTabMeta.label}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Tabs Navigation Compacto */}
-        <div className="lg:col-span-3">
+      {isMobileView ? (
+        <div className="space-y-3">
           <div className="glass-card rounded-xl p-3">
-            <nav className="space-y-1">
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+              Sección
+            </label>
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            >
+              {tabs.map((tab) => (
+                <option key={tab.id} value={tab.id}>
+                  {tab.icon} {tab.label}
+                </option>
+              ))}
+            </select>
+            <div className="mt-2 flex gap-1.5 overflow-x-auto pb-0.5">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`shrink-0 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-800 dark:hover:text-gray-200'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
                   }`}
                 >
-                  <span className="text-base">{tab.icon}</span>
-                  <span>{tab.label}</span>
+                  {tab.icon}
                 </button>
               ))}
-            </nav>
+            </div>
           </div>
-        </div>
 
-        {/* Tab Content */}
-        <div className="lg:col-span-9">
-          <div className="glass-card rounded-xl p-4">
+          <div className="glass-card rounded-xl p-3">
             {renderTabContent()}
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Tabs Navigation Compacto */}
+          <div className="lg:col-span-3">
+            <div className="glass-card rounded-xl p-3">
+              <nav className="space-y-1">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      activeTab === tab.id
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-zinc-400 dark:text-gray-400 hover:bg-zinc-800/60 dark:hover:bg-slate-700 hover:text-zinc-100 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <span className="text-base">{tab.icon}</span>
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="lg:col-span-9">
+            <div className="glass-card rounded-xl p-4">
+              {renderTabContent()}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de confirmación de eliminación */}
       <DeleteConfirmModal

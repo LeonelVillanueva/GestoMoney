@@ -23,7 +23,11 @@ export default function useCategories(active) {
       return
     }
     try {
-      await database.createCategory(newCategory)
+      const result = await database.createCategory(newCategory)
+      if (result?.queued) {
+        notifications.showSync('No se puede crear categorías sin conexión. Intenta nuevamente al reconectar.', 'error')
+        return
+      }
       await loadCategories()
       setNewCategory({ name: '', color: '#3498db', icon: '💰' })
       notifications.showSync('✅ Categoría agregada exitosamente', 'success')
@@ -36,11 +40,22 @@ export default function useCategories(active) {
   // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
   const deleteCategory = useCallback(async (categoryId, skipConfirm = false) => {
     if (!skipConfirm) {
-      const confirmed = window.confirm('¿Estás seguro de que quieres eliminar esta categoría?')
+      const confirmed = await notifications.confirm({
+        title: 'Eliminar categoría',
+        message: '¿Estás seguro de que quieres eliminar esta categoría?',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        tone: 'danger'
+      })
       if (!confirmed) return
     }
     try {
-      await database.deleteCategory(categoryId)
+      const result = await database.deleteCategory(categoryId)
+      if (result?.queued) {
+        setCategories((prev) => prev.filter((cat) => cat.id !== categoryId))
+        notifications.showSync('Sin conexión: eliminación pendiente de sincronización', 'warning')
+        return
+      }
       await loadCategories()
       notifications.showSync('✅ Categoría eliminada', 'success')
     } catch (error) {
@@ -51,7 +66,13 @@ export default function useCategories(active) {
 
   const updateCategory = useCallback(async (categoryId, updates) => {
     try {
-      await database.updateCategory(categoryId, updates)
+      const result = await database.updateCategory(categoryId, updates)
+      if (result?.queued) {
+        setCategories((prev) => prev.map((cat) => (cat.id === categoryId ? { ...cat, ...updates } : cat)))
+        setEditingCategory(null)
+        notifications.showSync('Sin conexión: actualización pendiente de sincronización', 'warning')
+        return
+      }
       await loadCategories()
       setEditingCategory(null)
       notifications.showSync('✅ Categoría actualizada', 'success')

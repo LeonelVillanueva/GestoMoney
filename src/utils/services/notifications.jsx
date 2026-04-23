@@ -2,6 +2,7 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import Notification from '../../components/Notification'
 import ProgressNotification from '../../components/ProgressNotification'
+import ConfirmDialog from '../../components/ConfirmDialog'
 
 /**
  * Sistema de notificaciones
@@ -224,6 +225,58 @@ class NotificationService {
    */
   updateSettings(newSettings) {
     this.settings = { ...this.settings, ...newSettings }
+  }
+
+  /**
+   * Diálogo de confirmación asíncrono para reemplazar window.confirm.
+   * @returns {Promise<boolean>}
+   */
+  confirm({
+    title = 'Confirmar acción',
+    message = '¿Deseas continuar?',
+    confirmText = 'Confirmar',
+    cancelText = 'Cancelar',
+    tone = 'info'
+  } = {}) {
+    return new Promise((resolve) => {
+      const container = document.createElement('div')
+      container.id = `confirm-dialog-${Date.now()}`
+      document.body.appendChild(container)
+      const root = createRoot(container)
+
+      const cleanup = () => {
+        try {
+          root.unmount()
+        } catch (error) {
+          // Ignorar errores por doble desmontaje
+        }
+        if (container.parentNode) {
+          container.parentNode.removeChild(container)
+        }
+      }
+
+      const handleConfirm = () => {
+        cleanup()
+        resolve(true)
+      }
+
+      const handleCancel = () => {
+        cleanup()
+        resolve(false)
+      }
+
+      root.render(
+        <ConfirmDialog
+          title={title}
+          message={message}
+          confirmText={confirmText}
+          cancelText={cancelText}
+          tone={tone}
+          onConfirm={handleConfirm}
+          onCancel={handleCancel}
+        />
+      )
+    })
   }
 }
 

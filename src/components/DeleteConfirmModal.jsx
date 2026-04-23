@@ -151,17 +151,17 @@ const DeleteConfirmModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`p-4 rounded-t-2xl ${isDangerous ? 'bg-red-50 dark:bg-red-900/30' : actionType === 'edit' ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-gray-50 dark:bg-slate-700'}`}>
+        <div className={`p-4 rounded-t-2xl ${isDangerous ? 'bg-red-50 dark:bg-red-900/30' : actionType === 'edit' ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-zinc-800/50 dark:bg-slate-700'}`}>
           <div className="flex items-center gap-3">
             <div className={`text-3xl ${isDangerous ? 'animate-pulse' : ''}`}>
               {isDangerous ? '⚠️' : actionType === 'edit' ? '✏️' : '🔐'}
             </div>
             <div>
-              <h3 className={`text-lg font-bold ${isDangerous ? 'text-red-700 dark:text-red-300' : 'text-slate-800 dark:text-slate-200'}`}>
+              <h3 className={`text-lg font-bold ${isDangerous ? 'text-red-700 dark:text-red-300' : 'text-zinc-100 dark:text-slate-200'}`}>
                 {title}
               </h3>
               {itemName && (
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                <p className="text-sm text-zinc-400 dark:text-zinc-400 mt-1">
                   {itemName}
                 </p>
               )}
@@ -176,46 +176,33 @@ const DeleteConfirmModal = ({
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : showSetupPrompt ? (
-            // Si no hay PIN configurado, mostrar advertencia
+            // Si no hay PIN configurado, bloquear acción sensible
             <div className="text-center py-4">
               <div className="text-4xl mb-3">🔓</div>
-              <p className="text-slate-600 dark:text-slate-400 mb-4">
+              <p className="text-zinc-400 dark:text-zinc-400 mb-4">
                 No tienes un PIN de seguridad configurado.
               </p>
-              <p className="text-sm text-slate-500 dark:text-slate-500 mb-4">
-                Te recomendamos configurar uno en Ajustes → Seguridad para proteger tus datos.
+              <p className="text-sm text-zinc-500 dark:text-zinc-500 mb-4">
+                Para editar o eliminar registros debes configurar tu PIN en Ajustes → Seguridad.
               </p>
-              <div className="flex gap-3 justify-center">
+              <div className="flex justify-center">
                 <button
                   onClick={handleCancel}
-                  className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  className="px-4 py-2 text-zinc-400 dark:text-gray-400 hover:bg-zinc-800/60 dark:hover:bg-slate-700 rounded-lg transition-colors"
                 >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() => {
-                    onConfirm()
-                    onClose()
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    isDangerous 
-                      ? 'bg-red-600 hover:bg-red-700 text-white' 
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
-                >
-                  Continuar sin PIN
+                  Entendido
                 </button>
               </div>
             </div>
           ) : (
             <>
-              <p className="text-slate-600 dark:text-slate-400 text-center mb-6">
+              <p className="text-zinc-400 dark:text-zinc-400 text-center mb-6">
                 {message}
               </p>
 
               {/* PIN Input */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 text-center mb-3">
+                <label className="block text-sm font-medium text-zinc-300 dark:text-slate-300 text-center mb-3">
                   Ingresa tu PIN de seguridad
                 </label>
                 <div className="flex justify-center gap-2" onPaste={handlePaste}>
@@ -232,9 +219,9 @@ const DeleteConfirmModal = ({
                       className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-xl transition-all
                         ${error 
                           ? 'border-red-500 bg-red-50 dark:bg-red-900/20' 
-                          : 'border-gray-300 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400'
+                          : 'border-zinc-600 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400'
                         }
-                        bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200
+                        bg-zinc-900 dark:bg-slate-700 text-zinc-100 dark:text-slate-200
                         focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
                       disabled={isVerifying}
                     />
@@ -256,7 +243,7 @@ const DeleteConfirmModal = ({
                 <button
                   onClick={handleCancel}
                   disabled={isVerifying}
-                  className="flex-1 px-4 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-xl font-medium transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-3 text-zinc-300 dark:text-gray-300 bg-zinc-800/60 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-xl font-medium transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>

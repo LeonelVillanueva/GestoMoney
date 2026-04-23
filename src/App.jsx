@@ -3,8 +3,8 @@ import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'r
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import Sidebar from './components/Sidebar'
 import ProtectedRoute from './components/ProtectedRoute'
-import ZoomControls from './components/ZoomControls'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { useAppShellEntrance } from './hooks/useAppShellEntrance'
 import database from './database/index.js'
 import currencyConverter from './utils/services/currency'
 import settingsManager from './utils/services/settings'
@@ -23,13 +23,19 @@ const ViewData = lazy(() => import('./pages/ViewData/ViewData'))
 const Charts = lazy(() => import('./pages/Charts/Charts'))
 const Settings = lazy(() => import('./pages/Settings'))
 
-// Componente de carga para Suspense
+// Carga perezosa: solo ocupa el área principal
 const LoadingFallback = () => (
-  <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center" style={{ minHeight: '100vh', minWidth: '100vw' }}>
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-      <p className="text-gray-700 text-xl font-medium">Cargando...</p>
-    </div>
+  <div className="flex min-h-[50vh] w-full flex-col items-center justify-center py-16">
+    <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
+    <p className="text-sm font-medium text-zinc-400">Cargando sección…</p>
+  </div>
+)
+
+const MainDataLoader = () => (
+  <div className="app-main-loader flex min-h-[min(60vh,520px)] w-full flex-col items-center justify-center gap-3 rounded-2xl border border-zinc-800/80 bg-zinc-900/40 px-4 py-16">
+    <div className="h-12 w-12 animate-spin rounded-full border-2 border-zinc-700 border-t-blue-500" />
+    <p className="text-center text-base font-medium text-zinc-300">Cargando tu gestor de gastos…</p>
+    <p className="text-center text-xs text-zinc-500">Sincronizando gastos y preferencias</p>
   </div>
 )
 
@@ -37,8 +43,11 @@ const LoadingFallback = () => (
 function AppContent() {
   const [expenses, setExpenses] = useState([])
   const [loading, setLoading] = useState(true)
+  const [queueStatus, setQueueStatus] = useState({ pending: 0, isOnline: true, processing: false })
   const navigate = useNavigate()
   const location = useLocation()
+  const { shellEntranceTick } = useAuth()
+  const shellPhase = useAppShellEntrance(shellEntranceTick)
 
   // Aplicar zoom en móvil
   useEffect(() => {
@@ -59,7 +68,7 @@ function AppContent() {
 
   // Cargar datos iniciales
   useEffect(() => {
-    loadInitialData()
+    initializeApp()
   }, [])
 
   // Iniciar servicio de ping para mantener Supabase activo
@@ -83,23 +92,21 @@ function AppContent() {
     }
   }, [])
 
-  const loadInitialData = async () => {
+  const refreshExpenses = async () => {
+    const expensesData = await database.getExpenses()
+    setExpenses(expensesData || [])
+  }
+
+  const initializeApp = async () => {
     try {
-      // Initialize database
       await database.init()
-      
-      // Obtener tasa de cambio desde API y actualizar currency converter
+
       const exchangeApiService = await import('./utils/services/exchangeApi.js')
       const exchangeRate = await exchangeApiService.default.getExchangeRate()
       currencyConverter.setExchangeRate('USD', 'LPS', exchangeRate)
-      
-      // Iniciar actualización automática cada 6 horas
       exchangeApiService.default.startAutoUpdate()
-      
-      // Load expenses from database
-      const expensesData = await database.getExpenses()
-      setExpenses(expensesData || [])
-      
+
+      await refreshExpenses()
       setLoading(false)
     } catch (error) {
       logger.error('❌ Error loading data:', error)
@@ -116,6 +123,30 @@ function AppContent() {
     }
   }
 
+  useEffect(() => {
+    const unsubscribe = database.subscribeMutationQueue((status) => {
+      setQueueStatus(status)
+      if (status.pending === 0 && status.isOnline) {
+        refreshExpenses().catch(() => {})
+      }
+    })
+    return unsubscribe
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      database.flushMutationQueue().catch(() => {})
+    }, 15000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleDataChanged = async (payload = {}) => {
+    const scope = payload.scope || 'expenses'
+    if (scope === 'expenses') {
+      await refreshExpenses()
+    }
+  }
+
   const handleNavigation = (page) => {
     navigate(`/${page}`)
   }
@@ -123,39 +154,58 @@ function AppContent() {
   // Obtener la página actual desde la URL
   const currentPage = location.pathname.substring(1) || 'dashboard'
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center" style={{ minHeight: '100vh', minWidth: '100vw' }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
-          <p className="text-white text-xl font-medium">Cargando Gestor de Gastos...</p>
-        </div>
-      </div>
-    )
-  }
+  const shellRootClass =
+    shellPhase === 'enter'
+      ? 'app-shell-root app-shell-root--entering'
+      : shellPhase === 'settled' && shellEntranceTick > 0
+        ? 'app-shell-root app-shell-root--settled'
+        : 'app-shell-root'
 
   return (
     <ProtectedRoute>
-      <div className="flex flex-col md:flex-row" style={{ minHeight: '100vh', minWidth: '100vw', width: '100%', position: 'relative' }}>
-        <Sidebar currentPage={currentPage} onNavigate={handleNavigation} />
-        <ZoomControls />
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-          <div className="max-w-7xl mx-auto">
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                <Route path="/" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={loadInitialData} />} />
-                <Route path="/dashboard" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={loadInitialData} />} />
-                <Route path="/add-expense" element={<AddExpense onExpenseAdded={loadInitialData} />} />
-                <Route path="/calculate-expense" element={<CalculateExpense expenses={expenses} onDataChanged={loadInitialData} />} />
-                <Route path="/budgets" element={<Budgets expenses={expenses} onDataChanged={loadInitialData} />} />
-                <Route path="/supermarket" element={<Supermarket onDataAdded={loadInitialData} />} />
-                <Route path="/cuts" element={<Cuts onDataAdded={loadInitialData} />} />
-                <Route path="/view-data" element={<ViewData onDataChanged={loadInitialData} />} />
-                <Route path="/charts" element={<Charts expenses={expenses} onDataAdded={loadInitialData} />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="*" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={loadInitialData} />} />
-              </Routes>
-            </Suspense>
+      <div
+        className={`${shellRootClass} relative flex min-h-screen w-full min-w-0 flex-col bg-zinc-950 text-zinc-100 md:flex-row`}
+        style={{ minWidth: '100vw' }}
+      >
+        <div data-app-shell="sidebar" className="shrink-0 self-stretch">
+          <Sidebar currentPage={currentPage} onNavigate={handleNavigation} />
+        </div>
+        <main
+          data-app-shell="main"
+          className="app-shell-main min-h-0 min-w-0 flex-1 overflow-y-auto p-4 md:p-6"
+        >
+          <div
+            className="app-shell-content-layer mx-auto w-full max-w-7xl"
+            data-app-shell="content"
+          >
+            {queueStatus.pending > 0 && (
+              <div className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                {queueStatus.isOnline
+                  ? `Sincronizando ${queueStatus.pending} cambio(s) pendientes...`
+                  : `Sin conexión: ${queueStatus.pending} cambio(s) pendientes de sincronizar.`}
+              </div>
+            )}
+            {loading ? (
+              <MainDataLoader />
+            ) : (
+              <div className="app-routes-reveal">
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={handleDataChanged} />} />
+                    <Route path="/dashboard" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={handleDataChanged} />} />
+                    <Route path="/add-expense" element={<AddExpense onExpenseAdded={handleDataChanged} />} />
+                    <Route path="/calculate-expense" element={<CalculateExpense expenses={expenses} onDataChanged={handleDataChanged} />} />
+                    <Route path="/budgets" element={<Budgets expenses={expenses} onDataChanged={handleDataChanged} />} />
+                    <Route path="/supermarket" element={<Supermarket onDataAdded={handleDataChanged} />} />
+                    <Route path="/cuts" element={<Cuts onDataAdded={handleDataChanged} />} />
+                    <Route path="/view-data" element={<ViewData onDataChanged={handleDataChanged} />} />
+                    <Route path="/charts" element={<Charts expenses={expenses} onDataAdded={handleDataChanged} />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="*" element={<Dashboard expenses={expenses} onNavigate={handleNavigation} onDataChanged={handleDataChanged} />} />
+                  </Routes>
+                </Suspense>
+              </div>
+            )}
           </div>
         </main>
       </div>

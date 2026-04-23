@@ -18,7 +18,7 @@ const BudgetList = ({
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">Cargando presupuestos...</span>
+        <span className="ml-3 text-zinc-400">Cargando presupuestos...</span>
       </div>
     )
   }
@@ -27,7 +27,7 @@ const BudgetList = ({
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">💰</div>
-        <h3 className="text-xl font-bold text-gray-600 mb-2">No hay presupuestos configurados</h3>
+        <h3 className="text-xl font-bold text-zinc-400 mb-2">No hay presupuestos configurados</h3>
         <p className="text-gray-500">Crea tu primer presupuesto para comenzar a controlar tus gastos</p>
       </div>
     )
@@ -43,18 +43,18 @@ const BudgetList = ({
         return (
           <div 
             key={budget.id} 
-            className={`p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200 ${
+            className={`p-4 bg-zinc-800/50 rounded-lg hover:bg-zinc-800/60 transition-colors border border-zinc-700 ${
               isClickable ? 'cursor-pointer' : ''
             }`}
             onClick={isClickable ? () => onViewDetail(budget) : undefined}
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="p-2.5 bg-white rounded-lg flex-shrink-0 shadow-sm">
+                <div className="p-2.5 bg-zinc-900 rounded-lg flex-shrink-0 shadow-sm">
                   <span className="text-2xl">{budget.icon || '💰'}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-gray-800 mb-1">
+                  <h4 className="font-semibold text-zinc-100 mb-1">
                     {budget.categories && budget.categories.length > 1 
                       ? `💰 ${budget.categories.join(', ')}` 
                       : budget.category}
@@ -67,17 +67,17 @@ const BudgetList = ({
                   )}
                   <div className="flex flex-wrap items-center gap-3 text-sm">
                     <div className="flex items-center gap-1">
-                      <span className="text-gray-600">Presupuesto:</span>
-                      <span className="font-medium text-gray-800">{formatCurrency(budget.amount)}</span>
+                      <span className="text-zinc-400">Presupuesto:</span>
+                      <span className="font-medium text-zinc-100">{formatCurrency(budget.amount)}</span>
                     </div>
                     <span className="text-gray-300">•</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-gray-600">Gastado:</span>
-                      <span className="font-medium text-gray-800">{formatCurrency(budget.spent)}</span>
+                      <span className="text-zinc-400">Gastado:</span>
+                      <span className="font-medium text-zinc-100">{formatCurrency(budget.spent)}</span>
                     </div>
                     <span className="text-gray-300">•</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-gray-600">Restante:</span>
+                      <span className="text-zinc-400">Restante:</span>
                       <span className={`font-semibold ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatCurrency(remaining)}
                       </span>

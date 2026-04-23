@@ -277,43 +277,43 @@ const ViewData = ({ onDataChanged }) => {
                 ) : (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className={`p-2 rounded-lg flex-shrink-0 ${expense.es_entrada ? 'bg-green-100' : 'bg-gray-50'}`}>
+                      <div className={`p-2 rounded-lg flex-shrink-0 ${expense.es_entrada ? 'bg-emerald-500/20 border border-emerald-500/30' : 'bg-zinc-800/50'}`}>
                         <span className="text-lg">{getCategoryIcon(expense)}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-gray-800 truncate">{expense.descripcion}</h4>
+                        <h4 className="text-sm font-bold text-zinc-100 truncate">{expense.descripcion}</h4>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-xs text-gray-600">{expense.categoria_nombre}</p>
+                          <p className="text-xs text-zinc-400">{expense.categoria_nombre}</p>
                           {expense.es_entrada && (
-                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded font-medium">
+                            <span className="px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/35 text-emerald-300 text-xs rounded font-medium">
                               💰 Ingreso
                             </span>
                           )}
                           {expense.moneda_original === 'USD' && (
-                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded font-medium">
+                            <span className="px-1.5 py-0.5 bg-blue-500/20 border border-blue-500/35 text-blue-300 text-xs rounded font-medium">
                               💵 USD
                             </span>
                           )}
-                          <span className="text-xs text-gray-500">•</span>
-                          <p className="text-xs text-gray-500">{formatDate(expense.fecha)}</p>
+                          <span className="text-xs text-zinc-500">•</span>
+                          <p className="text-xs text-zinc-500">{formatDate(expense.fecha)}</p>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <div className="text-right">
-                        <p className="text-base font-bold text-blue-600">{formatCurrency(expense.monto)}</p>
+                        <p className={`text-base font-bold ${expense.es_entrada ? 'text-emerald-300' : 'text-blue-300'}`}>{formatCurrency(expense.monto)}</p>
                       </div>
                       <div className="flex gap-1">
                         <button
                           onClick={() => openEditModal(expense, 'gastos')}
-                          className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                          className="p-1.5 text-blue-300 hover:bg-blue-500/15 rounded transition-colors"
                           title="Editar"
                         >
                           ✏️
                         </button>
                         <button
                           onClick={() => openDeleteModal(expense, 'gastos')}
-                          className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
+                          className="p-1.5 text-rose-300 hover:bg-rose-500/15 rounded transition-colors"
                           title="Eliminar"
                         >
                           🗑️
@@ -330,8 +330,8 @@ const ViewData = ({ onDataChanged }) => {
             {hasActiveFilters || yearFilter !== 'all' ? (
               <>
                 <div className="text-4xl mb-3">🔍</div>
-                <h3 className="text-sm font-bold text-gray-600 mb-1">No se encontraron resultados</h3>
-                <p className="text-xs text-gray-500 mb-3">
+                <h3 className="text-sm font-bold text-zinc-400 mb-1">No se encontraron resultados</h3>
+                <p className="text-xs text-zinc-500 mb-3">
                   No hay gastos que coincidan con los filtros aplicados
                   {yearFilter !== 'all' && ` para ${filterLabel}`}
                 </p>
@@ -357,8 +357,8 @@ const ViewData = ({ onDataChanged }) => {
             ) : (
               <>
                 <div className="text-4xl mb-3">💰</div>
-                <h3 className="text-sm font-bold text-gray-600 mb-1">No hay gastos registrados</h3>
-                <p className="text-xs text-gray-500">Comienza agregando tu primer gasto</p>
+                <h3 className="text-sm font-bold text-zinc-400 mb-1">No hay gastos registrados</h3>
+                <p className="text-xs text-zinc-500">Comienza agregando tu primer gasto</p>
               </>
             )}
           </div>
@@ -395,33 +395,33 @@ const ViewData = ({ onDataChanged }) => {
                 ) : (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
+                      <div className="p-2 bg-zinc-800/50 rounded-lg flex-shrink-0">
                         <span className="text-lg">{getSupermarketIcon(purchase.supermercado)}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-gray-800 truncate">{purchase.descripcion}</h4>
+                        <h4 className="text-sm font-bold text-zinc-100 truncate">{purchase.descripcion}</h4>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-xs text-gray-600">{purchase.supermercado}</p>
-                          <span className="text-xs text-gray-500">•</span>
-                          <p className="text-xs text-gray-500">{formatDate(purchase.fecha)}</p>
+                          <p className="text-xs text-zinc-400">{purchase.supermercado}</p>
+                          <span className="text-xs text-zinc-500">•</span>
+                          <p className="text-xs text-zinc-500">{formatDate(purchase.fecha)}</p>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <div className="text-right">
-                        <p className="text-base font-bold text-green-600">{formatCurrency(purchase.monto)}</p>
+                        <p className="text-base font-bold text-emerald-300">{formatCurrency(purchase.monto)}</p>
                       </div>
                       <div className="flex gap-1">
                         <button
                           onClick={() => openEditModal(purchase, 'supermercado')}
-                          className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                          className="p-1.5 text-blue-300 hover:bg-blue-500/15 rounded transition-colors"
                           title="Editar"
                         >
                           ✏️
                         </button>
                         <button
                           onClick={() => openDeleteModal(purchase, 'supermercado')}
-                          className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
+                          className="p-1.5 text-rose-300 hover:bg-rose-500/15 rounded transition-colors"
                           title="Eliminar"
                         >
                           🗑️
@@ -438,8 +438,8 @@ const ViewData = ({ onDataChanged }) => {
             {hasActiveFilters || yearFilter !== 'all' ? (
               <>
                 <div className="text-4xl mb-3">🔍</div>
-                <h3 className="text-sm font-bold text-gray-600 mb-1">No se encontraron resultados</h3>
-                <p className="text-xs text-gray-500 mb-3">
+                <h3 className="text-sm font-bold text-zinc-400 mb-1">No se encontraron resultados</h3>
+                <p className="text-xs text-zinc-500 mb-3">
                   No hay compras que coincidan con los filtros aplicados
                   {yearFilter !== 'all' && ` para ${filterLabel}`}
                 </p>
@@ -465,8 +465,8 @@ const ViewData = ({ onDataChanged }) => {
             ) : (
               <>
                 <div className="text-4xl mb-3">🛒</div>
-                <h3 className="text-sm font-bold text-gray-600 mb-1">No hay compras registradas</h3>
-                <p className="text-xs text-gray-500">Comienza registrando tu primera compra de supermercado</p>
+                <h3 className="text-sm font-bold text-zinc-400 mb-1">No hay compras registradas</h3>
+                <p className="text-xs text-zinc-500">Comienza registrando tu primera compra de supermercado</p>
               </>
             )}
           </div>
@@ -504,29 +504,29 @@ const ViewData = ({ onDataChanged }) => {
                 ) : (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="p-2 bg-gray-50 rounded-lg flex-shrink-0">
+                      <div className="p-2 bg-zinc-800/50 rounded-lg flex-shrink-0">
                         <span className="text-lg">{getCutIcon(cut.tipo_corte)}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-gray-800 truncate">{cut.tipo_corte}</h4>
+                        <h4 className="text-sm font-bold text-zinc-100 truncate">{cut.tipo_corte}</h4>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-xs text-gray-600">Corte registrado</p>
-                          <span className="text-xs text-gray-500">•</span>
-                          <p className="text-xs text-gray-500">{formatDate(cut.fecha)}</p>
+                          <p className="text-xs text-zinc-400">Corte registrado</p>
+                          <span className="text-xs text-zinc-500">•</span>
+                          <p className="text-xs text-zinc-500">{formatDate(cut.fecha)}</p>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
                         onClick={() => openEditModal(cut, 'cortes')}
-                        className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                        className="p-1.5 text-blue-300 hover:bg-blue-500/15 rounded transition-colors"
                         title="Editar"
                       >
                         ✏️
                       </button>
                       <button
                         onClick={() => openDeleteModal(cut, 'cortes')}
-                        className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
+                        className="p-1.5 text-rose-300 hover:bg-rose-500/15 rounded transition-colors"
                         title="Eliminar"
                       >
                         🗑️
@@ -542,8 +542,8 @@ const ViewData = ({ onDataChanged }) => {
             {hasActiveFilters || yearFilter !== 'all' ? (
               <>
                 <div className="text-4xl mb-3">🔍</div>
-                <h3 className="text-sm font-bold text-gray-600 mb-1">No se encontraron resultados</h3>
-                <p className="text-xs text-gray-500 mb-3">
+                <h3 className="text-sm font-bold text-zinc-400 mb-1">No se encontraron resultados</h3>
+                <p className="text-xs text-zinc-500 mb-3">
                   No hay cortes que coincidan con los filtros aplicados
                   {yearFilter !== 'all' && ` para ${filterLabel}`}
                 </p>
@@ -569,8 +569,8 @@ const ViewData = ({ onDataChanged }) => {
             ) : (
               <>
                 <div className="text-4xl mb-3">💇</div>
-                <h3 className="text-sm font-bold text-gray-600 mb-1">No hay cortes registrados</h3>
-                <p className="text-xs text-gray-500">Comienza registrando tu primer corte</p>
+                <h3 className="text-sm font-bold text-zinc-400 mb-1">No hay cortes registrados</h3>
+                <p className="text-xs text-zinc-500">Comienza registrando tu primer corte</p>
               </>
             )}
           </div>
@@ -602,26 +602,27 @@ const ViewData = ({ onDataChanged }) => {
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">📋 Ver Datos</h2>
+            <h2 className="text-2xl font-bold text-zinc-100">📋 Ver Datos</h2>
             {yearFilter !== 'all' && (
-              <p className="text-sm text-blue-600 mt-1">
-                📅 Mostrando: {filterLabel}
+              <p className="text-sm text-sky-400/90 mt-1">
+                Mostrando: {filterLabel}
               </p>
             )}
           </div>
           <div className="flex items-center gap-2">
             {refreshing && (
-              <div className="flex items-center gap-2 text-blue-600 text-xs">
+              <div className="flex items-center gap-2 text-blue-300 text-xs">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                 <span>Actualizando...</span>
               </div>
             )}
             <button
               onClick={downloadCSV}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+              type="button"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-emerald-500/40 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25 transition-colors"
               title="Descargar datos en CSV"
             >
-              <span>📊</span>
+              <span aria-hidden>📊</span>
               <span>CSV</span>
             </button>
           </div>
@@ -642,53 +643,53 @@ const ViewData = ({ onDataChanged }) => {
 
       {/* Estadísticas Rápidas Compactas (filtradas por año) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+        <div className="stat-card rounded-xl p-3 border-l-4 border-l-sky-500/50">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 mb-1">
-                Total Gastos {yearFilter !== 'all' && <span className="text-blue-600">({filterLabel})</span>}
+              <p className="text-xs text-zinc-500 mb-1">
+                Total gastos {yearFilter !== 'all' && <span className="text-sky-400/80">({filterLabel})</span>}
               </p>
-              <p className="text-base sm:text-lg font-bold text-blue-700 break-words leading-tight">{formatCurrency(totalGastos)}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{expensesByYear.length} registros</p>
+              <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(totalGastos)}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">{expensesByYear.length} registros</p>
             </div>
-            <span className="text-2xl flex-shrink-0">💰</span>
+            <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>💰</span>
           </div>
         </div>
 
-        <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+        <div className="stat-card rounded-xl p-3 border-l-4 border-l-emerald-500/50">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 mb-1">
-                Total Supermercado {yearFilter !== 'all' && <span className="text-green-600">({filterLabel})</span>}
+              <p className="text-xs text-zinc-500 mb-1">
+                Total supermercado {yearFilter !== 'all' && <span className="text-emerald-400/80">({filterLabel})</span>}
               </p>
-              <p className="text-base sm:text-lg font-bold text-green-700 break-words leading-tight">{formatCurrency(totalSupermercado)}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{supermarketByYear.length} compras</p>
+              <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(totalSupermercado)}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">{supermarketByYear.length} compras</p>
             </div>
-            <span className="text-2xl flex-shrink-0">🛒</span>
+            <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>🛒</span>
           </div>
         </div>
 
-        <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+        <div className="stat-card rounded-xl p-3 border-l-4 border-l-violet-500/50">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 mb-1">
-                Total Cortes {yearFilter !== 'all' && <span className="text-purple-600">({filterLabel})</span>}
+              <p className="text-xs text-zinc-500 mb-1">
+                Total cortes {yearFilter !== 'all' && <span className="text-violet-400/80">({filterLabel})</span>}
               </p>
-              <p className="text-base sm:text-lg font-bold text-purple-700 break-words leading-tight">{cutsByYear.length}</p>
-              <p className="text-xs text-gray-500 mt-0.5">cortes</p>
+              <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{cutsByYear.length}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">cortes</p>
             </div>
-            <span className="text-2xl flex-shrink-0">💇</span>
+            <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>💇</span>
           </div>
         </div>
 
-        <div className="glass-card rounded-xl p-3 bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+        <div className="stat-card rounded-xl p-3 border-l-4 border-l-orange-500/50">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-600 mb-1">Filtrados</p>
-              <p className="text-base sm:text-lg font-bold text-orange-700 break-words leading-tight">{filteredData.length}</p>
-              <p className="text-xs text-gray-500 mt-0.5">de {getCurrentTabData().length}</p>
+              <p className="text-xs text-zinc-500 mb-1">Visibles (filtrados)</p>
+              <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{filteredData.length}</p>
+              <p className="text-xs text-zinc-500 mt-0.5">de {getCurrentTabData().length}</p>
             </div>
-            <span className="text-2xl">🔍</span>
+            <span className="text-2xl opacity-80" aria-hidden>🔍</span>
           </div>
         </div>
       </div>
@@ -709,21 +710,22 @@ const ViewData = ({ onDataChanged }) => {
 
       {/* Tabs Compactos */}
       <div className={`glass-card rounded-xl p-4 transition-all ${refreshing ? 'opacity-75' : 'opacity-100'}`}>
-        <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4">
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
                 activeTab === tab.id
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-blue-600 text-white shadow-md border-blue-500/50'
+                  : 'bg-zinc-800/50 text-zinc-400 border-zinc-700/80 hover:bg-zinc-800 hover:text-zinc-200'
               } ${refreshing ? 'animate-pulse' : ''}`}
             >
-              <span className="text-base">{tab.icon}</span>
+              <span className="text-base" aria-hidden>{tab.icon}</span>
               <span>{tab.label}</span>
               <span className={`px-1.5 py-0.5 rounded-full text-xs ${
-                activeTab === tab.id ? 'bg-blue-500' : 'bg-gray-300'
+                activeTab === tab.id ? 'bg-blue-500/90 text-white' : 'bg-zinc-700 text-zinc-300'
               }`}>
                 {tab.count}
               </span>
@@ -736,7 +738,7 @@ const ViewData = ({ onDataChanged }) => {
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-sm text-gray-600">Cargando datos...</span>
+              <span className="ml-3 text-sm text-zinc-400">Cargando datos...</span>
             </div>
           ) : (
             renderTabContent()

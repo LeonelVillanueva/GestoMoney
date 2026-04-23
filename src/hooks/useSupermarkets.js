@@ -28,8 +28,13 @@ export default function useSupermarkets(active) {
       return
     }
     const updated = [...list, newSupermarket]
-    await database.setConfig('supermercados_por_defecto', JSON.stringify(updated))
+    const result = await database.setConfig('supermercados_por_defecto', JSON.stringify(updated))
     setNewSupermarket('')
+    if (result?.queued) {
+      setList(updated)
+      notifications.showSync('Sin conexión: supermercado pendiente de sincronización', 'warning')
+      return
+    }
     await load()
     notifications.showSync('✅ Supermercado agregado', 'success')
   }, [newSupermarket, list, load])
@@ -37,11 +42,22 @@ export default function useSupermarkets(active) {
   // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
   const removeItem = useCallback(async (name, skipConfirm = false) => {
     if (!skipConfirm) {
-      const confirmed = window.confirm(`¿Eliminar "${name}"?`)
+      const confirmed = await notifications.confirm({
+        title: 'Eliminar supermercado',
+        message: `¿Eliminar "${name}" de la lista de supermercados?`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+        tone: 'danger'
+      })
       if (!confirmed) return
     }
     const updated = list.filter(s => s !== name)
-    await database.setConfig('supermercados_por_defecto', JSON.stringify(updated))
+    const result = await database.setConfig('supermercados_por_defecto', JSON.stringify(updated))
+    if (result?.queued) {
+      setList(updated)
+      notifications.showSync('Sin conexión: eliminación pendiente de sincronización', 'warning')
+      return
+    }
     await load()
     notifications.showSync('✅ Supermercado eliminado', 'success')
   }, [list, load])
@@ -56,8 +72,13 @@ export default function useSupermarkets(active) {
       return
     }
     const updated = list.map(s => s === oldName ? newName : s)
-    await database.setConfig('supermercados_por_defecto', JSON.stringify(updated))
+    const result = await database.setConfig('supermercados_por_defecto', JSON.stringify(updated))
     setEditingSupermarket(null)
+    if (result?.queued) {
+      setList(updated)
+      notifications.showSync('Sin conexión: actualización pendiente de sincronización', 'warning')
+      return
+    }
     await load()
     notifications.showSync('✅ Supermercado actualizado', 'success')
   }, [list, load])

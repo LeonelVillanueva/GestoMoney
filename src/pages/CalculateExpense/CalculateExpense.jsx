@@ -10,6 +10,7 @@ import CategoryBreakdown from './components/CategoryBreakdown'
 import ExpenseCharts from './components/ExpenseCharts'
 import ExpenseList from './components/ExpenseList'
 import { createChartOptions, createPieChartOptions } from './utils/chartOptions'
+import notifications from '../../utils/services/notifications'
 
 // Registrar componentes de Chart.js
 ChartJS.register(
@@ -65,9 +66,9 @@ const CalculateExpense = ({ expenses, onDataChanged }) => {
     const success = calculate(startDate, endDate)
     if (!success) {
       if (!startDate || !endDate) {
-        alert('Por favor selecciona ambas fechas')
+        notifications.showSync('Por favor selecciona ambas fechas', 'warning')
       } else {
-        alert('La fecha de inicio debe ser anterior a la fecha final')
+        notifications.showSync('La fecha de inicio debe ser anterior a la fecha final', 'warning')
       }
     }
   }
@@ -81,8 +82,8 @@ const CalculateExpense = ({ expenses, onDataChanged }) => {
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">🧮 Calcula tu Gasto</h2>
-            <p className="text-sm text-gray-500 mt-1">Analiza tus gastos en un rango de fechas específico</p>
+            <h2 className="text-2xl font-bold text-zinc-100">🧮 Calcula tu Gasto</h2>
+            <p className="text-sm text-zinc-400 mt-1">Analiza tus gastos en un rango de fechas específico</p>
           </div>
         </div>
       </div>

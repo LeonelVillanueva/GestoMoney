@@ -14,8 +14,11 @@ const YearSelector = ({
   showStats = false,
   statsByYear = {},
   compact = false,
-  className = ''
+  className = '',
+  /** Estilo alineado al panel oscuro (Dashboard actualizado). */
+  variant = 'dark'
 }) => {
+  const isDark = variant === 'dark'
   const [showPreviousYears, setShowPreviousYears] = useState(false)
 
   const formatCurrency = (amount) => {
@@ -34,16 +37,36 @@ const YearSelector = ({
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
   if (compact) {
+    const inact = isDark
+      ? 'bg-zinc-800/90 text-zinc-400 border border-zinc-700/80 hover:border-zinc-600 hover:text-zinc-200'
+      : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700'
     return (
       <div className={`flex flex-wrap items-center gap-2 ${className}`} style={{ position: 'relative', zIndex: showPreviousYears ? (isMobile ? 50 : 1000) : 'auto' }}>
-        <span className="text-xs font-medium text-gray-500">📅 Año:</span>
+        <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
+          <svg
+            className="h-3.5 w-3.5 opacity-80"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            aria-hidden
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0V9.75m0 0h.008v.008H3V9.75z"
+            />
+          </svg>
+          Año
+        </span>
         <div className="flex flex-wrap gap-1" style={{ position: 'relative' }}>
           <button
+            type="button"
             onClick={() => onFilterChange('all')}
             className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
               yearFilter === 'all'
                 ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : inact
             }`}
           >
             Todos
@@ -51,11 +74,12 @@ const YearSelector = ({
           
           {currentYearHasData && (
             <button
+              type="button"
               onClick={() => onFilterChange('current')}
               className={`px-2 py-1 text-xs rounded-lg font-medium transition-all ${
                 yearFilter === 'current'
-                  ? 'bg-green-600 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : inact
               }`}
             >
               {currentYear}
@@ -65,11 +89,10 @@ const YearSelector = ({
           {previousYears.length > 0 && (
             <div className="relative" style={{ zIndex: showPreviousYears ? (isMobile ? 51 : 1001) : 'auto' }}>
               <button
+                type="button"
                 onClick={() => setShowPreviousYears(!showPreviousYears)}
                 className={`px-2 py-1 text-xs rounded-lg font-medium transition-all flex items-center gap-1 ${
-                  yearFilter === 'previous'
-                    ? 'bg-purple-600 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  yearFilter === 'previous' ? 'bg-violet-600 text-white shadow-sm' : inact
                 }`}
               >
                 {yearFilter === 'previous' && selectedYear ? selectedYear : 'Anteriores'}
@@ -77,22 +100,24 @@ const YearSelector = ({
               </button>
               
               {showPreviousYears && (
-                <div 
-                  className="absolute top-full left-0 mt-1 bg-white rounded-lg shadow-2xl border border-gray-200 py-1 min-w-[80px]"
-                  style={{ 
-                    zIndex: isMobile ? 52 : 1002,
-                    position: 'absolute'
-                  }}
+                <div
+                  className={
+                    isDark
+                      ? 'absolute top-full left-0 mt-1 rounded-lg border border-zinc-700 bg-zinc-900 py-1 shadow-2xl min-w-[80px]'
+                      : 'absolute top-full left-0 mt-1 bg-zinc-900 rounded-lg shadow-2xl border border-zinc-700 py-1 min-w-[80px]'
+                  }
+                  style={{ zIndex: isMobile ? 52 : 1002, position: 'absolute' }}
                 >
-                  {previousYears.map(year => (
+                  {previousYears.map((year) => (
                     <button
+                      type="button"
                       key={year}
                       onClick={() => {
                         onFilterChange('previous', year)
                         setShowPreviousYears(false)
                       }}
-                      className={`w-full px-3 py-1.5 text-xs text-left hover:bg-gray-100 ${
-                        selectedYear === year ? 'bg-purple-50 text-purple-700' : ''
+                      className={`w-full px-3 py-1.5 text-left text-xs text-zinc-200 hover:bg-zinc-800 ${
+                        selectedYear === year ? 'bg-violet-500/20 text-violet-300' : ''
                       }`}
                     >
                       {year}
@@ -122,7 +147,7 @@ const YearSelector = ({
   return (
     <div className={`glass-card rounded-xl p-4 ${className}`}>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+        <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2">
           <span>📅</span>
           <span>Filtrar por Año</span>
         </h3>
@@ -143,7 +168,7 @@ const YearSelector = ({
           className={`p-3 rounded-lg text-center transition-all ${
             yearFilter === 'all'
               ? 'bg-blue-600 text-white shadow-md'
-              : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+              : 'bg-zinc-800/50 hover:bg-zinc-800/60 text-zinc-300'
           }`}
         >
           <div className="text-lg mb-1">📊</div>
@@ -163,8 +188,8 @@ const YearSelector = ({
             yearFilter === 'current'
               ? 'bg-green-600 text-white shadow-md'
               : currentYearHasData 
-                ? 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                ? 'bg-zinc-800/50 hover:bg-zinc-800/60 text-zinc-300'
+                : 'bg-zinc-800/50 text-zinc-500 cursor-not-allowed'
           }`}
           disabled={!currentYearHasData}
         >
@@ -186,8 +211,8 @@ const YearSelector = ({
               yearFilter === 'previous'
                 ? 'bg-purple-600 text-white shadow-md'
                 : previousYears.length > 0
-                  ? 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                  : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                  ? 'bg-zinc-800/50 hover:bg-zinc-800/60 text-zinc-300'
+                  : 'bg-zinc-800/50 text-zinc-500 cursor-not-allowed'
             }`}
             disabled={previousYears.length === 0}
           >
@@ -204,7 +229,7 @@ const YearSelector = ({
           {/* Dropdown de años anteriores */}
           {showPreviousYears && previousYears.length > 0 && (
             <div 
-              className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-2xl border border-gray-200 py-1 max-h-48 overflow-y-auto"
+              className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 rounded-lg shadow-2xl border border-zinc-700 py-1 max-h-48 overflow-y-auto"
               style={{ 
                 zIndex: 1002,
                 position: 'absolute'
@@ -217,13 +242,13 @@ const YearSelector = ({
                     onFilterChange('previous', year)
                     setShowPreviousYears(false)
                   }}
-                  className={`w-full px-3 py-2 text-xs text-left hover:bg-gray-100 flex justify-between items-center ${
-                    selectedYear === year ? 'bg-purple-50 text-purple-700' : ''
+                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs hover:bg-zinc-800/80 ${
+                    selectedYear === year ? 'bg-violet-500/20 text-violet-200' : 'text-zinc-200'
                   }`}
                 >
                   <span>📅 {year}</span>
                   {showStats && statsByYear[year] && (
-                    <span className="text-gray-400">
+                    <span className="text-zinc-500">
                       {statsByYear[year].count} reg.
                     </span>
                   )}
@@ -248,13 +273,13 @@ const YearSelector = ({
 
       {/* Estadísticas del filtro actual */}
       {showStats && yearFilter !== 'all' && (
-        <div className="mt-3 p-2 bg-gray-50 rounded-lg">
+        <div className="mt-3 p-2 bg-zinc-800/50 rounded-lg">
           <div className="flex justify-between text-xs">
-            <span className="text-gray-500">
+            <span className="text-zinc-500">
               {yearFilter === 'current' ? `Datos de ${currentYear}:` : 
                selectedYear ? `Datos de ${selectedYear}:` : 'Años anteriores:'}
             </span>
-            <span className="font-bold text-gray-700">
+            <span className="font-bold text-zinc-300">
               {yearFilter === 'current' 
                 ? formatCurrency(statsByYear[currentYear]?.total || 0)
                 : selectedYear 
