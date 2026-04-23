@@ -1,4 +1,18 @@
 {
+  "rewrites": [
+    {
+      "source": "/api/auth/:path*",
+      "destination": "/api/auth/[...path]"
+    },
+    {
+      "source": "/api/security/:path*",
+      "destination": "/api/security/[...path]"
+    },
+    {
+      "source": "/api/account/:path*",
+      "destination": "/api/account/[...path]"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
