@@ -7,7 +7,6 @@ import SupermarketsTab from './settings/SupermarketsTab'
 import GeneralTab from './settings/GeneralTab'
 import NotificationsTab from './settings/NotificationsTab'
 import InterfaceTab from './settings/InterfaceTab'
-import SecurityTab from './settings/SecurityTab'
 import DeleteConfirmModal from '../components/DeleteConfirmModal'
 import notifications from '../utils/services/notifications'
 import database from '../database/index.js'
@@ -116,7 +115,6 @@ const Settings = () => {
     { id: 'notifications', label: 'Notificaciones', icon: '🔔' },
     { id: 'data', label: 'Datos', icon: '💾' },
     { id: 'interface', label: 'Interfaz', icon: '🎨' },
-    { id: 'security', label: 'Seguridad', icon: '🔐' },
     { id: 'categories', label: 'Categorías', icon: '🏷️' },
     { id: 'cuts', label: 'Cortes', icon: '💇' },
     { id: 'supermarkets', label: 'Supermercados', icon: '🛒' }
@@ -417,10 +415,6 @@ const Settings = () => {
     <InterfaceTab settings={settings} onSettingChange={handleSettingChange} />
   )
 
-  const renderSecurityTab = () => (
-    <SecurityTab />
-  )
-
   // Lógica de categorías/cortes/supermercados manejada por hooks
 
   // Constantes para categorías
@@ -485,7 +479,6 @@ const Settings = () => {
       case 'notifications': return renderNotificationsTab()
       case 'data': return renderDataTab()
       case 'interface': return renderInterfaceTab()
-      case 'security': return renderSecurityTab()
       case 'categories': return renderCategoriesTab()
       case 'cuts': return renderCutsTab()
       case 'supermarkets': return renderSupermarketsTab()

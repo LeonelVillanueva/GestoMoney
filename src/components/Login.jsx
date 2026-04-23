@@ -159,9 +159,12 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+  const [twoFactorError, setTwoFactorError] = useState('')
+  const otpRef = useRef(null)
   const emailId = useId()
   const passId = useId()
-  const { login } = useAuth()
+  const { login, verifySecondFactor, pending2fa } = useAuth()
   const reducedMotion = usePrefersReducedMotion()
 
   const handleSubmit = async (e) => {
@@ -192,6 +195,11 @@ const Login = () => {
         notifications.showSync('Sesión iniciada correctamente', 'success')
         setEmail('')
         setPassword('')
+      } else if (result.requires2fa) {
+        setTwoFactorError('')
+        setOtpCode('')
+        notifications.showSync('Verificación adicional requerida en este dispositivo', 'info')
+        setTimeout(() => otpRef.current?.focus(), 120)
       } else {
         setError(result.error || 'Error al iniciar sesión')
         logger.warn('Intento de login fallido')
@@ -199,6 +207,34 @@ const Login = () => {
     } catch (err) {
       logger.error('Error en login:', err)
       setError('Error al iniciar sesión. Intenta de nuevo.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifyTwoFactor = async (e) => {
+    e.preventDefault()
+    setTwoFactorError('')
+    setLoading(true)
+    try {
+      if (!pending2fa?.challengeId) {
+        setTwoFactorError('No existe un desafío 2FA pendiente.')
+        return
+      }
+      if (!/^\d{6}$/.test(String(otpCode).trim())) {
+        setTwoFactorError('Ingresa un código de 6 dígitos.')
+        return
+      }
+      const result = await verifySecondFactor(pending2fa.challengeId, String(otpCode).trim())
+      if (result.success) {
+        notifications.showSync('Segundo factor verificado correctamente', 'success')
+        setOtpCode('')
+      } else {
+        setTwoFactorError(result.error || 'Código inválido')
+      }
+    } catch (err) {
+      logger.error('Error verificando 2FA:', err)
+      setTwoFactorError('Error al verificar el código')
     } finally {
       setLoading(false)
     }
@@ -309,11 +345,16 @@ const Login = () => {
             </div>
 
             <h2 id="login-heading" className="text-2xl font-semibold text-white">
-              Entrar al panel
+              {pending2fa ? 'Verificación en dos pasos' : 'Entrar al panel'}
             </h2>
-            <p className="mt-1.5 text-sm text-zinc-400">Usa el correo y la contraseña de tu cuenta.</p>
+            <p className="mt-1.5 text-sm text-zinc-400">
+              {pending2fa
+                ? 'Ingresa el código de tu autenticador para continuar.'
+                : 'Usa el correo y la contraseña de tu cuenta.'}
+            </p>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            {!pending2fa ? (
+              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div>
                 <label htmlFor={emailId} className="mb-1.5 block text-sm font-medium text-zinc-300">
                   Correo
@@ -404,7 +445,52 @@ const Login = () => {
                   'Iniciar sesión'
                 )}
               </button>
-            </form>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyTwoFactor} className="mt-8 space-y-5">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-zinc-300" htmlFor="otp-code">
+                    Código del autenticador
+                  </label>
+                  <input
+                    id="otp-code"
+                    ref={otpRef}
+                    type="text"
+                    value={otpCode}
+                    onChange={(e) => {
+                      const clean = e.target.value.replace(/\D/g, '').slice(0, 6)
+                      setOtpCode(clean)
+                      setTwoFactorError('')
+                    }}
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder="000000"
+                    className={`w-full rounded-xl border bg-zinc-950 py-3.5 px-4 text-center text-xl tracking-[0.35em] text-zinc-100 shadow-inner outline-none transition-colors duration-200 focus:ring-2 focus:ring-blue-600/50 ${
+                      twoFactorError ? 'border-red-500/80' : 'border-zinc-700 hover:border-zinc-600'
+                    }`}
+                    aria-invalid={twoFactorError ? 'true' : 'false'}
+                    aria-describedby={twoFactorError ? 'otp-error' : undefined}
+                  />
+                  {pending2fa?.challengeExpiresAt && (
+                    <p className="mt-2 text-xs text-zinc-500">
+                      Válido hasta: {new Date(pending2fa.challengeExpiresAt).toLocaleTimeString('es-HN')}
+                    </p>
+                  )}
+                  {twoFactorError && (
+                    <p id="otp-error" className="mt-2 text-sm text-red-400" role="alert">
+                      {twoFactorError}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all duration-200 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {loading ? 'Verificando...' : 'Validar código'}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>

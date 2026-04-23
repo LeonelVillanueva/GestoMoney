@@ -10,6 +10,7 @@ class ExchangeApiService {
     this.cacheKey = 'exchange_rate_cache'
     this.cacheDuration = 6 * 60 * 60 * 1000 // 6 horas
     this.updateInterval = null
+    this.serverNotConfiguredWarned = false
   }
 
   /**
@@ -22,7 +23,10 @@ class ExchangeApiService {
       })
 
       if (response.status === 501) {
-        logger.warn('⚠️ Servicio de tasas no configurado en el servidor')
+        if (!this.serverNotConfiguredWarned) {
+          logger.warn('⚠️ Servicio de tasas no configurado en el servidor')
+          this.serverNotConfiguredWarned = true
+        }
         return null
       }
 

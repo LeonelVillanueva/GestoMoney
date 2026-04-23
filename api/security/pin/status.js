@@ -1,0 +1,43 @@
+import { getServerSessionFromCookies } from '../../../lib/authSessionUser.js'
+import { isSameOriginRequest } from '../../../lib/authHttpOnly.js'
+
+function sendJson(res, status, payload) {
+  res.statusCode = status
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Cache-Control', 'no-store')
+  res.end(JSON.stringify(payload))
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    res.statusCode = 405
+    res.setHeader('Allow', 'GET')
+    return res.end('Method Not Allowed')
+  }
+
+  if (!isSameOriginRequest(req)) {
+    return sendJson(res, 403, { error: 'Origen no autorizado' })
+  }
+
+  const serverSession = await getServerSessionFromCookies(req, res)
+  if (!serverSession?.user) {
+    return sendJson(res, 401, { error: 'No autenticado' })
+  }
+
+  const { data, error } = await serverSession.supabase
+    .from('config')
+    .select('value')
+    .eq('user_id', serverSession.user.id)
+    .eq('key', 'security_pin_hash')
+    .maybeSingle()
+
+  if (error) {
+    return sendJson(res, 500, { error: 'No se pudo verificar PIN' })
+  }
+
+  return sendJson(res, 200, {
+    ok: true,
+    hasPin: Boolean(data?.value)
+  })
+}
