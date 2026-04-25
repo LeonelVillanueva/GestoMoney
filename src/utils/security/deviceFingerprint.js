@@ -13,13 +13,13 @@ export async function getDeviceFingerprint() {
     localStorage.setItem(seedKey, seed)
   }
 
+  // No incluir ancho/alto de pantalla: en dev (HMR, emulación) o al cambiar monitor pueden variar
+  // y generan otra fila en trusted_devices aunque sea el mismo navegador.
   const base = [
     navigator.userAgent || 'na',
     navigator.platform || 'na',
     navigator.language || 'na',
     Intl.DateTimeFormat().resolvedOptions().timeZone || 'na',
-    screen.width || 0,
-    screen.height || 0,
     seed
   ].join('|')
 

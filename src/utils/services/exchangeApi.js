@@ -16,7 +16,11 @@ class ExchangeApiService {
   /**
    * Obtiene la tasa desde el proxy (sin API key en el cliente).
    */
-  async fetchExchangeRate() {
+  /**
+   * @param {{ source?: 'auto' | 'manual' }} [opts] — origen mostrado en ajustes (tasa_cambio_actualizada_por)
+   */
+  async fetchExchangeRate(opts = {}) {
+    const source = opts.source || 'auto'
     try {
       const response = await fetch('/api/exchange-rate', {
         credentials: 'same-origin'
@@ -43,7 +47,7 @@ class ExchangeApiService {
       if (data.result === 'success' && data.conversion_rate) {
         const rate = parseFloat(data.conversion_rate)
         this.saveToCache(rate)
-        await this.saveToDatabase(rate)
+        await this.saveToDatabase(rate, { source })
         return rate
       }
 
@@ -82,7 +86,11 @@ class ExchangeApiService {
     }
   }
 
-  async saveToDatabase(rate) {
+  /**
+   * @param {{ source?: 'auto' | 'manual' }} [options]
+   */
+  async saveToDatabase(rate, options = {}) {
+    const source = options.source || 'auto'
     const silent = { silentIfNoSession: true }
     try {
       const ok1 = await database.setConfig('tasa_cambio_usd', rate.toString(), '', silent)
@@ -92,7 +100,8 @@ class ExchangeApiService {
         '',
         silent
       )
-      if (!ok1 || !ok2) {
+      const ok3 = await database.setConfig('tasa_cambio_actualizada_por', source, '', silent)
+      if (!ok1 || !ok2 || !ok3) {
         logger.debug('Tasa no guardada en config (sesión aún no lista); queda en cache local.')
       }
     } catch (error) {
@@ -132,11 +141,24 @@ class ExchangeApiService {
   }
 
   async getLastUpdateDate() {
+    const meta = await this.getLastUpdateMeta()
+    return meta.date
+  }
+
+  /**
+   * @returns {Promise<{ date: Date | null, source: 'auto' | 'manual' | null }>}
+   */
+  async getLastUpdateMeta() {
     try {
-      const lastUpdate = await database.getConfig('tasa_cambio_ultima_actualizacion')
-      return lastUpdate ? new Date(lastUpdate) : null
+      const [rawDate, src] = await Promise.all([
+        database.getConfig('tasa_cambio_ultima_actualizacion'),
+        database.getConfig('tasa_cambio_actualizada_por')
+      ])
+      const date = rawDate ? new Date(rawDate) : null
+      const source = src === 'manual' || src === 'auto' ? src : null
+      return { date, source }
     } catch (error) {
-      return null
+      return { date: null, source: null }
     }
   }
 
@@ -161,7 +183,7 @@ class ExchangeApiService {
   }
 
   async forceUpdate() {
-    return await this.fetchExchangeRate()
+    return await this.fetchExchangeRate({ source: 'manual' })
   }
 }
 

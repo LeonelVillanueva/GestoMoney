@@ -50,7 +50,7 @@ const Settings = () => {
     notificationSound: true,
     reminderFrequency: 'daily',
     notificationDuration: 4000,
-    maxNotifications: 5,
+    maxNotifications: 6,
     
     // Configuración de Datos
     autoBackup: true,
@@ -159,6 +159,14 @@ const Settings = () => {
         notifications: dbConfig.notificaciones !== 'false',
         notificationSound: dbConfig.sonido_notificaciones !== 'false',
         reminderFrequency: dbConfig.frecuencia_recordatorios || 'daily',
+        notificationDuration: (() => {
+          const n = parseInt(dbConfig.duracion_notificaciones, 10)
+          return n > 0 && [2000, 4000, 6000, 8000].includes(n) ? n : 4000
+        })(),
+        maxNotifications: (() => {
+          const n = parseInt(dbConfig.max_notificaciones_simultaneas, 10)
+          return n >= 1 && n <= 6 ? n : 6
+        })(),
         
         autoBackup: dbConfig.respaldo_automatico !== 'false',
         backupFrequency: dbConfig.frecuencia_respaldo || 'weekly',
@@ -172,7 +180,14 @@ const Settings = () => {
         defaultCutTypes: JSON.parse(dbConfig.tipos_corte_por_defecto || '["Corte Barba", "Corte Pelo", "Corte Priv"]'),
         defaultSupermarkets: JSON.parse(dbConfig.supermercados_por_defecto || '["La Colonia", "Walmart"]')
       }
-      
+
+      notifications.updateSettings({
+        enabled: savedSettings.notifications,
+        sound: savedSettings.notificationSound,
+        duration: savedSettings.notificationDuration,
+        maxNotifications: savedSettings.maxNotifications
+      })
+
       setSettings(savedSettings)
     } catch (error) {
       console.error('Error loading settings:', error)
@@ -202,6 +217,8 @@ const Settings = () => {
         notifications: 'notificaciones',
         notificationSound: 'sonido_notificaciones',
         reminderFrequency: 'frecuencia_recordatorios',
+        notificationDuration: 'duracion_notificaciones',
+        maxNotifications: 'max_notificaciones_simultaneas',
         autoBackup: 'respaldo_automatico',
         backupFrequency: 'frecuencia_respaldo',
         dataRetention: 'retencion_datos',
@@ -215,7 +232,7 @@ const Settings = () => {
       
       const dbKey = dbKeyMap[key]
       if (dbKey) {
-        const valueToSave = Array.isArray(safeValue) ? JSON.stringify(safeValue) : safeValue.toString()
+        const valueToSave = Array.isArray(safeValue) ? JSON.stringify(safeValue) : String(safeValue)
         await database.setConfig(dbKey, valueToSave)
       }
       
@@ -262,6 +279,8 @@ const Settings = () => {
       expenseBreakdownYearScope: 'Alcance del desglose de gastos',
       notifications: 'Notificaciones',
       notificationSound: 'Sonido de notificaciones',
+      notificationDuration: 'Duración de notificaciones',
+      maxNotifications: 'Máximo de notificaciones',
       reminderFrequency: 'Frecuencia de recordatorios',
       autoBackup: 'Respaldo automático',
       backupFrequency: 'Frecuencia de respaldo',

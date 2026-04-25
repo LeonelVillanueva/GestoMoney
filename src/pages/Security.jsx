@@ -27,7 +27,7 @@ const Security = () => {
 
   const loadSecurityStatus = useCallback(async () => {
     try {
-      await checkPinExists()
+      await checkPinExists(true)
       const response = await fetch('/api/auth/2fa/status', {
         method: 'GET',
         credentials: 'include',

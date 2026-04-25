@@ -95,7 +95,7 @@ const ProgressNotification = ({
   if (isMobile) {
     return (
       <div
-        className="fixed top-4 right-4 left-4 z-50 transform transition-all duration-300 ease-in-out md:hidden"
+        className="fixed top-4 right-4 left-4 z-[250] transform transition-all duration-300 ease-in-out md:hidden"
         role="status"
         aria-live="polite"
         aria-atomic="true"
@@ -210,7 +210,7 @@ const ProgressNotification = ({
   // Versión PC detallada
   return (
     <div
-      className="fixed top-4 right-4 z-50 transform transition-all duration-300 ease-in-out hidden md:block"
+      className="fixed top-4 right-4 z-[250] transform transition-all duration-300 ease-in-out hidden md:block"
       role="status"
       aria-live="polite"
       aria-atomic="true"
