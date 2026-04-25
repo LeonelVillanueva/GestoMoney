@@ -24,7 +24,18 @@ async function readBody(req) {
 }
 
 function getPath(req) {
-  return req.url?.split('?')[0] || ''
+  const raw = req.url?.split('?')[0] || ''
+  if (raw.length > 1 && raw.endsWith('/')) {
+    return raw.slice(0, -1)
+  }
+  return raw
+}
+
+function parseQueryString(req) {
+  const u = req.url || ''
+  const i = u.indexOf('?')
+  if (i < 0) return new URLSearchParams()
+  return new URLSearchParams(u.slice(i + 1))
 }
 
 function createAuthAdminClient() {
@@ -147,10 +158,107 @@ async function handleChangeEmail(req, res) {
   return sendJson(res, 200, { ok: true, needsConfirmation: true })
 }
 
+/**
+ * Lee config del usuario (GET ?key= o todas las claves sin query).
+ */
+async function handleConfigGet(req, res) {
+  if (req.method !== 'GET') {
+    res.statusCode = 405
+    res.setHeader('Allow', 'GET')
+    return res.end('Method Not Allowed')
+  }
+  if (!isSameOriginRequest(req)) return sendJson(res, 403, { error: 'Origen no autorizado' })
+  const serverSession = await requireSession(req, res)
+  if (!serverSession) return
+
+  const key = String(parseQueryString(req).get('key') || '')
+  const userId = serverSession.user.id
+  const client = serverSession.supabase
+
+  if (key) {
+    const { data, error } = await client
+      .from('config')
+      .select('value')
+      .eq('user_id', userId)
+      .eq('key', key)
+      .maybeSingle()
+    if (error) return sendJson(res, 500, { error: error.message || 'Error al leer configuración' })
+    return sendJson(res, 200, { value: data?.value ?? null })
+  }
+
+  const { data, error } = await client.from('config').select('key, value').eq('user_id', userId)
+  if (error) return sendJson(res, 500, { error: error.message || 'Error al leer configuración' })
+  const config = {}
+  for (const row of data || []) {
+    if (row?.key) config[row.key] = row.value
+  }
+  return sendJson(res, 200, { config })
+}
+
+/**
+ * Guarda una fila en public.config con la sesión de cookies (modo auth HttpOnly: el JS no
+ * tiene el JWT, pero el backend sí).
+ */
+async function handleConfigSet(req, res) {
+  if (req.method !== 'POST') {
+    res.statusCode = 405
+    res.setHeader('Allow', 'POST')
+    return res.end('Method Not Allowed')
+  }
+  if (!isSameOriginRequest(req)) return sendJson(res, 403, { error: 'Origen no autorizado' })
+  const serverSession = await requireSession(req, res)
+  if (!serverSession) return
+
+  const body = await readBody(req)
+  const key = String(body?.key || '')
+  const { value, description: descIn } = body || {}
+  if (!key) return sendJson(res, 400, { error: 'Falta key' })
+  if (value === undefined || value === null) return sendJson(res, 400, { error: 'Falta value' })
+  const description = String(descIn || '')
+
+  const userId = serverSession.user.id
+  const client = serverSession.supabase
+  const valueStr = typeof value === 'string' ? value : JSON.stringify(value)
+
+  const payload = { user_id: userId, key, value: valueStr, description }
+
+  const { data: updatedRows, error: updateError } = await client
+    .from('config')
+    .update({ value: payload.value, description: payload.description })
+    .eq('user_id', userId)
+    .eq('key', key)
+    .select('key')
+
+  if (updateError) return sendJson(res, 500, { error: updateError.message || 'Error al actualizar configuración' })
+  if (Array.isArray(updatedRows) && updatedRows.length > 0) return sendJson(res, 200, { ok: true })
+
+  const { error: insertError } = await client.from('config').insert(payload)
+  if (!insertError) return sendJson(res, 200, { ok: true })
+
+  if (insertError.code === '23505') {
+    const { data: migratedRows, error: migrateError } = await client
+      .from('config')
+      .update({ user_id: userId, value: payload.value, description: payload.description })
+      .eq('key', key)
+      .select('key')
+    if (migrateError) return sendJson(res, 500, { error: migrateError.message || 'Error al migrar configuración' })
+    if (Array.isArray(migratedRows) && migratedRows.length > 0) return sendJson(res, 200, { ok: true })
+  }
+
+  return sendJson(res, 500, { error: insertError.message || 'Error al guardar configuración' })
+}
+
 export default async function handler(req, res) {
   const path = getPath(req)
   if (path === '/api/account/verify-password') return handleVerifyPassword(req, res)
   if (path === '/api/account/change-password') return handleChangePassword(req, res)
   if (path === '/api/account/change-email') return handleChangeEmail(req, res)
+  if (path === '/api/account/config') {
+    if (req.method === 'GET') return handleConfigGet(req, res)
+    if (req.method === 'POST') return handleConfigSet(req, res)
+    res.statusCode = 405
+    res.setHeader('Allow', 'GET, POST')
+    return res.end('Method Not Allowed')
+  }
   return sendJson(res, 404, { error: 'Ruta account no encontrada' })
 }

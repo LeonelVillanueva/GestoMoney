@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import useSecurityPin from '../../hooks/useSecurityPin'
 import { useAuth } from '../../contexts/AuthContext'
+import { getDeviceFingerprint } from '../../utils/security/deviceFingerprint'
+import TrustedDevicesPanel from '../../components/TrustedDevicesPanel'
 import notifications from '../../utils/services/notifications'
 
 export default function SecurityTab() {
@@ -50,7 +52,9 @@ export default function SecurityTab() {
 
   const loadTwoFactorStatus = async () => {
     try {
-      const response = await fetch('/api/auth/2fa/status', {
+      const fp = await getDeviceFingerprint()
+      const qs = new URLSearchParams({ deviceFingerprint: String(fp) })
+      const response = await fetch(`/api/auth/2fa/status?${qs.toString()}`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
@@ -654,18 +658,16 @@ export default function SecurityTab() {
                   Desactivar
                 </button>
               </div>
-              {trustedDevices.length > 0 && (
-                <div className="rounded-lg border border-zinc-700 bg-zinc-900/70 p-2">
-                  <p className="mb-1 text-[11px] font-medium text-zinc-300">Dispositivos/IP confiables</p>
-                  <ul className="space-y-1 text-[11px] text-zinc-400">
-                    {trustedDevices.slice(0, 3).map((item) => (
-                      <li key={item.id}>
-                        Último acceso: {new Date(item.last_seen).toLocaleString('es-HN')}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <div className="mt-3 rounded-xl border border-zinc-700/80 bg-zinc-950/40 p-3">
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                  Dispositivos conectados / de confianza
+                </h4>
+                <TrustedDevicesPanel
+                  devices={trustedDevices}
+                  onRefresh={loadTwoFactorStatus}
+                  enabled={twoFactorEnabled}
+                />
+              </div>
             </div>
           )}
         </div>

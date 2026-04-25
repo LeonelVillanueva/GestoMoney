@@ -4,15 +4,21 @@ import notifications from '../../utils/services/notifications'
 
 export default function GeneralTab({ settings, onSettingChange }) {
   const [isUpdating, setIsUpdating] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState(null)
+  const [lastUpdateMeta, setLastUpdateMeta] = useState({ date: null, source: null })
 
   useEffect(() => {
     loadLastUpdate()
   }, [])
 
+  useEffect(() => {
+    if (settings?.exchangeRate != null) {
+      loadLastUpdate()
+    }
+  }, [settings?.exchangeRate])
+
   const loadLastUpdate = async () => {
-    const updateDate = await exchangeApiService.getLastUpdateDate()
-    setLastUpdate(updateDate)
+    const meta = await exchangeApiService.getLastUpdateMeta()
+    setLastUpdateMeta(meta)
   }
 
   const handleManualUpdate = async () => {
@@ -22,7 +28,6 @@ export default function GeneralTab({ settings, onSettingChange }) {
       if (newRate) {
         onSettingChange('exchangeRate', newRate)
         await loadLastUpdate()
-        notifications.showSync('Tasa de cambio actualizada correctamente', 'success')
       } else {
         notifications.showSync(
           'No se pudo obtener la tasa. Configura EXCHANGE_API_KEY en el servidor (Vercel) o en .env local y reinicia el dev server.',
@@ -48,6 +53,12 @@ export default function GeneralTab({ settings, onSettingChange }) {
     })
   }
 
+  const sourceLabel = (() => {
+    if (lastUpdateMeta.source === 'auto') return 'Actualización automática'
+    if (lastUpdateMeta.source === 'manual') return 'Actualización manual'
+    return null
+  })()
+
   return (
     <div className="space-y-4">
       <div>
@@ -70,7 +81,8 @@ export default function GeneralTab({ settings, onSettingChange }) {
               </button>
             </div>
             <p className="text-xs text-zinc-400 dark:text-gray-400 mt-1">
-              Última actualización: {formatDate(lastUpdate)}
+              Última actualización: {formatDate(lastUpdateMeta.date)}
+              {sourceLabel ? ` · ${sourceLabel}` : ''}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
               La tasa se actualiza automáticamente cada 6 horas desde exchangerate-api.com

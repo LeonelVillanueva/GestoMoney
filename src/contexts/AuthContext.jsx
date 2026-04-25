@@ -12,6 +12,11 @@ const USE_HTTPONLY_AUTH = import.meta.env.PROD || import.meta.env.VITE_USE_HTTPO
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+function getBrowserUserAgent() {
+  if (typeof navigator === 'undefined' || !navigator.userAgent) return ''
+  return String(navigator.userAgent).slice(0, 512)
+}
+
 function readLoginGuard() {
   try {
     const raw = localStorage.getItem(LOGIN_GUARD_KEY)
@@ -216,7 +221,8 @@ export const AuthProvider = ({ children }) => {
           body: JSON.stringify({
             email: email.trim().toLowerCase(),
             password,
-            deviceFingerprint
+            deviceFingerprint,
+            userAgent: getBrowserUserAgent()
           })
         })
 
@@ -301,7 +307,8 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({
           challengeId,
           code,
-          deviceFingerprint
+          deviceFingerprint,
+          userAgent: getBrowserUserAgent()
         })
       })
 

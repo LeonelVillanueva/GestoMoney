@@ -19,6 +19,7 @@ import {
   verifyTotpCode
 } from '../../lib/auth2fa.js'
 import { getServerSessionFromCookies } from '../../lib/authSessionUser.js'
+import { deviceTypeFromUserAgent } from '../../lib/trustedDeviceDisplay.js'
 
 function sendJson(res, status, payload) {
   res.statusCode = status
@@ -46,6 +47,13 @@ function getPath(req) {
     return rawPath.slice(0, -1)
   }
   return rawPath
+}
+
+function parseQueryString(req) {
+  const u = req.url || ''
+  const i = u.indexOf('?')
+  if (i < 0) return new URLSearchParams()
+  return new URLSearchParams(u.slice(i + 1))
 }
 
 function createAuthAdminClient() {
@@ -107,8 +115,11 @@ async function handleLogin(req, res) {
     const userScopedClient = await createUserScopedClient(data.session)
     const userId = data.session.user?.id
     const fingerprintHash = hashDeviceFingerprint(body.deviceFingerprint)
-    const ipHash = hashClientIp(extractClientIp(req))
+    const clientIp = extractClientIp(req)
+    const ipHash = hashClientIp(clientIp)
     const nowIso = new Date().toISOString()
+    const userAgentStr = String(body?.userAgent || '').slice(0, 512)
+    const deviceType = deviceTypeFromUserAgent(userAgentStr)
 
     const { data: mfaSettings } = await userScopedClient
       .from('user_mfa_totp')
@@ -163,7 +174,10 @@ async function handleLogin(req, res) {
         .from('trusted_devices')
         .update({
           last_seen: nowIso,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          user_agent: userAgentStr || null,
+          ip_address: clientIp || null,
+          device_type: deviceType
         })
         .eq('id', trustedDevice.id)
     }
@@ -233,16 +247,37 @@ async function handle2faStatus(req, res) {
   const serverSession = await getServerSessionFromCookies(req, res)
   if (!serverSession?.user) return sendJson(res, 401, { error: 'No autenticado' })
 
+  const q = parseQueryString(req)
+  const deviceFp = q.get('deviceFingerprint') || null
+  const currentFpHash = deviceFp ? hashDeviceFingerprint(deviceFp) : null
+  const currentIpHash = hashClientIp(extractClientIp(req))
+
   const [mfaResult, trustedResult] = await Promise.all([
     serverSession.supabase.from('user_mfa_totp').select('enabled, updated_at').eq('user_id', serverSession.user.id).maybeSingle(),
-    serverSession.supabase.from('trusted_devices').select('id, last_seen, expires_at').eq('user_id', serverSession.user.id).order('last_seen', { ascending: false }).limit(10)
+    serverSession.supabase
+      .from('trusted_devices')
+      .select('id, last_seen, expires_at, user_agent, ip_address, device_type, device_hash, ip_hash')
+      .eq('user_id', serverSession.user.id)
+      .order('last_seen', { ascending: false })
+      .limit(50)
   ])
   if (mfaResult.error || trustedResult.error) return sendJson(res, 500, { error: 'No se pudo obtener el estado de 2FA' })
+  const devices = (trustedResult.data || []).map((row) => ({
+    id: row.id,
+    lastSeen: row.last_seen,
+    expiresAt: row.expires_at,
+    userAgent: row.user_agent,
+    ipAddress: row.ip_address,
+    deviceType: row.device_type,
+    isThisDevice: Boolean(
+      currentFpHash && row.device_hash === currentFpHash && row.ip_hash === currentIpHash
+    )
+  }))
   return sendJson(res, 200, {
     ok: true,
     enabled: Boolean(mfaResult.data?.enabled),
     updatedAt: mfaResult.data?.updated_at || null,
-    trustedDevices: trustedResult.data || []
+    trustedDevices: devices
   })
 }
 
@@ -318,12 +353,18 @@ async function handle2faVerify(req, res) {
   }
 
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+  const displayIp = extractClientIp(req)
+  const userAgentForStore = String(body?.userAgent || req.headers?.['user-agent'] || '').slice(0, 512)
+  const typeForStore = deviceTypeFromUserAgent(userAgentForStore)
   await adminClient.from('trusted_devices').upsert({
     user_id: challenge.user_id,
     device_hash: requestDeviceHash,
     ip_hash: requestIpHash,
     last_seen: new Date().toISOString(),
-    expires_at: expiresAt
+    expires_at: expiresAt,
+    user_agent: userAgentForStore || null,
+    ip_address: displayIp || null,
+    device_type: typeForStore
   }, { onConflict: 'user_id,device_hash,ip_hash' })
   await adminClient.from('auth_challenges').update({ consumed_at: new Date().toISOString(), attempts: (challenge.attempts || 0) + 1 }).eq('id', challengeId)
 
@@ -398,6 +439,65 @@ async function handle2faSetupInit(req, res) {
   return sendJson(res, 200, { ok: true, secret, otpauthUrl })
 }
 
+async function handleTrustedDeviceRevoke(req, res) {
+  if (req.method !== 'POST') {
+    res.statusCode = 405
+    res.setHeader('Allow', 'POST')
+    return res.end('Method Not Allowed')
+  }
+  if (!isSameOriginRequest(req)) return sendJson(res, 403, { error: 'Origen no autorizado' })
+  const body = await readBody(req)
+  const id = body?.id
+  if (!id) return sendJson(res, 400, { error: 'Falta el identificador del dispositivo' })
+  const serverSession = await getServerSessionFromCookies(req, res)
+  if (!serverSession?.user) return sendJson(res, 401, { error: 'No autenticado' })
+  const { data, error } = await serverSession.supabase
+    .from('trusted_devices')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', serverSession.user.id)
+    .select('id')
+  if (error) {
+    console.error('[auth/trusted-devices/revoke]', error)
+    return sendJson(res, 500, { error: 'No se pudo revocar el dispositivo' })
+  }
+  if (!data?.length) return sendJson(res, 404, { error: 'Dispositivo no encontrado' })
+  return sendJson(res, 200, { ok: true })
+}
+
+async function handleTrustedDevicesClearAll(req, res) {
+  if (req.method !== 'POST') {
+    res.statusCode = 405
+    res.setHeader('Allow', 'POST')
+    return res.end('Method Not Allowed')
+  }
+  if (!isSameOriginRequest(req)) return sendJson(res, 403, { error: 'Origen no autorizado' })
+  const serverSession = await getServerSessionFromCookies(req, res)
+  if (!serverSession?.user) return sendJson(res, 401, { error: 'No autenticado' })
+  const { error: delError } = await serverSession.supabase
+    .from('trusted_devices')
+    .delete()
+    .eq('user_id', serverSession.user.id)
+  if (delError) {
+    console.error('[auth/trusted-devices/clear-all] delete', delError)
+    return sendJson(res, 500, { error: 'No se pudo limpiar los dispositivos' })
+  }
+  const { accessToken } = getAuthTokensFromRequest(req)
+  if (accessToken) {
+    try {
+      const admin = createAuthAdminClient()
+      const { error: soErr } = await admin.auth.admin.signOut(accessToken, 'global')
+      if (soErr) {
+        console.error('[auth/trusted-devices/clear-all] signOut', soErr)
+      }
+    } catch (e) {
+      console.error('[auth/trusted-devices/clear-all]', e)
+    }
+  }
+  clearAuthCookies(res)
+  return sendJson(res, 200, { ok: true, sessionEnded: true })
+}
+
 async function handle2faSetupConfirm(req, res) {
   if (req.method !== 'POST') {
     res.statusCode = 405
@@ -430,6 +530,8 @@ export default async function handler(req, res) {
     if (path === '/api/auth/2fa/disable') return handle2faDisable(req, res)
     if (path === '/api/auth/2fa/setup/init') return handle2faSetupInit(req, res)
     if (path === '/api/auth/2fa/setup/confirm') return handle2faSetupConfirm(req, res)
+    if (path === '/api/auth/trusted-devices/revoke') return handleTrustedDeviceRevoke(req, res)
+    if (path === '/api/auth/trusted-devices/clear-all') return handleTrustedDevicesClearAll(req, res)
     return sendJson(res, 404, { error: 'Ruta auth no encontrada' })
   } catch (error) {
     console.error('[auth/router] Error no controlado:', error)

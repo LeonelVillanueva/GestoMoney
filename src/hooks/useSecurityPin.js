@@ -4,6 +4,13 @@ import { SECURITY_PIN_SALT_SUFFIX } from '../utils/pinHash'
 
 export { SECURITY_PIN_SALT_SUFFIX }
 
+const PIN_STATUS_CACHE_TTL_MS = 10_000
+const pinStatusCache = {
+  hasPin: null,
+  fetchedAt: 0,
+  pending: null
+}
+
 /**
  * Hook para manejar el PIN de seguridad para eliminaciones
  * El PIN se guarda hasheado en Supabase (tabla config).
@@ -13,29 +20,59 @@ const useSecurityPin = () => {
   const [hasPin, setHasPin] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  const checkPinExists = useCallback(async () => {
+  const checkPinExists = useCallback(async (force = false) => {
+    const now = Date.now()
+    const hasFreshCache =
+      !force &&
+      pinStatusCache.hasPin !== null &&
+      now - pinStatusCache.fetchedAt < PIN_STATUS_CACHE_TTL_MS
+
+    if (hasFreshCache) {
+      const cached = Boolean(pinStatusCache.hasPin)
+      setHasPin(cached)
+      setLoading(false)
+      return cached
+    }
+
+    if (pinStatusCache.pending) {
+      setLoading(true)
+      try {
+        const exists = await pinStatusCache.pending
+        setHasPin(Boolean(exists))
+        return Boolean(exists)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     try {
       setLoading(true)
-      const response = await fetch('/api/security/pin/status', {
-        method: 'GET',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      const payload = await response.json().catch(() => ({}))
-      if (!response.ok || !payload?.ok) {
-        logger.error('Error verificando PIN:', payload?.error || 'Respuesta inválida')
-        setHasPin(false)
-        return false
-      }
+      pinStatusCache.pending = (async () => {
+        const response = await fetch('/api/security/pin/status', {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        const payload = await response.json().catch(() => ({}))
+        if (!response.ok || !payload?.ok) {
+          throw new Error(payload?.error || 'Respuesta inválida')
+        }
+        return Boolean(payload?.hasPin)
+      })()
 
-      const exists = Boolean(payload?.hasPin)
-      setHasPin(exists)
+      const exists = await pinStatusCache.pending
+      pinStatusCache.hasPin = exists
+      pinStatusCache.fetchedAt = Date.now()
+      setHasPin(Boolean(exists))
       return exists
     } catch (error) {
       logger.error('Error en checkPinExists:', error)
+      pinStatusCache.hasPin = false
+      pinStatusCache.fetchedAt = Date.now()
       setHasPin(false)
       return false
     } finally {
+      pinStatusCache.pending = null
       setLoading(false)
     }
   }, [])
@@ -67,6 +104,8 @@ const useSecurityPin = () => {
       }
 
       setHasPin(true)
+      pinStatusCache.hasPin = true
+      pinStatusCache.fetchedAt = Date.now()
       logger.log('PIN de seguridad configurado correctamente')
       return { success: true }
     } catch (error) {
@@ -151,6 +190,8 @@ const useSecurityPin = () => {
       }
 
       setHasPin(false)
+      pinStatusCache.hasPin = false
+      pinStatusCache.fetchedAt = Date.now()
       logger.log('PIN de seguridad eliminado')
       return { success: true }
     } catch (error) {

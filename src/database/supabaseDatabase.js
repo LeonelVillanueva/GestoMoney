@@ -1,5 +1,12 @@
 import { supabase } from './supabase.js'
 
+/**
+ * Misma intención que AuthContext, pero excl. Vitest: allí el cliente mockeado no tiene
+ * `fetch` a una URL relativa y no hay cookies de API.
+ */
+const USE_SERVER_CONFIG_SAVE =
+  (import.meta.env.PROD || import.meta.env.VITE_USE_HTTPONLY_AUTH === 'true') && import.meta.env.MODE !== 'test'
+
 class SupabaseDatabase {
   constructor() {
     this.initialized = false
@@ -356,6 +363,20 @@ class SupabaseDatabase {
   // ============================================
 
   async getConfig(key) {
+    if (USE_SERVER_CONFIG_SAVE) {
+      try {
+        const res = await fetch(`/api/account/config?key=${encodeURIComponent(String(key))}`, {
+          credentials: 'include'
+        })
+        if (res.status === 401) return null
+        const payload = await res.json().catch(() => ({}))
+        if (!res.ok) return null
+        return payload?.value ?? null
+      } catch {
+        return null
+      }
+    }
+
     const { data, error } = await supabase
       .from('config')
       .select('value')
@@ -372,6 +393,34 @@ class SupabaseDatabase {
    */
   async setConfig(key, value, description = '', options = {}) {
     const { silentIfNoSession = false } = options
+
+    if (USE_SERVER_CONFIG_SAVE) {
+      const valueStr = typeof value === 'string' ? value : JSON.stringify(value)
+      try {
+        const res = await fetch('/api/account/config', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key, value: valueStr, description: description || '' })
+        })
+        const payload = await res.json().catch(() => ({}))
+        if (res.status === 401) {
+          if (silentIfNoSession) return false
+          throw new Error('No hay sesión activa')
+        }
+        if (!res.ok || !payload?.ok) {
+          const msg = typeof payload?.error === 'string' ? payload.error : 'No se pudo guardar la configuración'
+          throw new Error(msg)
+        }
+        return true
+      } catch (e) {
+        if (silentIfNoSession && e && typeof e.message === 'string' && e.message.includes('sesión')) {
+          return false
+        }
+        throw e
+      }
+    }
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       if (silentIfNoSession) return false
@@ -426,6 +475,19 @@ class SupabaseDatabase {
   }
 
   async getAllConfig() {
+    if (USE_SERVER_CONFIG_SAVE) {
+      try {
+        const res = await fetch('/api/account/config', { credentials: 'include' })
+        if (res.status === 401) return {}
+        const payload = await res.json().catch(() => ({}))
+        if (!res.ok) return {}
+        const c = payload?.config
+        return c && typeof c === 'object' ? c : {}
+      } catch {
+        return {}
+      }
+    }
+
     const { data, error } = await supabase
       .from('config')
       .select('*')
