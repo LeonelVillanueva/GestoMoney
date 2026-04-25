@@ -128,16 +128,30 @@ async function handleLogin(req, res) {
       .maybeSingle()
 
     if (Boolean(mfaSettings?.enabled)) {
-      const { data: trustedDevice } = await userScopedClient
-        .from('trusted_devices')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('device_hash', fingerprintHash)
-        .eq('ip_hash', ipHash)
-        .gt('expires_at', nowIso)
-        .maybeSingle()
+      const [{ data: trustedDevice }, { data: trustedIpDevice }] = await Promise.all([
+        userScopedClient
+          .from('trusted_devices')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('device_hash', fingerprintHash)
+          .eq('ip_hash', ipHash)
+          .gt('expires_at', nowIso)
+          .maybeSingle(),
+        userScopedClient
+          .from('trusted_devices')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('ip_hash', ipHash)
+          .gt('expires_at', nowIso)
+          .order('last_seen', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      ])
 
-      if (!trustedDevice) {
+      const ipAlreadyTrusted = Boolean(trustedIpDevice)
+      const trustedByExactDeviceAndIp = Boolean(trustedDevice)
+
+      if (!trustedByExactDeviceAndIp && !ipAlreadyTrusted) {
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
         const { data: challenge, error: challengeError } = await userScopedClient
           .from('auth_challenges')
@@ -170,16 +184,34 @@ async function handleLogin(req, res) {
         })
       }
 
-      await userScopedClient
-        .from('trusted_devices')
-        .update({
-          last_seen: nowIso,
-          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          user_agent: userAgentStr || null,
-          ip_address: clientIp || null,
-          device_type: deviceType
-        })
-        .eq('id', trustedDevice.id)
+      const trustedExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+      if (trustedByExactDeviceAndIp) {
+        await userScopedClient
+          .from('trusted_devices')
+          .update({
+            last_seen: nowIso,
+            expires_at: trustedExpiresAt,
+            user_agent: userAgentStr || null,
+            ip_address: clientIp || null,
+            device_type: deviceType
+          })
+          .eq('id', trustedDevice.id)
+      } else {
+        // Si la IP ya es de confianza, permitimos el acceso y registramos el nuevo dispositivo.
+        await userScopedClient
+          .from('trusted_devices')
+          .upsert({
+            user_id: userId,
+            device_hash: fingerprintHash,
+            ip_hash: ipHash,
+            last_seen: nowIso,
+            expires_at: trustedExpiresAt,
+            user_agent: userAgentStr || null,
+            ip_address: clientIp || null,
+            device_type: deviceType
+          }, { onConflict: 'user_id,device_hash,ip_hash' })
+      }
     }
   } catch (authError) {
     console.error('[auth/login] Error interno en flujo de login:', authError)
