@@ -90,6 +90,16 @@ const ViewData = ({ onDataChanged }) => {
 
   // Datos filtrados por año
   const expensesByYear = useMemo(() => filterByYear(expenses), [expenses, filterByYear])
+  /** Solo egresos del listado "Gastos" (excluye ingresos marcados con es_entrada) */
+  const expenseRowsOnly = useMemo(
+    () => expensesByYear.filter((exp) => !exp.es_entrada),
+    [expensesByYear]
+  )
+  const incomeRowsOnly = useMemo(
+    () => expensesByYear.filter((exp) => exp.es_entrada),
+    [expensesByYear]
+  )
+  const incomeRowsCount = incomeRowsOnly.length
   const supermarketByYear = useMemo(() => filterByYear(supermarketPurchases), [supermarketPurchases, filterByYear])
   const cutsByYear = useMemo(() => filterByYear(cuts), [cuts, filterByYear])
 
@@ -592,8 +602,15 @@ const ViewData = ({ onDataChanged }) => {
     }
   }
 
-  // Calcular totales (filtrados por año)
-  const totalGastos = expensesByYear.reduce((sum, exp) => sum + exp.monto, 0)
+  // Calcular totales (filtrados por año). Total gastos = solo egresos, sin sumar ingresos agregados.
+  const totalGastos = expenseRowsOnly.reduce((sum, exp) => {
+    const n = parseFloat(exp.monto)
+    return sum + (Number.isFinite(n) ? n : 0)
+  }, 0)
+  const totalIngresosTab = incomeRowsOnly.reduce((sum, exp) => {
+    const n = parseFloat(exp.monto)
+    return sum + (Number.isFinite(n) ? n : 0)
+  }, 0)
   const totalSupermercado = supermarketByYear.reduce((sum, p) => sum + p.monto, 0)
 
   return (
@@ -639,20 +656,49 @@ const ViewData = ({ onDataChanged }) => {
         onFilterChange={handleYearFilterChange}
         showStats={true}
         statsByYear={statsByYear}
+        summaryMetric="gastos"
       />
 
       {/* Estadísticas Rápidas Compactas (filtradas por año) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="stat-card rounded-xl p-3 border-l-4 border-l-sky-500/50">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-zinc-500 mb-1">
-                Total gastos {yearFilter !== 'all' && <span className="text-sky-400/80">({filterLabel})</span>}
-              </p>
-              <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(totalGastos)}</p>
-              <p className="text-xs text-zinc-500 mt-0.5">{expensesByYear.length} registros</p>
+        <div className="stat-card rounded-xl relative overflow-hidden border-l-4 border-l-sky-500/50 min-h-[6.5rem]">
+          <div
+            className="pointer-events-none absolute inset-0 bg-sky-500/[0.07]"
+            style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }}
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-emerald-500/[0.07]"
+            style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }}
+            aria-hidden
+          />
+          <svg className="pointer-events-none absolute inset-0 h-full w-full text-zinc-500/35" aria-hidden>
+            <line x1="100%" y1="0" x2="0" y2="100%" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+          </svg>
+
+          <div className="relative z-10 flex min-h-[6.5rem] flex-col">
+            <p className="sr-only">
+              Tab Gastos: total egresos arriba a la izquierda, total ingresos abajo a la derecha
+            </p>
+            <p className="px-2.5 pt-2 text-[10px] font-medium uppercase tracking-wide text-zinc-500">
+              {yearFilter !== 'all' ? (
+                <span className="text-sky-400/85">{filterLabel}</span>
+              ) : (
+                <span>Hist.</span>
+              )}
+            </p>
+            <div className="relative flex flex-1 px-2 pb-2 pt-0.5">
+              <div className="absolute left-2 top-0 max-w-[58%]">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-rose-300/90">Gto.</p>
+                <p className="text-sm sm:text-base font-bold tabular-nums leading-tight text-zinc-100">{formatCurrency(totalGastos)}</p>
+                <p className="text-[10px] text-zinc-500">{expenseRowsOnly.length} mov.</p>
+              </div>
+              <div className="absolute bottom-0 right-2 max-w-[58%] text-right">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-300/90">Ing.</p>
+                <p className="text-sm sm:text-base font-bold tabular-nums leading-tight text-zinc-100">{formatCurrency(totalIngresosTab)}</p>
+                <p className="text-[10px] text-zinc-500">{incomeRowsCount} mov.</p>
+              </div>
             </div>
-            <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>💰</span>
           </div>
         </div>
 

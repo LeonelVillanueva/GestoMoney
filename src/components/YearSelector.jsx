@@ -13,6 +13,8 @@ const YearSelector = ({
   onFilterChange,
   showStats = false,
   statsByYear = {},
+  /** Resumen bajo el selector (showStats): 'total' suma todos los montos; 'gastos' solo egresos (útil si hay ingresos en el mismo dataset). */
+  summaryMetric = 'total',
   compact = false,
   className = '',
   /** Estilo alineado al panel oscuro (Dashboard actualizado). */
@@ -28,6 +30,11 @@ const YearSelector = ({
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount)
+  }
+
+  const statAmount = (yearStats) => {
+    if (!yearStats) return 0
+    return summaryMetric === 'gastos' ? yearStats.gastos || 0 : yearStats.total || 0
   }
 
   // Verificar si el año actual tiene datos
@@ -145,8 +152,18 @@ const YearSelector = ({
   }
 
   return (
-    <div className={`glass-card rounded-xl p-4 ${className}`}>
-      <div className="flex items-center justify-between mb-3">
+    <div
+      className={`glass-card relative rounded-xl p-4 ${showPreviousYears ? 'z-[120]' : 'z-auto'} ${className}`}
+    >
+      {showPreviousYears && (
+        <div
+          className="fixed inset-0 z-[115]"
+          aria-hidden
+          onClick={() => setShowPreviousYears(false)}
+          style={{ backgroundColor: 'transparent' }}
+        />
+      )}
+      <div className="relative z-[125] flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2">
           <span>📅</span>
           <span>Filtrar por Año</span>
@@ -161,7 +178,7 @@ const YearSelector = ({
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="relative z-[125] grid grid-cols-3 gap-2">
         {/* Todos */}
         <button
           onClick={() => onFilterChange('all')}
@@ -204,7 +221,7 @@ const YearSelector = ({
         </button>
 
         {/* Años Anteriores */}
-        <div className="relative" style={{ zIndex: showPreviousYears ? 1001 : 'auto' }}>
+        <div className="relative" style={{ zIndex: showPreviousYears ? 20 : 'auto' }}>
           <button
             onClick={() => setShowPreviousYears(!showPreviousYears)}
             className={`w-full p-3 rounded-lg text-center transition-all ${
@@ -228,13 +245,7 @@ const YearSelector = ({
 
           {/* Dropdown de años anteriores */}
           {showPreviousYears && previousYears.length > 0 && (
-            <div 
-              className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 rounded-lg shadow-2xl border border-zinc-700 py-1 max-h-48 overflow-y-auto"
-              style={{ 
-                zIndex: 1002,
-                position: 'absolute'
-              }}
-            >
+            <div className="absolute left-0 right-0 top-full z-[130] mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-900 py-1 shadow-2xl">
               {previousYears.map(year => (
                 <button
                   key={year}
@@ -257,37 +268,33 @@ const YearSelector = ({
             </div>
           )}
         </div>
-        {/* Overlay para cerrar al hacer click fuera cuando el dropdown está abierto */}
-        {showPreviousYears && (
-          <div
-            className="fixed inset-0"
-            onClick={() => setShowPreviousYears(false)}
-            style={{ 
-              position: 'fixed',
-              zIndex: 999,
-              backgroundColor: 'transparent'
-            }}
-          />
-        )}
       </div>
 
       {/* Estadísticas del filtro actual */}
       {showStats && yearFilter !== 'all' && (
-        <div className="mt-3 p-2 bg-zinc-800/50 rounded-lg">
+        <div className="relative z-[125] mt-3 rounded-lg bg-zinc-800/50 p-2">
           <div className="flex justify-between text-xs">
             <span className="text-zinc-500">
-              {yearFilter === 'current' ? `Datos de ${currentYear}:` : 
-               selectedYear ? `Datos de ${selectedYear}:` : 'Años anteriores:'}
+              {summaryMetric === 'gastos'
+                ? yearFilter === 'current'
+                  ? `Total gastos ${currentYear}:`
+                  : selectedYear
+                    ? `Total gastos ${selectedYear}:`
+                    : 'Total gastos (años ant.):'
+                : yearFilter === 'current'
+                  ? `Datos de ${currentYear}:`
+                  : selectedYear
+                    ? `Datos de ${selectedYear}:`
+                    : 'Años anteriores:'}
             </span>
             <span className="font-bold text-zinc-300">
-              {yearFilter === 'current' 
-                ? formatCurrency(statsByYear[currentYear]?.total || 0)
-                : selectedYear 
-                  ? formatCurrency(statsByYear[selectedYear]?.total || 0)
+              {yearFilter === 'current'
+                ? formatCurrency(statAmount(statsByYear[currentYear]))
+                : selectedYear
+                  ? formatCurrency(statAmount(statsByYear[selectedYear]))
                   : formatCurrency(
-                      previousYears.reduce((sum, y) => sum + (statsByYear[y]?.total || 0), 0)
-                    )
-              }
+                      previousYears.reduce((sum, y) => sum + statAmount(statsByYear[y]), 0)
+                    )}
             </span>
           </div>
         </div>

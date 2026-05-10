@@ -7,6 +7,7 @@ import DashboardViewSwitcher from './Dashboard/DashboardViewSwitcher'
 import DashboardViewHero from './Dashboard/views/DashboardViewHero'
 import DashboardViewBento from './Dashboard/views/DashboardViewBento'
 import DashboardViewOperations from './Dashboard/views/DashboardViewOperations'
+import currencyConverter from '../utils/services/currency'
 
 const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
   const [layout, setLayout] = useDashboardLayout()
@@ -243,6 +244,11 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
   }, [expenses, currentYear])
 
   const kpiDensity = layout === DASHBOARD_LAYOUTS.HERO ? 'default' : 'compact'
+  const usdToLpsRate = useMemo(() => {
+    const raw = currencyConverter.getExchangeRate('USD', 'LPS')
+    const n = Number(raw)
+    return Number.isFinite(n) && n > 0 ? n : 26.18
+  }, [])
 
   const common = {
     yearFilter,
@@ -297,6 +303,19 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
                   <p className='mt-1.5 max-w-xl text-sm text-zinc-500'>
                     Ingresos, gastos y tendencias según el periodo que elijas
                   </p>
+                  <div className='mt-3 inline-flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-gradient-to-r from-emerald-900/35 to-emerald-800/20 px-3 py-2 shadow-sm shadow-emerald-950/40'>
+                    <span className='inline-flex h-7 w-7 items-center justify-center rounded-full border border-emerald-300/25 bg-emerald-400/10 text-sm'>
+                    💲
+                    </span>
+                    <div className='leading-tight'>
+                      <p className='text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-300/80'>
+                        Tipo de cambio
+                      </p>
+                      <p className='text-sm font-semibold text-emerald-100'>
+                        Dolar: {usdToLpsRate.toFixed(2)} LPS.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className='flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3'>

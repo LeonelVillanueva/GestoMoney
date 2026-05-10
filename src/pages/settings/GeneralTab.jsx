@@ -85,7 +85,7 @@ export default function GeneralTab({ settings, onSettingChange }) {
               {sourceLabel ? ` · ${sourceLabel}` : ''}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              La tasa se actualiza automáticamente cada 6 horas desde exchangerate-api.com
+              La tasa se actualiza automáticamente cada 24 horas desde exchangerate-api.com
             </p>
           </div>
 

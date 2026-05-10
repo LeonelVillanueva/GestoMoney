@@ -8,7 +8,7 @@ import logger from '../logger.js'
 class ExchangeApiService {
   constructor() {
     this.cacheKey = 'exchange_rate_cache'
-    this.cacheDuration = 6 * 60 * 60 * 1000 // 6 horas
+    this.cacheDuration = 24 * 60 * 60 * 1000 // 24 horas
     this.updateInterval = null
     this.serverNotConfiguredWarned = false
   }
@@ -169,10 +169,10 @@ class ExchangeApiService {
 
     this.fetchExchangeRate()
 
-    const sixHours = 6 * 60 * 60 * 1000
+    const twentyFourHours = 24 * 60 * 60 * 1000
     this.updateInterval = setInterval(() => {
       this.fetchExchangeRate()
-    }, sixHours)
+    }, twentyFourHours)
   }
 
   stopAutoUpdate() {
