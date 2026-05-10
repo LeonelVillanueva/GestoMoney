@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * Componente selector de año reutilizable
@@ -22,6 +23,162 @@ const YearSelector = ({
 }) => {
   const isDark = variant === 'dark'
   const [showPreviousYears, setShowPreviousYears] = useState(false)
+  const previousYearsAnchorRef = useRef(null)
+  /** Posición viewport para menú en portal (evita quedar bajo capas por transform en ancestros, típico en móvil). */
+  const [previousYearsMenuBox, setPreviousYearsMenuBox] = useState(null)
+
+  useLayoutEffect(() => {
+    if (!showPreviousYears || previousYears.length === 0) {
+      setPreviousYearsMenuBox(null)
+      return undefined
+    }
+
+    const anchor = previousYearsAnchorRef.current
+    if (!anchor) return undefined
+
+    const VIEW_PAD = 8
+    const GAP = 4
+    /** Igual que antes: ~min(40vh, 12rem), pero acotado al hueco real en pantalla */
+    const preferredMaxH = () => {
+      const vh = window.innerHeight
+      return Math.min(vh * 0.4, 192)
+    }
+
+    const updateBox = () => {
+      const r = anchor.getBoundingClientRect()
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      const minW = compact ? 120 : 160
+
+      let panelWidth = Math.max(r.width, minW)
+      panelWidth = Math.min(panelWidth, vw - 2 * VIEW_PAD)
+
+      let left = r.left
+      left = Math.max(VIEW_PAD, Math.min(left, vw - VIEW_PAD - panelWidth))
+
+      const maxHPreferred = preferredMaxH()
+
+      let topBelow = r.bottom + GAP
+      const spaceBelow = Math.max(0, vh - VIEW_PAD - topBelow)
+      const spaceAbove = Math.max(0, r.top - VIEW_PAD - GAP)
+
+      let top
+      let maxHeight
+
+      const preferAbove =
+        spaceBelow < Math.min(maxHPreferred, 140) && spaceAbove > spaceBelow
+
+      if (preferAbove) {
+        maxHeight = Math.min(maxHPreferred, spaceAbove)
+        top = r.top - GAP - maxHeight
+      } else {
+        maxHeight = Math.min(maxHPreferred, spaceBelow)
+        top = topBelow
+      }
+
+      top = Math.max(VIEW_PAD, top)
+      maxHeight = Math.min(maxHeight, vh - VIEW_PAD - top)
+      top = Math.min(top, vh - VIEW_PAD - maxHeight)
+      top = Math.max(VIEW_PAD, top)
+      maxHeight = Math.min(maxHeight, vh - VIEW_PAD - top)
+
+      setPreviousYearsMenuBox({
+        top,
+        left,
+        width: panelWidth,
+        maxHeight
+      })
+    }
+
+    updateBox()
+    const main = typeof document !== 'undefined' ? document.querySelector('[data-app-shell="main"]') : null
+    window.addEventListener('resize', updateBox)
+    main?.addEventListener('scroll', updateBox, { passive: true })
+    window.addEventListener('scroll', updateBox, { passive: true, capture: true })
+
+    return () => {
+      window.removeEventListener('resize', updateBox)
+      main?.removeEventListener('scroll', updateBox)
+      window.removeEventListener('scroll', updateBox, true)
+    }
+  }, [showPreviousYears, previousYears.length, compact])
+
+  const closePreviousYears = () => {
+    setShowPreviousYears(false)
+    setPreviousYearsMenuBox(null)
+  }
+
+  const renderPreviousYearsPortal = (variantCompact) => {
+    if (
+      typeof document === 'undefined' ||
+      !document.body ||
+      !showPreviousYears ||
+      previousYears.length === 0 ||
+      previousYearsMenuBox == null
+    ) {
+      return null
+    }
+
+    return createPortal(
+      <>
+        <div
+          className="fixed inset-0 z-[8000]"
+          aria-hidden
+          style={{ backgroundColor: 'transparent' }}
+          onClick={closePreviousYears}
+        />
+        <div
+          role="listbox"
+          aria-label="Años anteriores"
+          className="fixed z-[8050] overflow-y-auto overflow-x-hidden rounded-lg border border-zinc-700 bg-zinc-900 py-1 shadow-2xl"
+          style={{
+            top: previousYearsMenuBox.top,
+            left: previousYearsMenuBox.left,
+            width: previousYearsMenuBox.width,
+            maxHeight: previousYearsMenuBox.maxHeight
+          }}
+        >
+          {variantCompact
+            ? previousYears.map((year) => (
+                <button
+                  type="button"
+                  key={year}
+                  role="option"
+                  onClick={() => {
+                    onFilterChange('previous', year)
+                    closePreviousYears()
+                  }}
+                  className={`w-full px-3 py-1.5 text-left text-xs text-zinc-200 hover:bg-zinc-800 ${
+                    selectedYear === year ? 'bg-violet-500/20 text-violet-300' : ''
+                  }`}
+                >
+                  {year}
+                </button>
+              ))
+            : previousYears.map((year) => (
+                <button
+                  type="button"
+                  key={year}
+                  role="option"
+                  onClick={() => {
+                    onFilterChange('previous', year)
+                    closePreviousYears()
+                  }}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs hover:bg-zinc-800/80 ${
+                    selectedYear === year ? 'bg-violet-500/20 text-violet-200' : 'text-zinc-200'
+                  }`}
+                >
+                  <span>{year}</span>
+                  {showStats && statsByYear[year] && (
+                    <span className="text-zinc-500">{statsByYear[year].count} reg.</span>
+                  )}
+                </button>
+              ))}
+        </div>
+      </>,
+      document.body
+    )
+  }
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-HN', {
@@ -40,15 +197,13 @@ const YearSelector = ({
   // Verificar si el año actual tiene datos
   const currentYearHasData = availableYears.includes(currentYear)
 
-  // Detectar si es móvil
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
-
   if (compact) {
     const inact = isDark
       ? 'bg-zinc-800/90 text-zinc-400 border border-zinc-700/80 hover:border-zinc-600 hover:text-zinc-200'
       : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700'
     return (
-      <div className={`flex flex-wrap items-center gap-2 ${className}`} style={{ position: 'relative', zIndex: showPreviousYears ? (isMobile ? 50 : 1000) : 'auto' }}>
+      <>
+      <div className={`flex flex-wrap items-center gap-2 ${className}`}>
         <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
           <svg
             className="h-3.5 w-3.5 opacity-80"
@@ -94,7 +249,7 @@ const YearSelector = ({
           )}
           
           {previousYears.length > 0 && (
-            <div className="relative" style={{ zIndex: showPreviousYears ? (isMobile ? 51 : 1001) : 'auto' }}>
+            <div ref={previousYearsAnchorRef} className="relative">
               <button
                 type="button"
                 onClick={() => setShowPreviousYears(!showPreviousYears)}
@@ -105,68 +260,23 @@ const YearSelector = ({
                 {yearFilter === 'previous' && selectedYear ? selectedYear : 'Anteriores'}
                 <span className="text-[10px]">{showPreviousYears ? '▲' : '▼'}</span>
               </button>
-              
-              {showPreviousYears && (
-                <div
-                  className={
-                    isDark
-                      ? 'absolute top-full left-0 mt-1 rounded-lg border border-zinc-700 bg-zinc-900 py-1 shadow-2xl min-w-[80px]'
-                      : 'absolute top-full left-0 mt-1 bg-zinc-900 rounded-lg shadow-2xl border border-zinc-700 py-1 min-w-[80px]'
-                  }
-                  style={{ zIndex: isMobile ? 52 : 1002, position: 'absolute' }}
-                >
-                  {previousYears.map((year) => (
-                    <button
-                      type="button"
-                      key={year}
-                      onClick={() => {
-                        onFilterChange('previous', year)
-                        setShowPreviousYears(false)
-                      }}
-                      className={`w-full px-3 py-1.5 text-left text-xs text-zinc-200 hover:bg-zinc-800 ${
-                        selectedYear === year ? 'bg-violet-500/20 text-violet-300' : ''
-                      }`}
-                    >
-                      {year}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           )}
         </div>
-        {/* Overlay para cerrar al hacer click fuera cuando el dropdown está abierto */}
-        {showPreviousYears && (
-          <div
-            className="fixed inset-0"
-            onClick={() => setShowPreviousYears(false)}
-            style={{ 
-              position: 'fixed',
-              zIndex: isMobile ? 49 : 999,
-              backgroundColor: 'transparent'
-            }}
-          />
-        )}
       </div>
+      {renderPreviousYearsPortal(true)}
+      </>
     )
   }
 
   return (
+    <>
     <div
       className={`glass-card relative rounded-xl p-4 ${showPreviousYears ? 'z-[120]' : 'z-auto'} ${className}`}
     >
-      {showPreviousYears && (
-        <div
-          className="fixed inset-0 z-[115]"
-          aria-hidden
-          onClick={() => setShowPreviousYears(false)}
-          style={{ backgroundColor: 'transparent' }}
-        />
-      )}
       <div className="relative z-[125] flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-zinc-300 flex items-center gap-2">
-          <span>📅</span>
-          <span>Filtrar por Año</span>
+        <h3 className="text-sm font-bold text-zinc-300">
+          Filtrar por año
         </h3>
         {yearFilter !== 'all' && (
           <button
@@ -188,7 +298,6 @@ const YearSelector = ({
               : 'bg-zinc-800/50 hover:bg-zinc-800/60 text-zinc-300'
           }`}
         >
-          <div className="text-lg mb-1">📊</div>
           <div className="text-xs font-bold">Todos</div>
           <div className="text-[10px] opacity-80">Histórico completo</div>
           {showStats && (
@@ -210,7 +319,6 @@ const YearSelector = ({
           }`}
           disabled={!currentYearHasData}
         >
-          <div className="text-lg mb-1">🗓️</div>
           <div className="text-xs font-bold">{currentYear}</div>
           <div className="text-[10px] opacity-80">Año actual</div>
           {showStats && statsByYear[currentYear] && (
@@ -221,8 +329,9 @@ const YearSelector = ({
         </button>
 
         {/* Años Anteriores */}
-        <div className="relative" style={{ zIndex: showPreviousYears ? 20 : 'auto' }}>
+        <div ref={previousYearsAnchorRef} className="relative" style={{ zIndex: showPreviousYears ? 20 : 'auto' }}>
           <button
+            type="button"
             onClick={() => setShowPreviousYears(!showPreviousYears)}
             className={`w-full p-3 rounded-lg text-center transition-all ${
               yearFilter === 'previous'
@@ -233,7 +342,6 @@ const YearSelector = ({
             }`}
             disabled={previousYears.length === 0}
           >
-            <div className="text-lg mb-1">📚</div>
             <div className="text-xs font-bold">
               {yearFilter === 'previous' && selectedYear ? selectedYear : 'Anteriores'}
             </div>
@@ -243,30 +351,6 @@ const YearSelector = ({
             </div>
           </button>
 
-          {/* Dropdown de años anteriores */}
-          {showPreviousYears && previousYears.length > 0 && (
-            <div className="absolute left-0 right-0 top-full z-[130] mt-1 max-h-48 overflow-y-auto rounded-lg border border-zinc-700 bg-zinc-900 py-1 shadow-2xl">
-              {previousYears.map(year => (
-                <button
-                  key={year}
-                  onClick={() => {
-                    onFilterChange('previous', year)
-                    setShowPreviousYears(false)
-                  }}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs hover:bg-zinc-800/80 ${
-                    selectedYear === year ? 'bg-violet-500/20 text-violet-200' : 'text-zinc-200'
-                  }`}
-                >
-                  <span>📅 {year}</span>
-                  {showStats && statsByYear[year] && (
-                    <span className="text-zinc-500">
-                      {statsByYear[year].count} reg.
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
@@ -300,6 +384,8 @@ const YearSelector = ({
         </div>
       )}
     </div>
+    {renderPreviousYearsPortal(false)}
+    </>
   )
 }
 

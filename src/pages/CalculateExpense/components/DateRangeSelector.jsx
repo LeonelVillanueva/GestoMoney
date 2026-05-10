@@ -58,7 +58,7 @@ const DateRangeSelector = ({
       {/* Botones de acceso rápido */}
       <div>
         <label className="block text-xs font-medium text-zinc-400 mb-2">
-          📅 Acceso Rápido
+          Acceso rápido
         </label>
         <div className="flex flex-wrap gap-2">
           {/* Año actual */}
@@ -66,7 +66,7 @@ const DateRangeSelector = ({
             onClick={() => selectYear(currentYear)}
             className="px-3 py-1.5 text-xs font-medium rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20 transition-colors"
           >
-            🗓️ {currentYear}
+            Año {currentYear}
           </button>
 
           {/* Años anteriores dropdown */}
@@ -75,7 +75,7 @@ const DateRangeSelector = ({
               onClick={() => setShowYearOptions(!showYearOptions)}
               className="px-3 py-1.5 text-xs font-medium rounded-lg border border-violet-500/30 bg-violet-500/10 text-violet-200 hover:bg-violet-500/20 transition-colors flex items-center gap-1"
             >
-              📚 Otros años
+              Otros años
               <span className="text-[10px]">{showYearOptions ? '▲' : '▼'}</span>
             </button>
             
@@ -87,7 +87,6 @@ const DateRangeSelector = ({
                     onClick={() => selectYear(year)}
                     className="w-full px-3 py-2 text-xs text-left hover:bg-zinc-800/60 flex items-center gap-2"
                   >
-                    <span>📅</span>
                     <span>{year}</span>
                   </button>
                 ))}
@@ -100,21 +99,21 @@ const DateRangeSelector = ({
             onClick={selectCurrentMonth}
             className="px-3 py-1.5 text-xs font-medium rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20 transition-colors"
           >
-            📆 Este mes
+            Este mes
           </button>
 
           <button
             onClick={selectLast30Days}
             className="px-3 py-1.5 text-xs font-medium rounded-lg border border-orange-500/30 bg-orange-500/10 text-orange-200 hover:bg-orange-500/20 transition-colors"
           >
-            ⏱️ 30 días
+            Últimos 30 días
           </button>
 
           <button
             onClick={selectAllTime}
             className="px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-600 bg-zinc-800/50 text-zinc-300 hover:bg-zinc-800 transition-colors"
           >
-            📊 Todo
+            Todo el histórico
           </button>
         </div>
       </div>
@@ -149,14 +148,13 @@ const DateRangeSelector = ({
           onClick={onCalculate}
           className="gradient-button text-white px-5 py-2 rounded-lg font-medium hover:scale-105 transition-transform text-sm whitespace-nowrap"
         >
-          🧮 Calcular
+          Calcular
         </button>
       </div>
 
       {/* Indicador de rango seleccionado */}
       {startDate && endDate && (
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-500 bg-zinc-800/50 border border-zinc-700/60 rounded-lg p-2">
-          <span>📅</span>
           <span>
             Rango seleccionado: <strong className="text-zinc-300">{startDate}</strong> al <strong className="text-zinc-300">{endDate}</strong>
           </span>

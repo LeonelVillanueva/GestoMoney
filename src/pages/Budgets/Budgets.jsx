@@ -154,7 +154,7 @@ const Budgets = ({ expenses, onDataChanged }) => {
           <div className="glass-card rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-zinc-100">💰 Presupuestos</h2>
+                <h2 className="text-2xl font-bold text-zinc-100">Presupuestos</h2>
                 <p className="text-sm text-gray-500 mt-1">
                   Mostrando: <span className="font-semibold text-blue-600">{formatDate(currentMonth)}</span>
                 </p>
@@ -167,7 +167,7 @@ const Budgets = ({ expenses, onDataChanged }) => {
                     : 'gradient-button text-white hover:scale-105'
                 }`}
               >
-                {showForm ? '✕ Cancelar' : '+ Nuevo Presupuesto'}
+                {showForm ? 'Cancelar' : '+ Nuevo presupuesto'}
               </button>
             </div>
           </div>
@@ -204,7 +204,7 @@ const Budgets = ({ expenses, onDataChanged }) => {
               onClick={() => setShowCharts(!showCharts)}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
-              {showCharts ? '📊 Ocultar gráficos' : '📊 Ver gráficos'}
+              {showCharts ? 'Ocultar gráficos' : 'Ver gráficos'}
             </button>
           )}
         </div>

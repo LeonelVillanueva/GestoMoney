@@ -159,14 +159,14 @@ const ViewData = ({ onDataChanged }) => {
     const csvContent = convertToCSV(currentData, activeTab)
     
     if (!csvContent) {
-      notifications.showSync('❌ No hay datos para descargar', 'error')
+      notifications.showSync('No hay datos para descargar', 'error')
       return
     }
 
     const yearSuffix = yearFilter === 'all' ? 'todos' : yearFilter === 'current' ? currentYear : selectedYear || 'anteriores'
     const filename = `${activeTab}_${yearSuffix}_${new Date().toISOString().split('T')[0]}.csv`
     if (downloadCSVFile(csvContent, filename)) {
-      notifications.showSync('✅ Archivo CSV descargado correctamente', 'success')
+      notifications.showSync('Archivo CSV descargado correctamente', 'success')
     }
   }, [activeTab, getCurrentTabData, yearFilter, currentYear, selectedYear])
 
@@ -253,9 +253,9 @@ const ViewData = ({ onDataChanged }) => {
 
   // Tabs con conteo filtrado por año
   const tabs = [
-    { id: 'gastos', label: 'Gastos', icon: '💰', count: expensesByYear.length },
-    { id: 'supermercado', label: 'Supermercado', icon: '🛒', count: supermarketByYear.length },
-    { id: 'cortes', label: 'Cortes', icon: '💇', count: cutsByYear.length }
+    { id: 'gastos', label: 'Gastos', count: expensesByYear.length },
+    { id: 'supermercado', label: 'Supermercado', count: supermarketByYear.length },
+    { id: 'cortes', label: 'Cortes', count: cutsByYear.length }
   ]
 
   // Renderizar gastos
@@ -287,8 +287,8 @@ const ViewData = ({ onDataChanged }) => {
                 ) : (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className={`p-2 rounded-lg flex-shrink-0 ${expense.es_entrada ? 'bg-emerald-500/20 border border-emerald-500/30' : 'bg-zinc-800/50'}`}>
-                        <span className="text-lg">{getCategoryIcon(expense)}</span>
+                      <div className={`flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0 ${expense.es_entrada ? 'bg-emerald-500/20 border border-emerald-500/30' : 'bg-zinc-800/50'}`}>
+                        <span className="text-[11px] font-bold text-zinc-400">{getCategoryIcon(expense)}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-zinc-100 truncate">{expense.descripcion}</h4>
@@ -296,12 +296,12 @@ const ViewData = ({ onDataChanged }) => {
                           <p className="text-xs text-zinc-400">{expense.categoria_nombre}</p>
                           {expense.es_entrada && (
                             <span className="px-1.5 py-0.5 bg-emerald-500/20 border border-emerald-500/35 text-emerald-300 text-xs rounded font-medium">
-                              💰 Ingreso
+                              Ingreso
                             </span>
                           )}
                           {expense.moneda_original === 'USD' && (
                             <span className="px-1.5 py-0.5 bg-blue-500/20 border border-blue-500/35 text-blue-300 text-xs rounded font-medium">
-                              💵 USD
+                              USD
                             </span>
                           )}
                           <span className="text-xs text-zinc-500">•</span>
@@ -315,18 +315,20 @@ const ViewData = ({ onDataChanged }) => {
                       </div>
                       <div className="flex gap-1">
                         <button
+                          type="button"
                           onClick={() => openEditModal(expense, 'gastos')}
-                          className="p-1.5 text-blue-300 hover:bg-blue-500/15 rounded transition-colors"
+                          className="px-2 py-1 text-[11px] font-medium text-blue-300 hover:bg-blue-500/15 rounded transition-colors"
                           title="Editar"
                         >
-                          ✏️
+                          Editar
                         </button>
                         <button
+                          type="button"
                           onClick={() => openDeleteModal(expense, 'gastos')}
-                          className="p-1.5 text-rose-300 hover:bg-rose-500/15 rounded transition-colors"
+                          className="px-2 py-1 text-[11px] font-medium text-rose-300 hover:bg-rose-500/15 rounded transition-colors"
                           title="Eliminar"
                         >
-                          🗑️
+                          Eliminar
                         </button>
                       </div>
                     </div>
@@ -339,7 +341,6 @@ const ViewData = ({ onDataChanged }) => {
           <div className="text-center py-8">
             {hasActiveFilters || yearFilter !== 'all' ? (
               <>
-                <div className="text-4xl mb-3">🔍</div>
                 <h3 className="text-sm font-bold text-zinc-400 mb-1">No se encontraron resultados</h3>
                 <p className="text-xs text-zinc-500 mb-3">
                   No hay gastos que coincidan con los filtros aplicados
@@ -366,7 +367,6 @@ const ViewData = ({ onDataChanged }) => {
               </>
             ) : (
               <>
-                <div className="text-4xl mb-3">💰</div>
                 <h3 className="text-sm font-bold text-zinc-400 mb-1">No hay gastos registrados</h3>
                 <p className="text-xs text-zinc-500">Comienza agregando tu primer gasto</p>
               </>
@@ -405,8 +405,8 @@ const ViewData = ({ onDataChanged }) => {
                 ) : (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="p-2 bg-zinc-800/50 rounded-lg flex-shrink-0">
-                        <span className="text-lg">{getSupermarketIcon(purchase.supermercado)}</span>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800/50 flex-shrink-0">
+                        <span className="text-[11px] font-bold text-zinc-400">{getSupermarketIcon(purchase.supermercado)}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-zinc-100 truncate">{purchase.descripcion}</h4>
@@ -423,18 +423,20 @@ const ViewData = ({ onDataChanged }) => {
                       </div>
                       <div className="flex gap-1">
                         <button
+                          type="button"
                           onClick={() => openEditModal(purchase, 'supermercado')}
-                          className="p-1.5 text-blue-300 hover:bg-blue-500/15 rounded transition-colors"
+                          className="px-2 py-1 text-[11px] font-medium text-blue-300 hover:bg-blue-500/15 rounded transition-colors"
                           title="Editar"
                         >
-                          ✏️
+                          Editar
                         </button>
                         <button
+                          type="button"
                           onClick={() => openDeleteModal(purchase, 'supermercado')}
-                          className="p-1.5 text-rose-300 hover:bg-rose-500/15 rounded transition-colors"
+                          className="px-2 py-1 text-[11px] font-medium text-rose-300 hover:bg-rose-500/15 rounded transition-colors"
                           title="Eliminar"
                         >
-                          🗑️
+                          Eliminar
                         </button>
                       </div>
                     </div>
@@ -447,7 +449,6 @@ const ViewData = ({ onDataChanged }) => {
           <div className="text-center py-8">
             {hasActiveFilters || yearFilter !== 'all' ? (
               <>
-                <div className="text-4xl mb-3">🔍</div>
                 <h3 className="text-sm font-bold text-zinc-400 mb-1">No se encontraron resultados</h3>
                 <p className="text-xs text-zinc-500 mb-3">
                   No hay compras que coincidan con los filtros aplicados
@@ -474,7 +475,6 @@ const ViewData = ({ onDataChanged }) => {
               </>
             ) : (
               <>
-                <div className="text-4xl mb-3">🛒</div>
                 <h3 className="text-sm font-bold text-zinc-400 mb-1">No hay compras registradas</h3>
                 <p className="text-xs text-zinc-500">Comienza registrando tu primera compra de supermercado</p>
               </>
@@ -514,8 +514,8 @@ const ViewData = ({ onDataChanged }) => {
                 ) : (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="p-2 bg-zinc-800/50 rounded-lg flex-shrink-0">
-                        <span className="text-lg">{getCutIcon(cut.tipo_corte)}</span>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800/50 flex-shrink-0">
+                        <span className="text-[11px] font-bold text-zinc-400">{getCutIcon(cut.tipo_corte)}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-zinc-100 truncate">{cut.tipo_corte}</h4>
@@ -528,18 +528,20 @@ const ViewData = ({ onDataChanged }) => {
                     </div>
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
+                        type="button"
                         onClick={() => openEditModal(cut, 'cortes')}
-                        className="p-1.5 text-blue-300 hover:bg-blue-500/15 rounded transition-colors"
+                        className="px-2 py-1 text-[11px] font-medium text-blue-300 hover:bg-blue-500/15 rounded transition-colors"
                         title="Editar"
                       >
-                        ✏️
+                        Editar
                       </button>
                       <button
+                        type="button"
                         onClick={() => openDeleteModal(cut, 'cortes')}
-                        className="p-1.5 text-rose-300 hover:bg-rose-500/15 rounded transition-colors"
+                        className="px-2 py-1 text-[11px] font-medium text-rose-300 hover:bg-rose-500/15 rounded transition-colors"
                         title="Eliminar"
                       >
-                        🗑️
+                        Eliminar
                       </button>
                     </div>
                   </div>
@@ -551,7 +553,6 @@ const ViewData = ({ onDataChanged }) => {
           <div className="text-center py-8">
             {hasActiveFilters || yearFilter !== 'all' ? (
               <>
-                <div className="text-4xl mb-3">🔍</div>
                 <h3 className="text-sm font-bold text-zinc-400 mb-1">No se encontraron resultados</h3>
                 <p className="text-xs text-zinc-500 mb-3">
                   No hay cortes que coincidan con los filtros aplicados
@@ -578,7 +579,6 @@ const ViewData = ({ onDataChanged }) => {
               </>
             ) : (
               <>
-                <div className="text-4xl mb-3">💇</div>
                 <h3 className="text-sm font-bold text-zinc-400 mb-1">No hay cortes registrados</h3>
                 <p className="text-xs text-zinc-500">Comienza registrando tu primer corte</p>
               </>
@@ -619,7 +619,7 @@ const ViewData = ({ onDataChanged }) => {
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-zinc-100">📋 Ver Datos</h2>
+            <h2 className="text-2xl font-bold text-zinc-100">Ver datos</h2>
             {yearFilter !== 'all' && (
               <p className="text-sm text-sky-400/90 mt-1">
                 Mostrando: {filterLabel}
@@ -639,7 +639,6 @@ const ViewData = ({ onDataChanged }) => {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-emerald-500/40 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25 transition-colors"
               title="Descargar datos en CSV"
             >
-              <span aria-hidden>📊</span>
               <span>CSV</span>
             </button>
           </div>
@@ -711,7 +710,6 @@ const ViewData = ({ onDataChanged }) => {
               <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(totalSupermercado)}</p>
               <p className="text-xs text-zinc-500 mt-0.5">{supermarketByYear.length} compras</p>
             </div>
-            <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>🛒</span>
           </div>
         </div>
 
@@ -724,7 +722,6 @@ const ViewData = ({ onDataChanged }) => {
               <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{cutsByYear.length}</p>
               <p className="text-xs text-zinc-500 mt-0.5">cortes</p>
             </div>
-            <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>💇</span>
           </div>
         </div>
 
@@ -735,7 +732,6 @@ const ViewData = ({ onDataChanged }) => {
               <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{filteredData.length}</p>
               <p className="text-xs text-zinc-500 mt-0.5">de {getCurrentTabData().length}</p>
             </div>
-            <span className="text-2xl opacity-80" aria-hidden>🔍</span>
           </div>
         </div>
       </div>
@@ -768,7 +764,6 @@ const ViewData = ({ onDataChanged }) => {
                   : 'bg-zinc-800/50 text-zinc-400 border-zinc-700/80 hover:bg-zinc-800 hover:text-zinc-200'
               } ${refreshing ? 'animate-pulse' : ''}`}
             >
-              <span className="text-base" aria-hidden>{tab.icon}</span>
               <span>{tab.label}</span>
               <span className={`px-1.5 py-0.5 rounded-full text-xs ${
                 activeTab === tab.id ? 'bg-blue-500/90 text-white' : 'bg-zinc-700 text-zinc-300'

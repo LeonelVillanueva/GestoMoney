@@ -12,8 +12,7 @@ const IncomeStats = ({ incomeCalculations, filteredIncomes, showIncomeList, onTo
       <h3 className="text-lg font-bold text-zinc-100 mb-3">Ingresos</h3>
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className={`${statCard} ring-1 ring-emerald-500/15`}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">💵</span>
+          <div className="mb-1">
             <span className="text-xs font-medium text-zinc-400">Total</span>
           </div>
           <p className="text-base sm:text-lg md:text-xl font-bold text-emerald-200 break-words leading-tight">
@@ -25,8 +24,7 @@ const IncomeStats = ({ incomeCalculations, filteredIncomes, showIncomeList, onTo
         </div>
 
         <div className={`${statCard} ring-1 ring-sky-500/15`}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">📊</span>
+          <div className="mb-1">
             <span className="text-xs font-medium text-zinc-400">Promedio</span>
           </div>
           <p className="text-base sm:text-lg md:text-xl font-bold text-sky-200 break-words leading-tight">
@@ -52,7 +50,9 @@ const IncomeStats = ({ incomeCalculations, filteredIncomes, showIncomeList, onTo
             {incomeCalculations.categoryBreakdown.map((category, index) => (
               <div key={index} className="flex items-center justify-between p-2 bg-zinc-900/45 rounded-lg border border-zinc-800/80 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">{getCategoryIcon(category.name)}</span>
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-[11px] font-bold text-zinc-400">
+                    {getCategoryIcon(category.name)}
+                  </span>
                   <span className="font-medium text-zinc-100">{category.name}</span>
                 </div>
                 <div className="text-right">
@@ -69,13 +69,15 @@ const IncomeStats = ({ incomeCalculations, filteredIncomes, showIncomeList, onTo
       {showIncomeList && filteredIncomes.length > 0 && (
         <div className="mt-3 pt-3 border-t border-zinc-700">
           <h4 className="text-sm font-semibold text-zinc-300 mb-2">
-            💵 Ingresos ({filteredIncomes.length})
+            Ingresos ({filteredIncomes.length})
           </h4>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {filteredIncomes.map((income, index) => (
               <div key={income.id || index} className="flex items-center justify-between p-2 bg-zinc-900/45 rounded-lg border border-zinc-800/80 hover:bg-zinc-800/60 transition-colors text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="text-base">{getCategoryIcon(income.categoria_nombre)}</span>
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-[11px] font-bold text-zinc-400">
+                    {getCategoryIcon(income.categoria_nombre)}
+                  </span>
                   <div>
                     <p className="font-medium text-zinc-100">{income.descripcion}</p>
                     <p className="text-xs text-zinc-500">{formatDate(income.fecha)}</p>

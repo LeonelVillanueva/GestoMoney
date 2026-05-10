@@ -29,7 +29,7 @@ export default function InterfaceTab({ settings, onSettingChange }) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 mb-3">🎨 Interfaz</h3>
+        <h3 className="text-sm font-bold text-zinc-100 mb-3">Interfaz</h3>
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-zinc-300 mb-1">Elementos por página</label>
@@ -77,7 +77,7 @@ export default function InterfaceTab({ settings, onSettingChange }) {
             <div className="rounded-xl border border-zinc-700 bg-zinc-900/60 p-4">
               <div className="mb-3">
                 <label className="block text-sm font-medium text-zinc-100 mb-1">
-                  📱 Zoom de interfaz (Solo móvil)
+                  Zoom de interfaz (solo móvil)
                 </label>
                 <p className="text-xs text-zinc-400 mb-3">
                   Ajusta el tamaño de la interfaz para facilitar la lectura en dispositivos móviles

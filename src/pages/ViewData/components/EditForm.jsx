@@ -22,7 +22,7 @@ const EditForm = ({
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <DateInput
-                label="📅 Fecha"
+                label="Fecha"
                 value={editForm.fecha}
                 onChange={(fecha) => onFormChange({ fecha })}
                 required
@@ -30,7 +30,7 @@ const EditForm = ({
               
               <div>
                 <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  💰 Monto (LPS)
+                  Monto (LPS)
                 </label>
                 <input
                   type="number"
@@ -46,7 +46,7 @@ const EditForm = ({
             
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
-                🏷️ Categoría
+                Categoría
               </label>
               <select
                 value={editForm.categoria_nombre}
@@ -62,7 +62,7 @@ const EditForm = ({
             
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
-                📝 Descripción
+                Descripción
               </label>
               <input
                 type="text"
@@ -82,14 +82,13 @@ const EditForm = ({
                 className="w-4 h-4 text-blue-600 bg-zinc-800/60 border-zinc-600 rounded focus:ring-blue-500"
               />
               <label htmlFor={`es_entrada_${editingItem.id}`} className="text-sm font-medium text-blue-200 cursor-pointer">
-                💰 Es una entrada de dinero (ingreso)
+                Es una entrada de dinero (ingreso)
               </label>
             </div>
 
             {editForm.moneda_original === 'USD' && (
               <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                 <div className="flex items-center space-x-2">
-                  <span className="text-blue-300">💵</span>
                   <span className="text-sm text-blue-200 font-medium">
                     Este gasto fue registrado originalmente en dólares (USD)
                   </span>
@@ -104,7 +103,7 @@ const EditForm = ({
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <DateInput
-                label="📅 Fecha"
+                label="Fecha"
                 value={editForm.fecha}
                 onChange={(fecha) => onFormChange({ fecha })}
                 required
@@ -112,7 +111,7 @@ const EditForm = ({
               
               <div>
                 <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  💰 Monto (LPS)
+                  Monto (LPS)
                 </label>
                 <input
                   type="number"
@@ -128,7 +127,7 @@ const EditForm = ({
             
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
-                🏪 Supermercado
+                Supermercado
               </label>
               <select
                 value={editForm.supermercado}
@@ -136,14 +135,14 @@ const EditForm = ({
                 className="w-full px-3 py-2 border border-zinc-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               >
-                <option value="La Colonia">🏪 La Colonia</option>
-                <option value="Walmart">🏬 Walmart</option>
+                <option value="La Colonia">La Colonia</option>
+                <option value="Walmart">Walmart</option>
               </select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
-                📝 Descripción
+                Descripción
               </label>
               <input
                 type="text"
@@ -161,7 +160,7 @@ const EditForm = ({
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <DateInput
-                label="📅 Fecha"
+                label="Fecha"
                 value={editForm.fecha}
                 onChange={(fecha) => onFormChange({ fecha })}
                 required
@@ -169,7 +168,7 @@ const EditForm = ({
               
               <div>
                 <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  💇 Tipo de Corte
+                  Tipo de corte
                 </label>
                 <select
                   value={editForm.tipo_corte}
@@ -194,13 +193,13 @@ const EditForm = ({
   const getTitle = () => {
     switch (editingItem.type) {
       case 'gastos':
-        return '✏️ Editando Gasto'
+        return 'Editando gasto'
       case 'supermercado':
-        return '✏️ Editando Compra'
+        return 'Editando compra'
       case 'cortes':
-        return '✏️ Editando Corte'
+        return 'Editando corte'
       default:
-        return '✏️ Editando'
+        return 'Editando'
     }
   }
 
@@ -213,13 +212,13 @@ const EditForm = ({
           onClick={onSave}
           className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
         >
-          💾 Guardar Cambios
+          Guardar cambios
         </button>
         <button
           onClick={onCancel}
           className="flex-1 bg-zinc-800/500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
         >
-          ❌ Cancelar
+          Cancelar
         </button>
       </div>
     </div>

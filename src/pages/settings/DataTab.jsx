@@ -18,7 +18,7 @@ export default function DataTab({ settings, onSettingChange, active }) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">💾 Gestión de Datos</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Gestión de datos</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-zinc-800/50 dark:bg-slate-700 rounded-lg">
             <div>
@@ -65,7 +65,7 @@ export default function DataTab({ settings, onSettingChange, active }) {
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">📦 Respaldo Manual</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Respaldo manual</h3>
         <div className="space-y-2">
           <button
             onClick={async () => {
@@ -81,15 +81,15 @@ export default function DataTab({ settings, onSettingChange, active }) {
                 a.click()
                 a.remove()
                 URL.revokeObjectURL(url)
-                notifications.showSync('✅ Backup descargado', 'success', 2000)
+                notifications.showSync('Backup descargado', 'success', 2000)
               } catch (error) {
                 console.error('Error exporting data:', error)
-                notifications.showSync('❌ Error al generar backup', 'error')
+                notifications.showSync('Error al generar backup', 'error')
               }
             }}
             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 text-sm rounded-lg font-medium transition-colors"
           >
-            ⬇️ Descargar Backup
+            Descargar backup
           </button>
 
           <div>
@@ -105,13 +105,13 @@ export default function DataTab({ settings, onSettingChange, active }) {
                   const json = JSON.parse(text)
                   const ok = await database.importAll(json)
                   if (ok) {
-                    notifications.showSync('✅ Backup restaurado correctamente', 'success', 2500)
+                    notifications.showSync('Backup restaurado correctamente', 'success', 2500)
                   } else {
-                    notifications.showSync('❌ Archivo inválido de backup', 'error')
+                    notifications.showSync('Archivo inválido de backup', 'error')
                   }
                 } catch (err) {
                   console.error('Error importing backup:', err)
-                  notifications.showSync('❌ Error al leer el archivo', 'error')
+                  notifications.showSync('Error al leer el archivo', 'error')
                 } finally {
                   e.target.value = ''
                 }
@@ -123,28 +123,28 @@ export default function DataTab({ settings, onSettingChange, active }) {
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">📸 Snapshots</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Snapshots</h3>
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={async () => {
                 try {
                   await createSnapshot()
-                  notifications.showSync('✅ Snapshot creado', 'success', 2000)
+                  notifications.showSync('Snapshot creado', 'success', 2000)
                 } catch (e) {
-                  notifications.showSync('❌ No se pudo crear snapshot', 'error')
+                  notifications.showSync('No se pudo crear snapshot', 'error')
                 }
               }}
               className="bg-slate-600 hover:bg-slate-700 dark:bg-slate-500 dark:hover:bg-slate-400 text-white px-3 py-2 text-sm rounded-lg font-medium transition-colors"
             >
-              📸 Crear
+              Crear
             </button>
 
             <button
               onClick={async () => {
                 try {
                   if (!snapshots || snapshots.length === 0) {
-                    notifications.showSync('ℹ️ No hay snapshots disponibles', 'warning', 2000)
+                    notifications.showSync('No hay snapshots disponibles', 'warning', 2000)
                     return
                   }
                   
@@ -164,34 +164,33 @@ export default function DataTab({ settings, onSettingChange, active }) {
                     return
                   }
 
-                  notifications.showSync('🔄 Validando snapshot y creando backup de seguridad...', 'info', 3000)
+                  notifications.showSync('Validando snapshot y creando backup de seguridad…', 'info', 3000)
                   
                   const result = await restoreLatest()
                   if (result.success) {
                     const countsMsg = result.counts 
                       ? `\nGastos: ${result.counts.current.expenses}, Categorías: ${result.counts.current.categories}, Compras: ${result.counts.current.purchases}, Cortes: ${result.counts.current.cuts}, Presupuestos: ${result.counts.current.budgets}`
                       : ''
-                    notifications.showSync(`✅ Snapshot restaurado exitosamente.${countsMsg}`, 'success', 3500)
+                    notifications.showSync(`Snapshot restaurado correctamente.${countsMsg}`, 'success', 3500)
                   } else {
                     const errorMsg = result.errors && result.errors.length > 0
                       ? result.errors.join('\n')
                       : 'Error desconocido al restaurar snapshot'
-                    notifications.showSync(`❌ Error al restaurar snapshot: ${errorMsg}`, 'error', 7000)
-                    notifications.showSync('❌ Error al restaurar snapshot', 'error', 5000)
+                    notifications.showSync(`Error al restaurar snapshot: ${errorMsg}`, 'error', 7000)
                   }
                 } catch (e) {
                   console.error('Error restaurando snapshot:', e)
-                  notifications.showSync(`❌ Error inesperado: ${e.message}`, 'error', 6000)
+                  notifications.showSync(`Error inesperado: ${e.message}`, 'error', 6000)
                 }
               }}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 text-sm rounded-lg font-medium transition-colors"
             >
-              🧯 Restaurar último
+              Restaurar último
             </button>
           </div>
 
           <div>
-            <h5 className="text-xs font-semibold text-zinc-100 dark:text-gray-200 mb-2">📚 Snapshots guardados ({snapshots.length})</h5>
+            <h5 className="text-xs font-semibold text-zinc-100 dark:text-gray-200 mb-2">Snapshots guardados ({snapshots.length})</h5>
             {loadingSnapshots ? (
               <div className="text-xs text-gray-500 dark:text-gray-400 py-2">Cargando snapshots...</div>
             ) : snapshots.length === 0 ? (
@@ -201,7 +200,6 @@ export default function DataTab({ settings, onSettingChange, active }) {
                 {snapshots.map((snap) => (
                   <div key={snap.id} className="flex items-center justify-between bg-zinc-800/50 dark:bg-slate-700 rounded-lg px-2 py-1.5 border border-zinc-700 dark:border-slate-600">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="text-xs flex-shrink-0">🗂️</span>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-medium text-zinc-100 dark:text-gray-200 truncate">{new Date(snap.createdAt).toLocaleString()}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">{Math.round((snap.sizeBytes || 0)/1024)} KB · {snap.totalRecords || 0} reg.</div>
@@ -218,7 +216,7 @@ export default function DataTab({ settings, onSettingChange, active }) {
                               `Fecha: ${snapshotDate}\n` +
                               `Tamaño: ${Math.round((snap.sizeBytes || 0)/1024)} KB\n` +
                               `Registros: ${snap.totalRecords || 0}\n\n` +
-                              `⚠️ ADVERTENCIA: Esto eliminará TODOS los datos actuales y los reemplazará con los del snapshot.\n\n` +
+                              `ADVERTENCIA: Esto eliminará todos los datos actuales y los reemplazará con los del snapshot.\n\n` +
                               `Se creará un backup de seguridad automático antes de proceder.`
                             
                             const confirmed = await notifications.confirm({
@@ -232,24 +230,23 @@ export default function DataTab({ settings, onSettingChange, active }) {
                               return
                             }
 
-                            notifications.showSync('🔄 Validando snapshot y creando backup de seguridad...', 'info', 3000)
+                            notifications.showSync('Validando snapshot y creando backup de seguridad…', 'info', 3000)
                             
                             const result = await restoreById(snap.id)
                             if (result.success) {
                               const countsMsg = result.counts 
                                 ? `\nGastos: ${result.counts.current.expenses}, Categorías: ${result.counts.current.categories}, Compras: ${result.counts.current.purchases}, Cortes: ${result.counts.current.cuts}, Presupuestos: ${result.counts.current.budgets}`
                                 : ''
-                              notifications.showSync(`✅ Snapshot restaurado exitosamente.${countsMsg}`, 'success', 3500)
+                              notifications.showSync(`Snapshot restaurado correctamente.${countsMsg}`, 'success', 3500)
                             } else {
                               const errorMsg = result.errors && result.errors.length > 0
                                 ? result.errors.join('\n')
                                 : 'Error desconocido al restaurar snapshot'
-                              notifications.showSync(`❌ Error al restaurar snapshot: ${errorMsg}`, 'error', 7000)
-                              notifications.showSync('❌ Error al restaurar snapshot', 'error', 5000)
+                              notifications.showSync(`Error al restaurar snapshot: ${errorMsg}`, 'error', 7000)
                             }
                           } catch (e) {
                             console.error('Error restaurando snapshot:', e)
-                            notifications.showSync(`❌ Error inesperado: ${e.message}`, 'error', 6000)
+                            notifications.showSync(`Error inesperado: ${e.message}`, 'error', 6000)
                           }
                         }}
                         className="text-indigo-700 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 text-xs px-1.5 py-0.5 border border-indigo-200 dark:border-indigo-600 rounded"
@@ -265,7 +262,7 @@ export default function DataTab({ settings, onSettingChange, active }) {
                       <button
                         onClick={async () => {
                           await deleteById(snap.id)
-                          notifications.showSync('🗑️ Snapshot eliminado', 'warning', 1500)
+                          notifications.showSync('Snapshot eliminado', 'warning', 1500)
                         }}
                         className="text-red-700 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 text-xs px-1.5 py-0.5 border border-red-200 dark:border-red-600 rounded"
                       >

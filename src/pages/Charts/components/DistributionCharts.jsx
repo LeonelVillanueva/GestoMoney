@@ -11,7 +11,6 @@ const DistributionCharts = ({ chartData, chartOptions, barOptions }) => {
   if (!chartData.pie || !chartData.bar) {
     return (
       <div className="text-center py-12">
-        <div className="text-6xl mb-4">📊</div>
         <h3 className="text-xl font-medium text-zinc-400 mb-2">No hay datos para mostrar</h3>
         <p className="text-gray-500">Intenta ajustar los filtros</p>
       </div>
@@ -22,7 +21,7 @@ const DistributionCharts = ({ chartData, chartOptions, barOptions }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
       {/* Gráfico de Torta */}
       <div className="glass-card rounded-xl p-4">
-        <h3 className="text-sm font-bold text-zinc-100 mb-3">🥧 Distribución por Categorías</h3>
+        <h3 className="text-sm font-bold text-zinc-100 mb-3">Distribución por categorías</h3>
         <div className="h-64">
           <Pie data={chartData.pie} options={chartOptions} />
         </div>
@@ -31,9 +30,9 @@ const DistributionCharts = ({ chartData, chartOptions, barOptions }) => {
       {/* Gráfico de Barras con Zoom */}
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200">📊 Gastos por Categoría</h3>
+          <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200">Gastos por categoría</h3>
           <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-gray-400">
-            <span>🔍 Zoom: Rueda</span>
+            <span>Zoom: rueda del ratón</span>
           </div>
         </div>
         <div className="h-64">

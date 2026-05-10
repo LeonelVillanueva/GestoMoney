@@ -32,8 +32,7 @@ export default function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm">
       <div className={`w-full max-w-md rounded-xl border ${toneStyles.panel} bg-zinc-900 p-5 shadow-2xl`}>
-        <div className="mb-3 flex items-center gap-2">
-          <span aria-hidden className={`text-xl ${toneStyles.icon}`}>⚠️</span>
+        <div className="mb-3">
           <h3 className="text-base font-semibold text-zinc-100">{title}</h3>
         </div>
         <p className="whitespace-pre-line text-sm text-zinc-300">{message}</p>

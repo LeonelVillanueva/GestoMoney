@@ -36,7 +36,7 @@ export default function useSupermarkets(active) {
       return
     }
     await load()
-    notifications.showSync('✅ Supermercado agregado', 'success')
+    notifications.showSync('Supermercado agregado', 'success')
   }, [newSupermarket, list, load])
 
   // skipConfirm: si es true, no muestra window.confirm (usado cuando ya se confirmó con PIN)
@@ -59,7 +59,7 @@ export default function useSupermarkets(active) {
       return
     }
     await load()
-    notifications.showSync('✅ Supermercado eliminado', 'success')
+    notifications.showSync('Supermercado eliminado', 'success')
   }, [list, load])
 
   const update = useCallback(async (oldName, newName) => {
@@ -80,7 +80,7 @@ export default function useSupermarkets(active) {
       return
     }
     await load()
-    notifications.showSync('✅ Supermercado actualizado', 'success')
+    notifications.showSync('Supermercado actualizado', 'success')
   }, [list, load])
 
   useEffect(() => {

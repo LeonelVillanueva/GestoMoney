@@ -17,7 +17,6 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
   if (!chartData.line) {
     return (
       <div className="text-center py-12">
-        <div className="text-6xl mb-4">📈</div>
         <h3 className="text-xl font-medium text-zinc-400 mb-2">No hay datos para mostrar</h3>
         <p className="text-gray-500">Intenta ajustar los filtros</p>
       </div>
@@ -230,7 +229,7 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
               aria-label={isRotated ? "Rotar horizontal" : "Rotar vertical"}
               title={isRotated ? "Horizontal" : "Vertical"}
             >
-              <span className="text-lg">{isRotated ? "🔄" : "📱"}</span>
+              <span className="text-xs font-medium">{isRotated ? 'Horiz.' : 'Vert.'}</span>
             </button>
             {/* Botón cerrar */}
             <button
@@ -424,13 +423,13 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
   return (
     <div className="glass-card rounded-xl p-4 mt-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-zinc-100">📈 {title}</h3>
+        <h3 className="text-sm font-bold text-zinc-100">{title}</h3>
         <div className="flex items-center gap-3">
           {period === 'all' && !isMobile && (
             <div className="flex items-center gap-2 text-xs text-zinc-400">
-              <span>🔍 Zoom: Rueda del ratón</span>
+              <span>Zoom: rueda del ratón</span>
               <span>•</span>
-              <span>🖱️ Desplazar: Click y arrastrar</span>
+              <span>Desplazar: clic y arrastrar</span>
             </div>
           )}
           {isMobile && (
@@ -440,7 +439,6 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
               className="text-xs font-medium px-3 py-1.5 rounded-lg border border-zinc-600 bg-zinc-800/60 text-zinc-200 hover:bg-zinc-800 transition-colors flex items-center gap-2"
               aria-label="Abrir en pantalla completa"
             >
-              <span aria-hidden>🔍</span>
               <span>Ver completo</span>
             </button>
           )}
@@ -453,8 +451,7 @@ const TrendsChart = ({ chartData, lineOptions, period }) => {
       >
         {isMobile && (
           <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80 rounded-lg z-10 pointer-events-none">
-            <div className="text-center p-4 bg-zinc-900 rounded-lg shadow-lg">
-              <div className="text-2xl mb-2">👆</div>
+              <div className="text-center p-4 bg-zinc-900 rounded-lg shadow-lg">
               <p className="text-sm font-medium text-zinc-300">Toca para ver completo</p>
               <p className="text-xs text-gray-500 mt-1">Desplázate horizontalmente</p>
             </div>

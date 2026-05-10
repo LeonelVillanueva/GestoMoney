@@ -22,7 +22,6 @@ export const useDataEditing = (loadAllData, onDataChanged) => {
       es_entrada: item.es_entrada || false,
       moneda_original: item.moneda_original || 'LPS'
     })
-    console.log('✅ ViewData: Formulario de edición inicializado con fecha:', item.fecha)
   }, [])
 
   const cancelEdit = useCallback(() => {
@@ -44,7 +43,7 @@ export const useDataEditing = (loadAllData, onDataChanged) => {
           es_entrada: editForm.es_entrada,
           moneda_original: editForm.moneda_original
         })
-        notifications.showSync('✅ Gasto actualizado correctamente', 'success')
+        notifications.showSync('Gasto actualizado correctamente', 'success')
       } else if (editingItem.type === 'supermercado') {
         await database.updateSupermarketPurchase(editingItem.id, {
           fecha: editForm.fecha,
@@ -52,14 +51,14 @@ export const useDataEditing = (loadAllData, onDataChanged) => {
           descripcion: editForm.descripcion,
           supermercado: editForm.supermercado
         })
-        notifications.showSync('✅ Compra de supermercado actualizada correctamente', 'success')
+        notifications.showSync('Compra de supermercado actualizada correctamente', 'success')
       } else if (editingItem.type === 'cortes') {
         await database.updateCut(editingItem.id, {
           fecha: editForm.fecha,
           tipo_corte: editForm.tipo_corte,
           descripcion: `Corte: ${editForm.tipo_corte}`
         })
-        notifications.showSync('✅ Corte actualizado correctamente', 'success')
+        notifications.showSync('Corte actualizado correctamente', 'success')
       }
 
       await loadAllData()
@@ -69,7 +68,7 @@ export const useDataEditing = (loadAllData, onDataChanged) => {
       cancelEdit()
     } catch (error) {
       console.error('Error updating item:', error)
-      notifications.showSync('❌ Error al actualizar el registro', 'error')
+      notifications.showSync('Error al actualizar el registro', 'error')
     }
   }, [editingItem, editForm, loadAllData, onDataChanged, cancelEdit])
 
@@ -88,13 +87,13 @@ export const useDataEditing = (loadAllData, onDataChanged) => {
     try {
       if (type === 'gastos') {
         await database.deleteExpense(id)
-        notifications.showSync('✅ Gasto eliminado correctamente', 'success')
+        notifications.showSync('Gasto eliminado correctamente', 'success')
       } else if (type === 'supermercado') {
         await database.deleteSupermarketPurchase(id)
-        notifications.showSync('✅ Compra de supermercado eliminada correctamente', 'success')
+        notifications.showSync('Compra de supermercado eliminada correctamente', 'success')
       } else if (type === 'cortes') {
         await database.deleteCut(id)
-        notifications.showSync('✅ Corte eliminado correctamente', 'success')
+        notifications.showSync('Corte eliminado correctamente', 'success')
       }
 
       await loadAllData()
@@ -103,7 +102,7 @@ export const useDataEditing = (loadAllData, onDataChanged) => {
       }
     } catch (error) {
       console.error('Error deleting item:', error)
-      notifications.showSync('❌ Error al eliminar el registro', 'error')
+      notifications.showSync('Error al eliminar el registro', 'error')
     }
   }, [loadAllData, onDataChanged])
 

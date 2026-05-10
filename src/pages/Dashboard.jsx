@@ -304,8 +304,8 @@ const Dashboard = ({ expenses, onNavigate, onDataChanged }) => {
                     Ingresos, gastos y tendencias según el periodo que elijas
                   </p>
                   <div className='mt-3 inline-flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-gradient-to-r from-emerald-900/35 to-emerald-800/20 px-3 py-2 shadow-sm shadow-emerald-950/40'>
-                    <span className='inline-flex h-7 w-7 items-center justify-center rounded-full border border-emerald-300/25 bg-emerald-400/10 text-sm'>
-                    💲
+                    <span className='inline-flex h-7 w-7 items-center justify-center rounded-full border border-emerald-300/25 bg-emerald-400/10 text-emerald-200'>
+                      {I.coin('h-4 w-4')}
                     </span>
                     <div className='leading-tight'>
                       <p className='text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-300/80'>

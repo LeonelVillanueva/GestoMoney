@@ -110,7 +110,7 @@ function AppContent() {
       await refreshExpenses()
       setLoading(false)
     } catch (error) {
-      logger.error('❌ Error loading data:', error)
+      logger.error('Error loading data:', error)
       logger.error('Error stack:', error.stack)
       // Asegurar que la app se renderice incluso si hay error
       setExpenses([])
@@ -217,6 +217,14 @@ function AppContent() {
 
 // Componente principal con Router
 function App() {
+  useEffect(() => {
+    const blockContextMenu = (e) => {
+      e.preventDefault()
+    }
+    document.addEventListener('contextmenu', blockContextMenu, { capture: true })
+    return () => document.removeEventListener('contextmenu', blockContextMenu, { capture: true })
+  }, [])
+
   return (
     <AuthProvider>
       <Router>

@@ -111,13 +111,13 @@ const Settings = () => {
 
   // Tabs disponibles
   const tabs = [
-    { id: 'general', label: 'General', icon: '⚙️' },
-    { id: 'notifications', label: 'Notificaciones', icon: '🔔' },
-    { id: 'data', label: 'Datos', icon: '💾' },
-    { id: 'interface', label: 'Interfaz', icon: '🎨' },
-    { id: 'categories', label: 'Categorías', icon: '🏷️' },
-    { id: 'cuts', label: 'Cortes', icon: '💇' },
-    { id: 'supermarkets', label: 'Supermercados', icon: '🛒' }
+    { id: 'general', label: 'General' },
+    { id: 'notifications', label: 'Notificaciones' },
+    { id: 'data', label: 'Datos' },
+    { id: 'interface', label: 'Interfaz' },
+    { id: 'categories', label: 'Categorías' },
+    { id: 'cuts', label: 'Cortes' },
+    { id: 'supermarkets', label: 'Supermercados' }
   ]
 
   useEffect(() => {
@@ -514,11 +514,11 @@ const Settings = () => {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className={`${isMobileView ? 'text-xl' : 'text-2xl'} font-bold text-zinc-100 dark:text-slate-100`}>
-              ⚙️ Configuración
+              Configuración
             </h2>
             {isMobileView && (
               <p className="mt-1 text-xs text-zinc-400">
-                {activeTabMeta.icon} {activeTabMeta.label}
+                {activeTabMeta.label}
               </p>
             )}
           </div>
@@ -538,7 +538,7 @@ const Settings = () => {
             >
               {tabs.map((tab) => (
                 <option key={tab.id} value={tab.id}>
-                  {tab.icon} {tab.label}
+                  {tab.label}
                 </option>
               ))}
             </select>
@@ -547,13 +547,14 @@ const Settings = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`shrink-0 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all ${
+                  className={`max-w-[5.5rem] shrink-0 truncate rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all ${
                     activeTab === tab.id
                       ? 'bg-blue-600 text-white'
                       : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
                   }`}
+                  title={tab.label}
                 >
-                  {tab.icon}
+                  {tab.label}
                 </button>
               ))}
             </div>
@@ -579,7 +580,6 @@ const Settings = () => {
                         : 'text-zinc-400 dark:text-gray-400 hover:bg-zinc-800/60 dark:hover:bg-slate-700 hover:text-zinc-100 dark:hover:text-gray-200'
                     }`}
                   >
-                    <span className="text-base">{tab.icon}</span>
                     <span>{tab.label}</span>
                   </button>
                 ))}
@@ -601,7 +601,7 @@ const Settings = () => {
         isOpen={deleteModal.isOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
-        title={deleteModal.isDangerous ? '⚠️ Eliminar TODOS los datos' : '¿Eliminar este elemento?'}
+        title={deleteModal.isDangerous ? 'Eliminar todos los datos' : '¿Eliminar este elemento?'}
         message={deleteModal.isDangerous 
           ? 'Esta acción eliminará permanentemente todos tus datos. Esta acción NO se puede deshacer.'
           : 'Esta acción no se puede deshacer.'

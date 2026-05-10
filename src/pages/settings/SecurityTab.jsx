@@ -112,7 +112,7 @@ export default function SecurityTab() {
     const result = await changePassword(newPassword, currentPassword)
     setIsChangingPassword(false)
     if (result.success) {
-      notifications.showSync('✅ Contraseña cambiada', 'success')
+      notifications.showSync('Contraseña cambiada', 'success')
       resetPasswordForm()
     } else {
       setPasswordError(result.error)
@@ -139,7 +139,7 @@ export default function SecurityTab() {
     const result = await changeEmail(newEmail, emailPassword)
     setIsChangingEmail(false)
     if (result.success) {
-      notifications.showSync('📧 Enlace de confirmación enviado', 'success')
+      notifications.showSync('Enlace de confirmación enviado', 'success')
       resetEmailForm()
     } else {
       setEmailError(result.error)
@@ -184,7 +184,7 @@ export default function SecurityTab() {
     const result = await setPin(pin1)
     setIsProcessing(false)
     if (result.success) {
-      notifications.showSync('✅ PIN configurado', 'success')
+      notifications.showSync('PIN configurado', 'success')
       resetForm()
       checkPinExists()
     } else setError(result.error)
@@ -208,7 +208,7 @@ export default function SecurityTab() {
     const result = await changePin(currentPin, pin1)
     setIsProcessing(false)
     if (result.success) {
-      notifications.showSync('✅ PIN cambiado', 'success')
+      notifications.showSync('PIN cambiado', 'success')
       resetForm()
     } else {
       setError(result.error)
@@ -226,7 +226,7 @@ export default function SecurityTab() {
     const result = await removePin(pin)
     setIsProcessing(false)
     if (result.success) {
-      notifications.showSync('🔓 PIN eliminado', 'warning')
+      notifications.showSync('PIN eliminado', 'warning')
       resetForm()
       checkPinExists()
     } else {
@@ -283,7 +283,7 @@ export default function SecurityTab() {
       setTwoFactorCode('')
       setTwoFactorSecret('')
       setTwoFactorQrUrl('')
-      notifications.showSync('✅ 2FA activado correctamente', 'success')
+      notifications.showSync('2FA activado correctamente', 'success')
       await loadTwoFactorStatus()
     } catch (err) {
       notifications.showSync('Error al confirmar 2FA', 'error')
@@ -366,7 +366,6 @@ export default function SecurityTab() {
       <div className="p-3 rounded-lg bg-zinc-800/50 dark:bg-slate-700 border border-zinc-700 dark:border-slate-600">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">👤</span>
             <div>
               <p className="text-sm font-medium text-zinc-100 dark:text-slate-200">{user?.email || 'No disponible'}</p>
               <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Email de la cuenta</p>
@@ -374,20 +373,22 @@ export default function SecurityTab() {
           </div>
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => { setPasswordMode(passwordMode === 'view' ? 'change' : 'view'); resetEmailForm() }}
               className={`px-2 py-1 text-xs rounded-lg font-medium transition-colors ${
                 passwordMode === 'change' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-slate-600 text-zinc-300 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-500'
               }`}
             >
-              🔑
+              Contraseña
             </button>
             <button
+              type="button"
               onClick={() => { setEmailMode(emailMode === 'view' ? 'change' : 'view'); resetPasswordForm() }}
               className={`px-2 py-1 text-xs rounded-lg font-medium transition-colors ${
                 emailMode === 'change' ? 'bg-purple-600 text-white' : 'bg-gray-200 dark:bg-slate-600 text-zinc-300 dark:text-slate-300 hover:bg-gray-300 dark:hover:bg-slate-500'
               }`}
             >
-              📧
+              Correo
             </button>
           </div>
         </div>
@@ -420,7 +421,7 @@ export default function SecurityTab() {
               placeholder="Confirmar nueva"
               disabled={isChangingPassword}
             />
-            {passwordError && <p className="text-red-500 text-xs">❌ {passwordError}</p>}
+            {passwordError && <p className="text-red-500 text-xs">{passwordError}</p>}
             <div className="flex gap-2">
               <button onClick={resetPasswordForm} disabled={isChangingPassword} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-zinc-300 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
               <button
@@ -438,7 +439,7 @@ export default function SecurityTab() {
         {emailMode === 'change' && (
           <div className="mt-3 pt-3 border-t border-zinc-700 dark:border-slate-600 space-y-2">
             <p className="text-xs font-medium text-zinc-300 dark:text-slate-300">Cambiar email</p>
-            <p className="text-[10px] text-yellow-600 dark:text-yellow-400">⚠️ Se enviará confirmación al nuevo email</p>
+            <p className="text-[10px] text-yellow-600 dark:text-yellow-400">Se enviará confirmación al nuevo correo</p>
             <input
               type="email"
               value={newEmail}
@@ -455,7 +456,7 @@ export default function SecurityTab() {
               placeholder="Tu contraseña"
               disabled={isChangingEmail}
             />
-            {emailError && <p className="text-red-500 text-xs">❌ {emailError}</p>}
+            {emailError && <p className="text-red-500 text-xs">{emailError}</p>}
             <div className="flex gap-2">
               <button onClick={resetEmailForm} disabled={isChangingEmail} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-zinc-300 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
               <button
@@ -474,7 +475,6 @@ export default function SecurityTab() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">{hasPin ? '🔒' : '🔓'}</span>
             <div>
               <p className="text-sm font-medium text-zinc-100 dark:text-slate-200">PIN de Seguridad</p>
               <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
@@ -518,7 +518,7 @@ export default function SecurityTab() {
             {renderPinInput(newPin, setNewPin, newPinRefs, confirmPinRefs)}
             <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">Confirmar</p>
             {renderPinInput(confirmPin, setConfirmPin, confirmPinRefs)}
-            {error && <p className="text-red-500 text-xs text-center">❌ {error}</p>}
+            {error && <p className="text-red-500 text-xs text-center">{error}</p>}
             <div className="flex gap-2">
               <button onClick={resetForm} disabled={isProcessing} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-zinc-300 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
               <button
@@ -542,7 +542,7 @@ export default function SecurityTab() {
             {renderPinInput(newPin, setNewPin, newPinRefs, confirmPinRefs)}
             <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">Confirmar</p>
             {renderPinInput(confirmPin, setConfirmPin, confirmPinRefs)}
-            {error && <p className="text-red-500 text-xs text-center">❌ {error}</p>}
+            {error && <p className="text-red-500 text-xs text-center">{error}</p>}
             <div className="flex gap-2">
               <button onClick={resetForm} disabled={isProcessing} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-zinc-300 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
               <button
@@ -559,10 +559,10 @@ export default function SecurityTab() {
         {/* Remove PIN */}
         {mode === 'remove' && (
           <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 space-y-3">
-            <p className="text-xs text-red-600 dark:text-red-400 text-center">⚠️ Esto deshabilitará la protección</p>
+            <p className="text-xs text-red-600 dark:text-red-400 text-center">Esto deshabilitará la protección</p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">Ingresa tu PIN actual</p>
             {renderPinInput(currentPinForRemove, setCurrentPinForRemove, removePinRefs)}
-            {error && <p className="text-red-500 text-xs text-center">❌ {error}</p>}
+            {error && <p className="text-red-500 text-xs text-center">{error}</p>}
             <div className="flex gap-2">
               <button onClick={resetForm} disabled={isProcessing} className="flex-1 px-2 py-1.5 text-xs bg-gray-200 dark:bg-slate-600 text-zinc-300 dark:text-slate-300 rounded-lg font-medium">Cancelar</button>
               <button
@@ -675,10 +675,10 @@ export default function SecurityTab() {
 
       {/* Info PIN */}
       <details className="text-xs">
-        <summary className="text-blue-600 dark:text-blue-400 cursor-pointer font-medium">ℹ️ ¿Qué protege el PIN?</summary>
+        <summary className="text-blue-600 dark:text-blue-400 cursor-pointer font-medium">¿Qué protege el PIN?</summary>
         <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400 space-y-1">
-          <p><strong>🗑️ Eliminación:</strong> Gastos, compras, cortes, categorías, presupuestos</p>
-          <p><strong>✏️ Edición:</strong> Gastos, compras, cortes, categorías, presupuestos</p>
+          <p><strong>Eliminación:</strong> Gastos, compras, cortes, categorías, presupuestos</p>
+          <p><strong>Edición:</strong> Gastos, compras, cortes, categorías, presupuestos</p>
         </div>
       </details>
     </div>

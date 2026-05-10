@@ -1,6 +1,14 @@
 import React from 'react'
 import { formatCurrency } from '../utils/budgetFormatters'
 
+function labelInitials(text) {
+  const t = (text || '').trim()
+  if (!t) return '?'
+  const parts = t.split(/\s+/).filter(Boolean)
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+  return t.slice(0, 2).toUpperCase()
+}
+
 /**
  * Componente de lista de presupuestos
  */
@@ -26,7 +34,6 @@ const BudgetList = ({
   if (analysis.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-6xl mb-4">💰</div>
         <h3 className="text-xl font-bold text-zinc-400 mb-2">No hay presupuestos configurados</h3>
         <p className="text-gray-500">Crea tu primer presupuesto para comenzar a controlar tus gastos</p>
       </div>
@@ -50,19 +57,24 @@ const BudgetList = ({
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="p-2.5 bg-zinc-900 rounded-lg flex-shrink-0 shadow-sm">
-                  <span className="text-2xl">{budget.icon || '💰'}</span>
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-900 shadow-sm">
+                  <span className="text-[12px] font-bold text-zinc-400">
+                    {labelInitials(
+                      budget.categories && budget.categories.length > 1
+                        ? budget.categories.join(' ')
+                        : budget.category
+                    )}
+                  </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-zinc-100 mb-1">
-                    {budget.categories && budget.categories.length > 1 
-                      ? `💰 ${budget.categories.join(', ')}` 
+                    {budget.categories && budget.categories.length > 1
+                      ? budget.categories.join(', ')
                       : budget.category}
                   </h4>
                   {hasMultipleCategories && (
-                    <p className="text-xs text-blue-600 mb-1 font-medium flex items-center gap-1">
-                      <span>👆</span>
-                      <span>Presupuesto compartido entre {budget.categories.length} categorías - Click para ver detalle</span>
+                    <p className="text-xs text-blue-600 mb-1 font-medium">
+                      Presupuesto compartido entre {budget.categories.length} categorías — pulsa para ver el detalle
                     </p>
                   )}
                   <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -133,7 +145,7 @@ const BudgetList = ({
                     className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                     title="Editar presupuesto"
                   >
-                    ✏️
+                    <span className="text-xs font-medium">Editar</span>
                   </button>
                   <button
                     onClick={() => onDeleteBudget(
@@ -145,7 +157,7 @@ const BudgetList = ({
                     className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                     title="Eliminar presupuesto"
                   >
-                    🗑️
+                    <span className="text-xs font-medium text-red-600">Eliminar</span>
                   </button>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { formatCurrency, getCategoryIcon } from '../utils/expenseFormatters'
+import { formatCurrency } from '../utils/expenseFormatters'
 
 /**
  * Componente de estadísticas de gastos
@@ -11,8 +11,7 @@ const ExpenseStats = ({ calculations }) => {
       <h3 className="text-lg font-bold text-zinc-100 mb-3">Gastos</h3>
       <div className="grid grid-cols-2 gap-3">
         <div className={`${statCard} ring-1 ring-rose-500/15`}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">💰</span>
+          <div className="mb-1">
             <span className="text-xs font-medium text-zinc-400">Total</span>
           </div>
           <p className="text-base sm:text-lg md:text-xl font-bold text-rose-200 break-words leading-tight">
@@ -24,8 +23,7 @@ const ExpenseStats = ({ calculations }) => {
         </div>
 
         <div className={`${statCard} ring-1 ring-sky-500/15`}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">📊</span>
+          <div className="mb-1">
             <span className="text-xs font-medium text-zinc-400">Promedio</span>
           </div>
           <p className="text-base sm:text-lg md:text-xl font-bold text-sky-200 break-words leading-tight">
@@ -35,14 +33,13 @@ const ExpenseStats = ({ calculations }) => {
         </div>
 
         <div className={`${statCard} ring-1 ring-amber-500/15`}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">🏆</span>
-            <span className="text-xs font-medium text-zinc-400">Más Gastado</span>
+          <div className="mb-1">
+            <span className="text-xs font-medium text-zinc-400">Más gastado</span>
           </div>
           <p className="text-sm font-bold text-zinc-100 truncate">
             {calculations.topCategory ? (
               <>
-                {getCategoryIcon(calculations.topCategory.name)} {calculations.topCategory.name}
+                {calculations.topCategory.name}
               </>
             ) : 'N/A'}
           </p>
@@ -52,14 +49,13 @@ const ExpenseStats = ({ calculations }) => {
         </div>
 
         <div className={`${statCard} ring-1 ring-emerald-500/15`}>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">📉</span>
-            <span className="text-xs font-medium text-zinc-400">Menos Gastado</span>
+          <div className="mb-1">
+            <span className="text-xs font-medium text-zinc-400">Menos gastado</span>
           </div>
           <p className="text-sm font-bold text-zinc-100 truncate">
             {calculations.lowestCategory ? (
               <>
-                {getCategoryIcon(calculations.lowestCategory.name)} {calculations.lowestCategory.name}
+                {calculations.lowestCategory.name}
               </>
             ) : 'N/A'}
           </p>

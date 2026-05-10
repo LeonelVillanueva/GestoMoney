@@ -82,7 +82,7 @@ const CalculateExpense = ({ expenses, onDataChanged }) => {
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-zinc-100">🧮 Calcula tu Gasto</h2>
+            <h2 className="text-2xl font-bold text-zinc-100">Calcula tu gasto</h2>
             <p className="text-sm text-zinc-400 mt-1">Analiza tus gastos en un rango de fechas específico</p>
           </div>
         </div>

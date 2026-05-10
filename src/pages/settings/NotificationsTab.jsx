@@ -6,7 +6,7 @@ export default function NotificationsTab({ settings, onSettingChange }) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">🔔 Notificaciones</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Notificaciones</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-zinc-800/50 dark:bg-slate-700 rounded-lg">
             <div>

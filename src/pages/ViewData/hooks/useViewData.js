@@ -48,7 +48,7 @@ export const useViewData = (onDataChanged) => {
     const handleDataChange = async (event) => {
       // Verificar que estamos en la ruta correcta
       if (window.location.pathname !== '/view-data') {
-        logger.debug('⚠️ ViewData: Evento recibido pero no estamos en /view-data, ignorando')
+        logger.debug('ViewData: evento recibido fuera de /view-data, ignorando')
         return
       }
       
@@ -71,7 +71,7 @@ export const useViewData = (onDataChanged) => {
       }
     }
 
-    logger.debug('📡 ViewData: Configurando listeners de eventos para ruta:', window.location.pathname)
+    logger.debug('ViewData: configurando listeners para ruta:', window.location.pathname)
     
     // Escuchar eventos de cambio de datos (CustomEvent)
     window.addEventListener('gastosDataChanged', handleDataChange)
@@ -81,7 +81,7 @@ export const useViewData = (onDataChanged) => {
 
     // Limpiar los listeners al desmontar
     return () => {
-      logger.debug('🧹 ViewData: Limpiando listeners de eventos')
+      logger.debug('ViewData: limpiando listeners de eventos')
       window.removeEventListener('gastosDataChanged', handleDataChange)
       window.removeEventListener('storage', handleStorageChange)
     }
@@ -144,7 +144,7 @@ export const useViewData = (onDataChanged) => {
       es_entrada: item.es_entrada || false,
       moneda_original: item.moneda_original || 'LPS'
     })
-    logger.debug('✅ ViewData: Formulario de edición inicializado con fecha:', item.fecha)
+    logger.debug('ViewData: formulario de edición inicializado con fecha:', item.fecha)
   }, [])
 
   // Cancelar edición
@@ -171,7 +171,7 @@ export const useViewData = (onDataChanged) => {
           es_entrada: editForm.es_entrada,
           moneda_original: editForm.moneda_original
         })
-        notifications.showSync(updateResult?.queued ? 'Sin conexión: actualización de gasto pendiente.' : '✅ Gasto actualizado correctamente', updateResult?.queued ? 'warning' : 'success')
+        notifications.showSync(updateResult?.queued ? 'Sin conexión: actualización de gasto pendiente.' : 'Gasto actualizado correctamente', updateResult?.queued ? 'warning' : 'success')
       } else if (editingItem.type === 'supermercado') {
         // Actualizar compra de supermercado
         const updateResult = await database.updateSupermarketPurchase(editingItem.id, {
@@ -180,7 +180,7 @@ export const useViewData = (onDataChanged) => {
           descripcion: editForm.descripcion,
           supermercado: editForm.supermercado
         })
-        notifications.showSync(updateResult?.queued ? 'Sin conexión: actualización de compra pendiente.' : '✅ Compra de supermercado actualizada correctamente', updateResult?.queued ? 'warning' : 'success')
+        notifications.showSync(updateResult?.queued ? 'Sin conexión: actualización de compra pendiente.' : 'Compra de supermercado actualizada correctamente', updateResult?.queued ? 'warning' : 'success')
       } else if (editingItem.type === 'cortes') {
         // Actualizar corte
         const updateResult = await database.updateCut(editingItem.id, {
@@ -188,7 +188,7 @@ export const useViewData = (onDataChanged) => {
           tipo_corte: editForm.tipo_corte,
           descripcion: `Corte: ${editForm.tipo_corte}`
         })
-        notifications.showSync(updateResult?.queued ? 'Sin conexión: actualización de corte pendiente.' : '✅ Corte actualizado correctamente', updateResult?.queued ? 'warning' : 'success')
+        notifications.showSync(updateResult?.queued ? 'Sin conexión: actualización de corte pendiente.' : 'Corte actualizado correctamente', updateResult?.queued ? 'warning' : 'success')
       }
 
       // Recargar datos
@@ -201,7 +201,7 @@ export const useViewData = (onDataChanged) => {
       cancelEdit()
     } catch (error) {
       logger.error('Error updating item:', error)
-      notifications.showSync('❌ Error al actualizar el registro', 'error')
+      notifications.showSync('Error al actualizar el registro', 'error')
     }
   }, [editingItem, editForm, getOrCreateCategoryId, loadAllData, onDataChanged, cancelEdit])
 
@@ -222,13 +222,13 @@ export const useViewData = (onDataChanged) => {
     try {
       if (type === 'gastos') {
         const deleteResult = await database.deleteExpense(id)
-        notifications.showSync(deleteResult?.queued ? 'Sin conexión: eliminación de gasto pendiente.' : '✅ Gasto eliminado correctamente', deleteResult?.queued ? 'warning' : 'success')
+        notifications.showSync(deleteResult?.queued ? 'Sin conexión: eliminación de gasto pendiente.' : 'Gasto eliminado correctamente', deleteResult?.queued ? 'warning' : 'success')
       } else if (type === 'supermercado') {
         const deleteResult = await database.deleteSupermarketPurchase(id)
-        notifications.showSync(deleteResult?.queued ? 'Sin conexión: eliminación de compra pendiente.' : '✅ Compra de supermercado eliminada correctamente', deleteResult?.queued ? 'warning' : 'success')
+        notifications.showSync(deleteResult?.queued ? 'Sin conexión: eliminación de compra pendiente.' : 'Compra de supermercado eliminada correctamente', deleteResult?.queued ? 'warning' : 'success')
       } else if (type === 'cortes') {
         const deleteResult = await database.deleteCut(id)
-        notifications.showSync(deleteResult?.queued ? 'Sin conexión: eliminación de corte pendiente.' : '✅ Corte eliminado correctamente', deleteResult?.queued ? 'warning' : 'success')
+        notifications.showSync(deleteResult?.queued ? 'Sin conexión: eliminación de corte pendiente.' : 'Corte eliminado correctamente', deleteResult?.queued ? 'warning' : 'success')
       }
 
       // Recargar datos
@@ -238,7 +238,7 @@ export const useViewData = (onDataChanged) => {
       onDataChanged?.({ source: 'view-data', scope: 'expenses' })
     } catch (error) {
       logger.error('Error deleting item:', error)
-      notifications.showSync('❌ Error al eliminar el registro', 'error')
+      notifications.showSync('Error al eliminar el registro', 'error')
     }
   }, [loadAllData, onDataChanged])
 

@@ -75,13 +75,13 @@ const Reports = ({ expenses, onDataChanged }) => {
       const success = pdfGenerator.generateAndDownload(reportType, data, filename)
       
       if (success) {
-        notifications.showSync('✅ Reporte generado exitosamente', 'success')
+        notifications.showSync('Reporte generado correctamente', 'success')
       } else {
-        notifications.showSync('❌ Error al generar el reporte', 'error')
+        notifications.showSync('Error al generar el reporte', 'error')
       }
     } catch (error) {
       console.error('Error generating report:', error)
-      notifications.showSync('❌ Error al generar el reporte: ' + error.message, 'error')
+      notifications.showSync('Error al generar el reporte: ' + error.message, 'error')
     } finally {
       setLoading(false)
     }
@@ -111,10 +111,10 @@ const Reports = ({ expenses, onDataChanged }) => {
       const filename = `${template.name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.pdf`
       
       doc.save(filename)
-      notifications.showSync('✅ Reporte generado con plantilla exitosamente', 'success')
+      notifications.showSync('Reporte generado con plantilla correctamente', 'success')
     } catch (error) {
       console.error('Error generating template report:', error)
-      notifications.showSync('❌ Error al generar reporte con plantilla: ' + error.message, 'error')
+      notifications.showSync('Error al generar reporte con plantilla: ' + error.message, 'error')
     } finally {
       setLoading(false)
     }
@@ -147,21 +147,11 @@ const Reports = ({ expenses, onDataChanged }) => {
     return descriptions[type] || ''
   }
 
-  const getReportIcon = (type) => {
-    const icons = {
-      monthly: '📅',
-      category: '📊',
-      budget: '💰',
-      period: '📈'
-    }
-    return icons[type] || '📄'
-  }
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="glass-card rounded-2xl p-6">
-        <h2 className="text-3xl font-bold text-zinc-100 mb-2">📄 Reportes</h2>
+        <h2 className="text-3xl font-bold text-zinc-100 mb-2">Reportes</h2>
         <p className="text-zinc-400">Genera reportes detallados en PDF de tus gastos y presupuestos</p>
       </div>
 
@@ -176,7 +166,7 @@ const Reports = ({ expenses, onDataChanged }) => {
                 : 'text-zinc-400 hover:text-zinc-100'
             }`}
           >
-            📊 Reportes Estándar
+            Reportes estándar
           </button>
           <button
             onClick={() => setActiveTab('templates')}
@@ -186,7 +176,7 @@ const Reports = ({ expenses, onDataChanged }) => {
                 : 'text-zinc-400 hover:text-zinc-100'
             }`}
           >
-            🎨 Plantillas Personalizadas
+            Plantillas personalizadas
           </button>
         </div>
 
@@ -194,13 +184,13 @@ const Reports = ({ expenses, onDataChanged }) => {
           <>
             {/* Tipo de Reporte */}
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-zinc-100 mb-4">📋 Selecciona el Tipo de Reporte</h3>
+              <h3 className="text-xl font-bold text-zinc-100 mb-4">Tipo de reporte</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { id: 'monthly', name: 'Reporte Mensual', icon: '📅' },
-                  { id: 'category', name: 'Por Categoría', icon: '📊' },
-                  { id: 'budget', name: 'Presupuestos', icon: '💰' },
-                  { id: 'period', name: 'Período Personalizado', icon: '📈' }
+                  { id: 'monthly', name: 'Reporte mensual' },
+                  { id: 'category', name: 'Por categoría' },
+                  { id: 'budget', name: 'Presupuestos' },
+                  { id: 'period', name: 'Período personalizado' }
                 ].map((type) => (
                   <button
                     key={type.id}
@@ -212,7 +202,6 @@ const Reports = ({ expenses, onDataChanged }) => {
                     }`}
                   >
                     <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{type.icon}</span>
                       <div>
                         <div className="font-medium text-zinc-100">{type.name}</div>
                         <div className="text-sm text-zinc-400">{getReportDescription(type.id)}</div>
@@ -225,7 +214,7 @@ const Reports = ({ expenses, onDataChanged }) => {
 
             {/* Configuración del Reporte */}
             <div className="mb-6">
-              <h3 className="text-xl font-bold text-zinc-100 mb-4">⚙️ Configuración del Reporte</h3>
+              <h3 className="text-xl font-bold text-zinc-100 mb-4">Configuración del reporte</h3>
               
               {reportType === 'monthly' && (
                 <div>
@@ -281,10 +270,7 @@ const Reports = ({ expenses, onDataChanged }) => {
                       <span>Generando...</span>
                     </div>
                   ) : (
-                    <div className="flex items-center space-x-2">
-                      <span>📄</span>
-                      <span>Generar Reporte PDF</span>
-                    </div>
+                    <span>Generar reporte PDF</span>
                   )}
                 </button>
                 
@@ -293,17 +279,17 @@ const Reports = ({ expenses, onDataChanged }) => {
                     try {
                       const testResult = pdfGenerator.testGenerator()
                       if (testResult) {
-                        notifications.showSync('✅ Generador de PDF funciona correctamente', 'success')
+                        notifications.showSync('Generador de PDF funciona correctamente', 'success')
                       } else {
-                        notifications.showSync('❌ Error en el generador de PDF', 'error')
+                        notifications.showSync('Error en el generador de PDF', 'error')
                       }
                     } catch (error) {
-                      notifications.showSync('❌ Error en el generador: ' + error.message, 'error')
+                      notifications.showSync('Error en el generador: ' + error.message, 'error')
                     }
                   }}
                   className="bg-zinc-800/500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-medium transition-all"
                 >
-                  🧪 Probar Generador
+                  Probar generador
                 </button>
               </div>
             </div>
@@ -317,11 +303,10 @@ const Reports = ({ expenses, onDataChanged }) => {
 
       {/* Vista Previa de Datos */}
       <div className="glass-card rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-zinc-100 mb-4">📊 Vista Previa de Datos</h3>
+        <h3 className="text-xl font-bold text-zinc-100 mb-4">Vista previa de datos</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-4 bg-zinc-800/50 rounded-xl">
-            <div className="text-3xl mb-2">💰</div>
             <div className="text-2xl font-bold text-blue-600">
               {formatCurrency(expenses.reduce((sum, expense) => sum + expense.monto, 0))}
             </div>
@@ -329,13 +314,11 @@ const Reports = ({ expenses, onDataChanged }) => {
           </div>
           
           <div className="text-center p-4 bg-zinc-800/50 rounded-xl">
-            <div className="text-3xl mb-2">📝</div>
             <div className="text-2xl font-bold text-green-600">{expenses.length}</div>
             <div className="text-sm text-zinc-400">Transacciones</div>
           </div>
           
           <div className="text-center p-4 bg-zinc-800/50 rounded-xl">
-            <div className="text-3xl mb-2">📊</div>
             <div className="text-2xl font-bold text-purple-600">{budgets.length}</div>
             <div className="text-sm text-zinc-400">Presupuestos</div>
           </div>
@@ -344,38 +327,38 @@ const Reports = ({ expenses, onDataChanged }) => {
 
       {/* Información sobre Reportes */}
       <div className="glass-card rounded-2xl p-6">
-        <h3 className="text-xl font-bold text-zinc-100 mb-4">ℹ️ Información sobre los Reportes</h3>
+        <h3 className="text-xl font-bold text-zinc-100 mb-4">Información sobre los reportes</h3>
         <div className="space-y-4 text-sm text-zinc-400">
           <div className="flex items-start space-x-3">
-            <span className="text-blue-500 mt-1">📅</span>
+            <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" aria-hidden />
             <div>
               <strong>Reporte Mensual:</strong> Incluye resumen general, gastos por categoría, estado de presupuestos y análisis detallado del mes seleccionado.
             </div>
           </div>
           
           <div className="flex items-start space-x-3">
-            <span className="text-green-500 mt-1">📊</span>
+            <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-500" aria-hidden />
             <div>
               <strong>Por Categoría:</strong> Análisis detallado de gastos agrupados por categoría con comparación de presupuestos y porcentajes de uso.
             </div>
           </div>
           
           <div className="flex items-start space-x-3">
-            <span className="text-yellow-500 mt-1">💰</span>
+            <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-amber-400" aria-hidden />
             <div>
               <strong>Presupuestos:</strong> Estado actual de todos los presupuestos con seguimiento de gastos, alertas y análisis de cumplimiento.
             </div>
           </div>
           
           <div className="flex items-start space-x-3">
-            <span className="text-purple-500 mt-1">📈</span>
+            <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-violet-500" aria-hidden />
             <div>
               <strong>Período Personalizado:</strong> Reporte detallado para un rango de fechas específico con todos los gastos listados cronológicamente.
             </div>
           </div>
           
           <div className="flex items-start space-x-3">
-            <span className="text-pink-500 mt-1">🎨</span>
+            <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-rose-400" aria-hidden />
             <div>
               <strong>Plantillas Personalizadas:</strong> Crea y personaliza tus propios reportes con secciones, estilos y configuraciones únicas.
             </div>

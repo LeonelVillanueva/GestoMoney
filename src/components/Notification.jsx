@@ -30,27 +30,19 @@ const Notification = ({ message, type = 'info', onClose }) => {
 
   const { boxClass, accent } = getTypeShapeAndStyles()
 
-  const getIcon = () => {
+  const dot = 'inline-block h-2 w-2 shrink-0 rounded-full'
+  const getIconEl = () => {
     switch (type) {
       case 'success':
-        return '✅'
+        return <span className={`${dot} bg-emerald-400`} aria-hidden />
       case 'error':
-        return '❌'
+        return <span className={`${dot} bg-red-400`} aria-hidden />
       case 'warning':
-        return '⚠️'
+        return <span className={`${dot} bg-amber-400`} aria-hidden />
       default:
-        return 'ℹ️'
+        return <span className={`${dot} bg-sky-400`} aria-hidden />
     }
   }
-
-  const hasEmojiAtStart = (text) => {
-    if (!text || text.length === 0) return false
-    const emojiPattern = /^[\u{1F300}-\u{1F9FF}]|^[\u{2600}-\u{26FF}]|^[\u{2700}-\u{27BF}]|^[\u{1F600}-\u{1F64F}]|^[\u{1F680}-\u{1F6FF}]|^[\u{1F1E0}-\u{1F1FF}]|^[\u{1F900}-\u{1F9FF}]|^[\u{1FA00}-\u{1FA6F}]|^[\u{1FA70}-\u{1FAFF}]/u
-    return emojiPattern.test(text.trim())
-  }
-
-  const shouldShowIcon = !hasEmojiAtStart(message)
-  const icon = shouldShowIcon ? getIcon() : null
 
   return (
     <div
@@ -64,7 +56,7 @@ const Notification = ({ message, type = 'info', onClose }) => {
         aria-hidden
       />
       <div className="flex items-center gap-3 p-3.5 pt-3.5">
-        {icon && <span className="shrink-0 text-xl leading-none opacity-90">{icon}</span>}
+        <span className="flex shrink-0 items-center pt-0.5">{getIconEl()}</span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium leading-snug text-zinc-100">{message}</p>
         </div>

@@ -76,19 +76,12 @@ const ProgressNotification = ({
   const isIngreso = expenseData?.es_entrada || false
   const totals = totalsData || {}
 
-  const getCategoryIcon = (category) => {
-    const iconMap = {
-      'Comida': '🍽️',
-      'Transporte': '🚗',
-      'Entretenimiento': '🎬',
-      'Salud': '🏥',
-      'Educación': '📚',
-      'Ropa': '👕',
-      'Hogar': '🏠',
-      'Tecnología': '💻',
-      'Otros': '📦'
-    }
-    return iconMap[category] || '📦'
+  const categoryInitials = (category) => {
+    const c = (category || '').trim()
+    if (!c) return '?'
+    const parts = c.split(/\s+/).filter(Boolean)
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+    return c.slice(0, 2).toUpperCase()
   }
 
   // Versión móvil simplificada
@@ -104,8 +97,7 @@ const ProgressNotification = ({
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <span className="text-2xl">{isIngreso ? '💰' : '💸'}</span>
-              <h3 className="font-bold text-zinc-100 text-sm">{isIngreso ? 'Ingreso Agregado' : 'Gasto Agregado'}</h3>
+              <h3 className="font-bold text-zinc-100 text-sm">{isIngreso ? 'Ingreso agregado' : 'Gasto agregado'}</h3>
             </div>
             <button
               onClick={onClose}
@@ -121,7 +113,9 @@ const ProgressNotification = ({
           {/* Información del gasto - Móvil simplificado */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <span className="text-xl">{getCategoryIcon(expenseData.category)}</span>
+              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-[11px] font-bold text-zinc-400">
+                {categoryInitials(expenseData.category)}
+              </span>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-zinc-100 text-sm truncate">{expenseData.category}</p>
                 <p className="text-xs text-zinc-400 truncate">{expenseData.description}</p>
@@ -147,11 +141,11 @@ const ProgressNotification = ({
             {/* Totales simplificados - Móvil */}
             <div className="space-y-2 pt-2 border-t border-zinc-700/80">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-400">💸 Gastos:</span>
+                <span className="text-zinc-400">Gastos:</span>
                 <span className="font-bold text-red-400">{formatCurrency(totals.totalGastosNuevo || 0)}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-zinc-400">💰 Ingresos:</span>
+                <span className="text-zinc-400">Ingresos:</span>
                 <span className="font-bold text-emerald-400">{formatCurrency(totals.totalIngresosNuevo || 0)}</span>
               </div>
               <div className="flex items-center justify-between text-sm bg-zinc-800/60 rounded p-2 border border-zinc-700/80">
@@ -219,7 +213,6 @@ const ProgressNotification = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <span className="text-2xl">{isIngreso ? '💰' : '💸'}</span>
             <h3 className="font-bold text-zinc-100">{isIngreso ? 'Ingreso agregado' : 'Gasto agregado'}</h3>
           </div>
           <button
@@ -237,7 +230,9 @@ const ProgressNotification = ({
         {/* Información del gasto */}
         <div className="space-y-3">
           <div className="flex items-center space-x-3">
-            <span className="text-2xl">{getCategoryIcon(expenseData.category)}</span>
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-800 text-[11px] font-bold text-zinc-400">
+              {categoryInitials(expenseData.category)}
+            </span>
             <div>
               <p className="font-medium text-zinc-100">{expenseData.category}</p>
               <p className="text-sm text-zinc-400">{expenseData.description}</p>
@@ -268,20 +263,14 @@ const ProgressNotification = ({
               <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Desglose anterior</h4>
               
               <div className="flex items-center justify-between text-sm bg-red-500/10 rounded-lg p-2 border border-red-500/20">
-                <span className="text-zinc-300 flex items-center gap-2">
-                  <span>💸</span>
-                  <span>Total gastos</span>
-                </span>
+                <span className="text-zinc-300">Total gastos</span>
                 <span className="font-bold text-red-400">
                   {formatCurrency(totals.totalGastosAnterior || 0)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-sm bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
-                <span className="text-zinc-300 flex items-center gap-2">
-                  <span>💰</span>
-                  <span>Total ingresos</span>
-                </span>
+                <span className="text-zinc-300">Total ingresos</span>
                 <span className="font-bold text-emerald-400">
                   {formatCurrency(totals.totalIngresosAnterior || 0)}
                 </span>
@@ -305,20 +294,14 @@ const ProgressNotification = ({
               <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Desglose nuevo</h4>
               
               <div className="flex items-center justify-between text-sm bg-red-500/10 rounded-lg p-2 border border-red-500/20">
-                <span className="text-zinc-300 flex items-center gap-2">
-                  <span>💸</span>
-                  <span>Total gastos</span>
-                </span>
+                <span className="text-zinc-300">Total gastos</span>
                 <span className="font-bold text-red-400">
                   {formatCurrency(totals.totalGastosNuevo || 0)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-sm bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
-                <span className="text-zinc-300 flex items-center gap-2">
-                  <span>💰</span>
-                  <span>Total ingresos</span>
-                </span>
+                <span className="text-zinc-300">Total ingresos</span>
                 <span className="font-bold text-emerald-400">
                   {formatCurrency(totals.totalIngresosNuevo || 0)}
                 </span>

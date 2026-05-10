@@ -2,61 +2,35 @@
  * Funciones auxiliares para ViewData
  */
 
+function labelInitials(text) {
+  const t = (text || '').trim()
+  if (!t) return '?'
+  const parts = t.split(/\s+/).filter(Boolean)
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+  return t.slice(0, 2).toUpperCase()
+}
+
 /**
- * Obtiene el ícono de una categoría
- * @param {Object|string} expense - Objeto de gasto o nombre de categoría
- * @returns {string} Emoji del ícono
+ * @param {Object|string} expense - Gasto o nombre de categoría
+ * @returns {string} Iniciales para mostrar en lista
  */
 export const getCategoryIcon = (expense) => {
-  // Si el expense tiene categoria_icon, usarlo directamente
-  if (expense && expense.categoria_icon) {
-    return expense.categoria_icon
-  }
-  // Si solo se pasa el nombre de la categoría (backward compatibility)
-  if (typeof expense === 'string') {
-    const icons = {
-      'Comida': '🍽️',
-      'Transporte': '🚌',
-      'Entretenimiento': '🎮',
-      'Regalos': '🎁',
-      'Utilidades': '⚡',
-      'Salud': '🏥',
-      'Educación': '📚',
-      'Tecnología': '💻',
-      'Otros': '📦'
-    }
-    return icons[expense] || '📦'
-  }
-  // Fallback
-  return '📦'
+  const name =
+    typeof expense === 'string' ? expense : expense?.categoria_nombre || expense?.categoria || ''
+  return labelInitials(name)
 }
 
 /**
- * Obtiene el ícono de un supermercado
- * @param {string} supermercado - Nombre del supermercado
- * @returns {string} Emoji del ícono
+ * @param {string} supermercado
+ * @returns {string} Iniciales
  */
-export const getSupermarketIcon = (supermercado) => {
-  return supermercado === 'La Colonia' ? '🏪' : '🏬'
-}
+export const getSupermarketIcon = (supermercado) => labelInitials(supermercado)
 
 /**
- * Obtiene el ícono de un tipo de corte
- * @param {string} tipoCorte - Tipo de corte
- * @returns {string} Emoji del ícono
+ * @param {string} tipoCorte
+ * @returns {string} Iniciales
  */
-export const getCutIcon = (tipoCorte) => {
-  const icons = {
-    'Corte básico': '💇',
-    'Corte y peinado': '💇‍♂️',
-    'Corte + barba': '🧔',
-    'Corte + tinte': '🎨',
-    'Corte + mechas': '🌈',
-    'Tratamiento capilar': '💆',
-    'Otros': '✂️'
-  }
-  return icons[tipoCorte] || '💇'
-}
+export const getCutIcon = (tipoCorte) => labelInitials(tipoCorte)
 
 /**
  * Descarga un archivo CSV

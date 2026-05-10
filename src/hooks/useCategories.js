@@ -30,7 +30,7 @@ export default function useCategories(active) {
       }
       await loadCategories()
       setNewCategory({ name: '', color: '#3498db', icon: '💰' })
-      notifications.showSync('✅ Categoría agregada exitosamente', 'success')
+      notifications.showSync('Categoría agregada correctamente', 'success')
     } catch (error) {
       console.error('Error adding category:', error)
       notifications.showSync('Error al agregar categoría', 'error')
@@ -57,7 +57,7 @@ export default function useCategories(active) {
         return
       }
       await loadCategories()
-      notifications.showSync('✅ Categoría eliminada', 'success')
+      notifications.showSync('Categoría eliminada', 'success')
     } catch (error) {
       console.error('Error deleting category:', error)
       notifications.showSync('Error al eliminar categoría', 'error')
@@ -75,7 +75,7 @@ export default function useCategories(active) {
       }
       await loadCategories()
       setEditingCategory(null)
-      notifications.showSync('✅ Categoría actualizada', 'success')
+      notifications.showSync('Categoría actualizada', 'success')
     } catch (error) {
       console.error('Error updating category:', error)
       notifications.showSync('Error al actualizar categoría', 'error')

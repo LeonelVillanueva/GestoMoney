@@ -28,7 +28,7 @@ class ExchangeApiService {
 
       if (response.status === 501) {
         if (!this.serverNotConfiguredWarned) {
-          logger.warn('⚠️ Servicio de tasas no configurado en el servidor')
+          logger.warn('Servicio de tasas no configurado en el servidor')
           this.serverNotConfiguredWarned = true
         }
         return null
@@ -53,7 +53,7 @@ class ExchangeApiService {
 
       throw new Error('Invalid API response format')
     } catch (error) {
-      logger.error('❌ Error obteniendo tasa de cambio desde API:', error)
+      logger.error('Error obteniendo tasa de cambio desde API:', error)
       return null
     }
   }
@@ -132,11 +132,11 @@ class ExchangeApiService {
 
     const savedRate = await this.getLastSavedRate()
     if (savedRate) {
-      logger.warn('⚠️ Usando última tasa guardada debido a fallo de API')
+      logger.warn('Usando última tasa guardada debido a fallo de API')
       return savedRate
     }
 
-    logger.warn('⚠️ Usando tasa por defecto (26.18)')
+    logger.warn('Usando tasa por defecto (26.18)')
     return 26.18
   }
 

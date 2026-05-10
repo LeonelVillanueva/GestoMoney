@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { createAuthServerClient } from '../../lib/authServerClient.js'
 import {
+  appendClearTrustedDeviceCookie,
   clearAuthCookies,
   getAuthTokensFromRequest,
+  getTrustedDeviceTokenFromRequest,
   isSameOriginRequest,
   safeAuthUser,
   setAuthCookies
@@ -14,8 +16,10 @@ import {
   encryptSensitive,
   extractClientIp,
   generateTotpSecret,
+  generateTrustTokenRaw,
   hashClientIp,
   hashDeviceFingerprint,
+  hashTrustToken,
   verifyTotpCode
 } from '../../lib/auth2fa.js'
 import { getServerSessionFromCookies } from '../../lib/authSessionUser.js'
@@ -128,6 +132,40 @@ async function handleLogin(req, res) {
       .maybeSingle()
 
     if (Boolean(mfaSettings?.enabled)) {
+      const trustedExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+      const trustCookieRaw = getTrustedDeviceTokenFromRequest(req)
+      const trustCookieHash = trustCookieRaw ? hashTrustToken(trustCookieRaw) : null
+
+      if (trustCookieHash) {
+        const { data: trustedByCookie } = await userScopedClient
+          .from('trusted_devices')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('trust_token_hash', trustCookieHash)
+          .gt('expires_at', nowIso)
+          .maybeSingle()
+
+        if (trustedByCookie?.id) {
+          await userScopedClient
+            .from('trusted_devices')
+            .update({
+              last_seen: nowIso,
+              expires_at: trustedExpiresAt,
+              user_agent: userAgentStr || null,
+              ip_address: clientIp || null,
+              device_type: deviceType,
+              device_hash: fingerprintHash,
+              ip_hash: ipHash
+            })
+            .eq('id', trustedByCookie.id)
+
+          clearLoginFailures(req)
+          setAuthCookies(res, data.session, process.env)
+          return sendJson(res, 200, { ok: true, user: safeAuthUser(data.session) })
+        }
+      }
+
       const [{ data: trustedDevice }, { data: trustedIpDevice }] = await Promise.all([
         userScopedClient
           .from('trusted_devices')
@@ -184,7 +222,8 @@ async function handleLogin(req, res) {
         })
       }
 
-      const trustedExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      const rawTrustRotated = generateTrustTokenRaw()
+      const rotatedTrustHash = hashTrustToken(rawTrustRotated)
 
       if (trustedByExactDeviceAndIp) {
         await userScopedClient
@@ -194,24 +233,29 @@ async function handleLogin(req, res) {
             expires_at: trustedExpiresAt,
             user_agent: userAgentStr || null,
             ip_address: clientIp || null,
-            device_type: deviceType
+            device_type: deviceType,
+            trust_token_hash: rotatedTrustHash
           })
           .eq('id', trustedDevice.id)
       } else {
-        // Si la IP ya es de confianza, permitimos el acceso y registramos el nuevo dispositivo.
         await userScopedClient
           .from('trusted_devices')
-          .upsert({
-            user_id: userId,
+          .update({
             device_hash: fingerprintHash,
             ip_hash: ipHash,
+            trust_token_hash: rotatedTrustHash,
             last_seen: nowIso,
             expires_at: trustedExpiresAt,
             user_agent: userAgentStr || null,
             ip_address: clientIp || null,
             device_type: deviceType
-          }, { onConflict: 'user_id,device_hash,ip_hash' })
+          })
+          .eq('id', trustedIpDevice.id)
       }
+
+      clearLoginFailures(req)
+      setAuthCookies(res, data.session, process.env, rawTrustRotated)
+      return sendJson(res, 200, { ok: true, user: safeAuthUser(data.session) })
     }
   } catch (authError) {
     console.error('[auth/login] Error interno en flujo de login:', authError)
@@ -283,12 +327,14 @@ async function handle2faStatus(req, res) {
   const deviceFp = q.get('deviceFingerprint') || null
   const currentFpHash = deviceFp ? hashDeviceFingerprint(deviceFp) : null
   const currentIpHash = hashClientIp(extractClientIp(req))
+  const trustCookieRaw = getTrustedDeviceTokenFromRequest(req)
+  const cookieTrustHash = trustCookieRaw ? hashTrustToken(trustCookieRaw) : null
 
   const [mfaResult, trustedResult] = await Promise.all([
     serverSession.supabase.from('user_mfa_totp').select('enabled, updated_at').eq('user_id', serverSession.user.id).maybeSingle(),
     serverSession.supabase
       .from('trusted_devices')
-      .select('id, last_seen, expires_at, user_agent, ip_address, device_type, device_hash, ip_hash')
+      .select('id, last_seen, expires_at, user_agent, ip_address, device_type, device_hash, ip_hash, trust_token_hash')
       .eq('user_id', serverSession.user.id)
       .order('last_seen', { ascending: false })
       .limit(50)
@@ -302,7 +348,8 @@ async function handle2faStatus(req, res) {
     ipAddress: row.ip_address,
     deviceType: row.device_type,
     isThisDevice: Boolean(
-      currentFpHash && row.device_hash === currentFpHash && row.ip_hash === currentIpHash
+      (cookieTrustHash && row.trust_token_hash === cookieTrustHash) ||
+      (currentFpHash && row.device_hash === currentFpHash && row.ip_hash === currentIpHash)
     )
   }))
   return sendJson(res, 200, {
@@ -388,10 +435,13 @@ async function handle2faVerify(req, res) {
   const displayIp = extractClientIp(req)
   const userAgentForStore = String(body?.userAgent || req.headers?.['user-agent'] || '').slice(0, 512)
   const typeForStore = deviceTypeFromUserAgent(userAgentForStore)
+  const rawTrustToken = generateTrustTokenRaw()
+  const trustTokHash = hashTrustToken(rawTrustToken)
   await adminClient.from('trusted_devices').upsert({
     user_id: challenge.user_id,
     device_hash: requestDeviceHash,
     ip_hash: requestIpHash,
+    trust_token_hash: trustTokHash,
     last_seen: new Date().toISOString(),
     expires_at: expiresAt,
     user_agent: userAgentForStore || null,
@@ -400,7 +450,7 @@ async function handle2faVerify(req, res) {
   }, { onConflict: 'user_id,device_hash,ip_hash' })
   await adminClient.from('auth_challenges').update({ consumed_at: new Date().toISOString(), attempts: (challenge.attempts || 0) + 1 }).eq('id', challengeId)
 
-  setAuthCookies(res, sessionData.session)
+  setAuthCookies(res, sessionData.session, process.env, rawTrustToken)
   return sendJson(res, 200, {
     ok: true,
     user: {
@@ -447,6 +497,7 @@ async function handle2faDisable(req, res) {
   if (disableError) return sendJson(res, 500, { error: 'No se pudo desactivar 2FA' })
   await serverSession.supabase.from('trusted_devices').delete().eq('user_id', serverSession.user.id)
   await serverSession.supabase.from('auth_challenges').delete().eq('user_id', serverSession.user.id).eq('consumed_at', null)
+  appendClearTrustedDeviceCookie(res)
   return sendJson(res, 200, { ok: true, enabled: false })
 }
 
@@ -483,6 +534,17 @@ async function handleTrustedDeviceRevoke(req, res) {
   if (!id) return sendJson(res, 400, { error: 'Falta el identificador del dispositivo' })
   const serverSession = await getServerSessionFromCookies(req, res)
   if (!serverSession?.user) return sendJson(res, 401, { error: 'No autenticado' })
+
+  const { data: rowBefore } = await serverSession.supabase
+    .from('trusted_devices')
+    .select('trust_token_hash')
+    .eq('id', id)
+    .eq('user_id', serverSession.user.id)
+    .maybeSingle()
+
+  const trustCookieRaw = getTrustedDeviceTokenFromRequest(req)
+  const cookieTrustHash = trustCookieRaw ? hashTrustToken(trustCookieRaw) : null
+
   const { data, error } = await serverSession.supabase
     .from('trusted_devices')
     .delete()
@@ -494,6 +556,10 @@ async function handleTrustedDeviceRevoke(req, res) {
     return sendJson(res, 500, { error: 'No se pudo revocar el dispositivo' })
   }
   if (!data?.length) return sendJson(res, 404, { error: 'Dispositivo no encontrado' })
+
+  if (cookieTrustHash && rowBefore?.trust_token_hash === cookieTrustHash) {
+    appendClearTrustedDeviceCookie(res)
+  }
   return sendJson(res, 200, { ok: true })
 }
 

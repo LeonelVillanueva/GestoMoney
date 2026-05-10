@@ -50,14 +50,14 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
   }, [])
 
   const loadTemplates = () => {
-    logger.log('🔍 Cargando plantillas...')
+    logger.log('Cargando plantillas...')
     const allTemplates = templateEngine.getTemplates()
-    logger.log('📋 Plantillas cargadas:', allTemplates)
+    logger.log('Plantillas cargadas:', allTemplates)
     setTemplates(allTemplates)
   }
 
   const handleCreateTemplate = () => {
-    logger.log('✏️ Abriendo editor de plantillas...')
+    logger.log('Abriendo editor de plantillas...')
     setEditingTemplate(null)
     setTemplateForm({
       name: '',
@@ -86,9 +86,9 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
         ]
       }
     })
-    logger.log('📝 Formulario inicializado')
+    logger.log('Formulario inicializado')
     setShowEditor(true)
-    logger.log('✅ Editor abierto')
+    logger.log('Editor abierto')
   }
 
   const handleEditTemplate = (template) => {
@@ -112,10 +112,10 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
     try {
       if (editingTemplate) {
         templateEngine.updateTemplate(editingTemplate.id, templateForm)
-        notifications.showSync('✅ Plantilla actualizada exitosamente', 'success')
+        notifications.showSync('Plantilla actualizada correctamente', 'success')
       } else {
         templateEngine.createTemplate(templateForm)
-        notifications.showSync('✅ Plantilla creada exitosamente', 'success')
+        notifications.showSync('Plantilla creada correctamente', 'success')
       }
       
       loadTemplates()
@@ -123,7 +123,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
       setEditingTemplate(null)
     } catch (error) {
       logger.error('Error saving template:', error)
-      notifications.showSync('❌ Error al guardar plantilla', 'error')
+      notifications.showSync('Error al guardar plantilla', 'error')
     }
   }
 
@@ -149,11 +149,11 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
   const confirmDelete = useCallback(() => {
     try {
       templateEngine.deleteTemplate(deleteModal.templateId)
-      notifications.showSync('✅ Plantilla eliminada', 'success')
+      notifications.showSync('Plantilla eliminada', 'success')
       loadTemplates()
     } catch (error) {
       logger.error('Error deleting template:', error)
-      notifications.showSync('❌ Error al eliminar plantilla', 'error')
+      notifications.showSync('Error al eliminar plantilla', 'error')
     }
     closeDeleteModal()
   }, [deleteModal.templateId, closeDeleteModal])
@@ -219,12 +219,12 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
     { value: 'budget_alerts', label: 'Alertas de Presupuesto' }
   ]
 
-  logger.debug('🎨 TemplateManager render - showEditor:', showEditor)
+  logger.debug('TemplateManager render - showEditor:', showEditor)
   
   const renderModal = () => {
     if (!showEditor) return null
     
-    logger.debug('📝 Renderizando editor modal')
+    logger.debug('Renderizando editor modal')
     
     return createPortal(
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
@@ -235,7 +235,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
             </h2>
             <button
               onClick={() => {
-                logger.log('❌ Cerrando editor')
+                logger.log('Cerrando editor')
                 setShowEditor(false)
               }}
               className="text-gray-500 hover:text-zinc-300 text-2xl"
@@ -292,7 +292,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
 
             {/* Configuración del encabezado */}
             <div className="border-t pt-6">
-              <h3 className="text-lg font-bold text-zinc-100 mb-4">📄 Configuración del Encabezado</h3>
+              <h3 className="text-lg font-bold text-zinc-100 mb-4">Configuración del encabezado</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-zinc-300 mb-2">
@@ -340,7 +340,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
             {/* Secciones */}
             <div className="border-t pt-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-zinc-100">📋 Secciones del Reporte</h3>
+                <h3 className="text-lg font-bold text-zinc-100">Secciones del reporte</h3>
                 <button
                   onClick={addSection}
                   className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
@@ -420,7 +420,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
     )
   }
 
-  logger.debug('📊 Renderizando lista de plantillas, total:', templates.length)
+  logger.debug('Renderizando lista de plantillas, total:', templates.length)
   
   return (
     <>
@@ -428,7 +428,7 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
       
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-zinc-100">🎨 Plantillas Personalizadas</h2>
+        <h2 className="text-2xl font-bold text-zinc-100">Plantillas personalizadas</h2>
         <button
           onClick={handleCreateTemplate}
           className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-medium"
@@ -452,17 +452,17 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
               <div className="flex space-x-1">
                 <button
                   onClick={() => handleEditTemplate(template)}
-                  className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                  className="rounded-lg px-2 py-1 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-100"
                   title="Editar plantilla"
                 >
-                  ✏️
+                  Editar
                 </button>
                 <button
                   onClick={() => handleDeleteTemplate(template)}
-                  className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                  className="rounded-lg px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-100"
                   title="Eliminar plantilla"
                 >
-                  🗑️
+                  Eliminar
                 </button>
               </div>
             </div>
@@ -490,7 +490,6 @@ const TemplateManager = ({ onTemplateSelect, onClose }) => {
 
       {templates.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">🎨</div>
           <h3 className="text-xl font-bold text-zinc-400 mb-2">No hay plantillas personalizadas</h3>
           <p className="text-gray-500 mb-4">Crea tu primera plantilla personalizada para reportes</p>
           <button

@@ -35,7 +35,7 @@ class SupabasePingService {
 
       return true
     } catch (error) {
-      logger.error('❌ Error en ping a Supabase:', error)
+      logger.error('Error en ping a Supabase:', error)
       return false
     }
   }

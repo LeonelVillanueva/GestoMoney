@@ -27,8 +27,10 @@ const CategoryBreakdown = ({ categoryBreakdown }) => {
             {categoryBreakdown.map((category, index) => (
               <tr key={index} className="border-b border-zinc-800/70 hover:bg-zinc-800/50">
                 <td className="py-2 px-3">
-                  <div className="flex items-center">
-                    <span className="text-base mr-2">{getCategoryIcon(category.name)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-zinc-900 text-[10px] font-bold text-zinc-400">
+                      {getCategoryIcon(category.name)}
+                    </span>
                     <span className="font-medium text-zinc-100 text-sm">{category.name}</span>
                   </div>
                 </td>

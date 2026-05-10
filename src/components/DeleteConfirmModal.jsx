@@ -153,9 +153,6 @@ const DeleteConfirmModal = ({
         {/* Header */}
         <div className={`p-4 rounded-t-2xl ${isDangerous ? 'bg-red-50 dark:bg-red-900/30' : actionType === 'edit' ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-zinc-800/50 dark:bg-slate-700'}`}>
           <div className="flex items-center gap-3">
-            <div className={`text-3xl ${isDangerous ? 'animate-pulse' : ''}`}>
-              {isDangerous ? '⚠️' : actionType === 'edit' ? '✏️' : '🔐'}
-            </div>
             <div>
               <h3 className={`text-lg font-bold ${isDangerous ? 'text-red-700 dark:text-red-300' : 'text-zinc-100 dark:text-slate-200'}`}>
                 {title}
@@ -178,7 +175,6 @@ const DeleteConfirmModal = ({
           ) : showSetupPrompt ? (
             // Si no hay PIN configurado, bloquear acción sensible
             <div className="text-center py-4">
-              <div className="text-4xl mb-3">🔓</div>
               <p className="text-zinc-400 dark:text-zinc-400 mb-4">
                 No tienes un PIN de seguridad configurado.
               </p>
@@ -233,7 +229,7 @@ const DeleteConfirmModal = ({
               {error && (
                 <div className="text-center mb-4">
                   <p className="text-red-500 text-sm font-medium animate-shake">
-                    ❌ {error}
+                    {error}
                   </p>
                 </div>
               )}
@@ -263,7 +259,7 @@ const DeleteConfirmModal = ({
                     </>
                   ) : (
                     <>
-                      {actionType === 'edit' ? '✏️ Editar' : '🗑️ Confirmar'}
+                      {actionType === 'edit' ? 'Editar' : 'Confirmar'}
                     </>
                   )}
                 </button>

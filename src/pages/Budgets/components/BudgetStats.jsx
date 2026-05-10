@@ -14,7 +14,6 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
     return (
       <div className="glass-card rounded-xl p-5">
         <div className="text-center py-8">
-          <div className="text-5xl mb-4">📅</div>
           <h3 className="text-lg font-bold text-zinc-300 mb-2">
             No hay presupuestos configurados para {formatDate(currentMonth)}
           </h3>
@@ -32,16 +31,14 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
       <div className="glass-card rounded-xl p-5">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-              <span className="text-2xl">💰</span>
-              <p className="text-sm font-medium text-zinc-400">Presupuesto Total</p>
+            <div className="mb-2 flex items-center justify-center md:justify-start">
+              <p className="text-sm font-medium text-zinc-400">Presupuesto total</p>
             </div>
             <p className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-100 mb-1 break-words leading-tight">{formatCurrency(totalBudget)}</p>
             <p className="text-xs text-gray-500">{formatDate(currentMonth)}</p>
           </div>
           <div className="text-center md:text-left border-y md:border-y-0 md:border-x border-zinc-700 py-4 md:py-0 px-6">
-            <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-              <span className="text-2xl">💸</span>
+            <div className="mb-2 flex items-center justify-center md:justify-start">
               <p className="text-sm font-medium text-zinc-400">Gastado</p>
             </div>
             <p className="text-lg sm:text-xl md:text-2xl font-bold text-zinc-100 mb-1 break-words leading-tight">{formatCurrency(totalSpent)}</p>
@@ -51,15 +48,14 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
             </div>
           </div>
           <div className="text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-              <span className="text-2xl">💵</span>
+            <div className="mb-2 flex items-center justify-center md:justify-start">
               <p className="text-sm font-medium text-zinc-400">Restante</p>
             </div>
             <p className={`text-lg sm:text-xl md:text-2xl font-bold mb-1 break-words leading-tight ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(remaining)}
             </p>
             <p className={`text-xs font-medium ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {remaining >= 0 ? '✓ Disponible' : '⚠ Excedido'}
+              {remaining >= 0 ? 'Disponible' : 'Excedido'}
             </p>
           </div>
         </div>
@@ -90,8 +86,7 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
       {/* Alertas de presupuesto excedido - Más Compacto */}
       {overBudgetCategories.length > 0 && (
         <div className="glass-card rounded-xl p-4 bg-red-50 border border-red-200">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">⚠️</span>
+          <div className="mb-3">
             <h3 className="text-sm font-bold text-red-800">
               {overBudgetCategories.length} {overBudgetCategories.length === 1 ? 'presupuesto excedido' : 'presupuestos excedidos'}
             </h3>
@@ -99,9 +94,7 @@ const BudgetStats = ({ totalBudget, totalSpent, currentMonth, overBudgetCategori
           <div className="space-y-2">
             {overBudgetCategories.slice(0, 3).map((category) => (
               <div key={category.id} className="flex items-center justify-between text-sm">
-                <span className="text-zinc-300">
-                  {category.icon} {category.category}
-                </span>
+                <span className="text-zinc-300">{category.category}</span>
                 <span className="text-red-600 font-semibold">
                   +{formatCurrency(Math.abs(category.remaining))}
                 </span>

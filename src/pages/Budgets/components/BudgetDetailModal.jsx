@@ -40,7 +40,6 @@ const BudgetDetailModal = ({ isOpen, onClose, budget }) => {
         {/* Header */}
         <div className="sticky top-0 bg-zinc-900 border-b border-zinc-700 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">💰</span>
             <div>
               <h2 className="text-xl font-bold text-zinc-100">Detalle del Presupuesto</h2>
               {hasMultipleCategories && (
@@ -206,7 +205,6 @@ const BudgetDetailModal = ({ isOpen, onClose, budget }) => {
           {/* Si no hay gastos */}
           {(!budget.categoryExpenses || budget.categoryExpenses.length === 0) && (
             <div className="text-center py-8">
-              <span className="text-4xl mb-2 block">📭</span>
               <p className="text-zinc-500">No hay gastos registrados en este presupuesto</p>
             </div>
           )}

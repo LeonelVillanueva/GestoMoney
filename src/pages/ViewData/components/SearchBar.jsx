@@ -35,8 +35,7 @@ const SearchBar = ({
     <div className="glass-card rounded-xl p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <span className="text-xl">🔍</span>
-          <h3 className="text-lg font-bold text-zinc-100">Búsqueda y Filtros</h3>
+          <h3 className="text-lg font-bold text-zinc-100">Búsqueda y filtros</h3>
           {hasActiveFilters && (
             <span className="px-2 py-1 text-xs rounded-full font-medium border border-sky-500/35 bg-sky-500/10 text-sky-200">
               {filteredDataLength} resultados
@@ -49,8 +48,7 @@ const SearchBar = ({
             onClick={onToggleFilters}
             className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-zinc-600 bg-zinc-800/50 text-zinc-200 hover:bg-zinc-800 transition-colors"
           >
-            <span>{showFilters ? '🔼' : '🔽'}</span>
-            <span className="text-sm font-medium">Filtros</span>
+            <span className="text-sm font-medium">{showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}</span>
           </button>
           {hasActiveFilters && (
             <button
@@ -58,7 +56,6 @@ const SearchBar = ({
               onClick={onClearFilters}
               className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-red-500/35 bg-red-500/10 text-red-200 hover:bg-red-500/20 transition-colors"
             >
-              <span>❌</span>
               <span className="text-sm font-medium">Limpiar</span>
             </button>
           )}
@@ -73,11 +70,8 @@ const SearchBar = ({
           placeholder="Buscar por descripción, categoría, supermercado o tipo de corte..."
           value={searchFilters.searchText}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full px-4 py-3 pl-12 border border-zinc-600 rounded-xl bg-zinc-900/40 text-zinc-100 placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/40 transition-all"
+          className="w-full px-4 py-3 border border-zinc-600 rounded-xl bg-zinc-900/40 text-zinc-100 placeholder:text-zinc-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/40 transition-all"
         />
-        <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-          <span className="text-gray-400">🔍</span>
-        </div>
       </div>
 
       {/* Filtros avanzados */}
@@ -86,7 +80,7 @@ const SearchBar = ({
           {/* Rango de fechas */}
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-2">
-              📅 Fecha desde
+              Fecha desde
             </label>
             <input
               type="date"
@@ -98,7 +92,7 @@ const SearchBar = ({
           
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-2">
-              📅 Fecha hasta
+              Fecha hasta
             </label>
             <input
               type="date"
@@ -112,7 +106,7 @@ const SearchBar = ({
           {activeTab === 'gastos' && (
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
-                🏷️ Categoría
+                Categoría
               </label>
               <select
                 value={searchFilters.category}
@@ -131,7 +125,7 @@ const SearchBar = ({
           {activeTab === 'gastos' && (
             <div>
               <label className="block text-sm font-medium text-zinc-300 mb-2">
-                💰 Tipo
+                Tipo
               </label>
               <select
                 value={searchFilters.transactionType}
@@ -150,7 +144,7 @@ const SearchBar = ({
             <>
               <div>
                 <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  💰 Monto mínimo
+                  Monto mínimo
                 </label>
                 <input
                   type="number"
@@ -165,7 +159,7 @@ const SearchBar = ({
               
               <div>
                 <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  💰 Monto máximo
+                  Monto máximo
                 </label>
                 <input
                   type="number"

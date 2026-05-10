@@ -19,7 +19,7 @@ const ChartFilters = ({
   if (!showFilters) {
     return (
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-zinc-100">🔧 Filtros</h3>
+        <h3 className="text-sm font-bold text-zinc-100">Filtros</h3>
         <button
           type="button"
           onClick={onToggleFilters}
@@ -34,7 +34,7 @@ const ChartFilters = ({
   return (
     <div className="mb-3">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-zinc-100">🔧 Filtros</h3>
+        <h3 className="text-sm font-bold text-zinc-100">Filtros</h3>
         <button
           type="button"
           onClick={onToggleFilters}
@@ -50,7 +50,7 @@ const ChartFilters = ({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {/* Filtro por Período */}
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">📅 Período</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Período</label>
               <select
                 value={filters.period}
                 onChange={(e) => onFilterChange('period', e.target.value)}
@@ -68,7 +68,7 @@ const ChartFilters = ({
             
             {/* Filtro por Año */}
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">📆 Año</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Año</label>
               <select
                 value={filters.year}
                 onChange={(e) => onFilterChange('year', parseInt(e.target.value))}
@@ -82,7 +82,7 @@ const ChartFilters = ({
             
             {/* Filtro por Categoría */}
             <div>
-              <label className="block text-xs font-medium text-zinc-400 mb-1">🏷️ Categoría</label>
+              <label className="block text-xs font-medium text-zinc-400 mb-1">Categoría</label>
               <select
                 value={filters.category}
                 onChange={(e) => onFilterChange('category', e.target.value)}
@@ -119,7 +119,7 @@ const ChartFilters = ({
               {/* Filtro por Mes Específico */}
               {filters.period === 'specific_month' && (
                 <div>
-                  <label className="block text-xs font-medium text-zinc-400 mb-1">📆 Mes Específico</label>
+                  <label className="block text-xs font-medium text-zinc-400 mb-1">Mes específico</label>
                   <CustomDatePicker
                     type="month"
                     value={filters.month}
@@ -134,7 +134,7 @@ const ChartFilters = ({
               {filters.period === 'custom' && (
                 <>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-400 mb-1">📅 Fecha Inicio</label>
+                    <label className="block text-xs font-medium text-zinc-400 mb-1">Fecha inicio</label>
                     <CustomDatePicker
                       type="date"
                       value={filters.customStartDate}
@@ -144,7 +144,7 @@ const ChartFilters = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-zinc-400 mb-1">📅 Fecha Fin</label>
+                    <label className="block text-xs font-medium text-zinc-400 mb-1">Fecha fin</label>
                     <CustomDatePicker
                       type="date"
                       value={filters.customEndDate}

@@ -2,10 +2,11 @@ import React, { useState } from 'react'
 import { browserLabelFromUserAgent } from '../../lib/trustedDeviceDisplay.js'
 import notifications from '../utils/services/notifications'
 
-function typeIcon(type) {
-  if (type === 'mobile') return '📱'
-  if (type === 'tablet') return '📱'
-  return '💻'
+function typeBadgeLetter(type) {
+  if (type === 'mobile') return 'M'
+  if (type === 'tablet') return 'T'
+  if (type === 'desktop') return 'P'
+  return '?'
 }
 
 function typeLabel(type) {
@@ -133,8 +134,11 @@ export default function TrustedDevicesPanel({ devices = [], onRefresh, enabled }
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-2xl" aria-hidden>
-                    {typeIcon(kind)}
+                  <span
+                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-950/80 text-xs font-bold text-zinc-400"
+                    aria-hidden
+                  >
+                    {typeBadgeLetter(kind)}
                   </span>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-zinc-100">

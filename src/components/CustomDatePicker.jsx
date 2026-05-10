@@ -410,7 +410,9 @@ const CustomDatePicker = ({
         <span className={`${selectedDate ? 'text-zinc-100 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400'}`}>
           {formatDisplayValue(displayDate)}
         </span>
-        <span className="text-gray-400">📅</span>
+        <span className="text-gray-400 select-none" aria-hidden>
+          ▾
+        </span>
       </button>
 
       {selectedDate && !disabled && (

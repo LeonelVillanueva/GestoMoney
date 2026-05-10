@@ -114,11 +114,11 @@ const Supermarket = ({ onDataAdded }) => {
       if (createResult?.queued) {
         notifications.showSync('Sin conexión: la compra quedó pendiente de sincronización.', 'warning')
       } else {
-        notifications.showSync('✅ Compra de supermercado registrada exitosamente', 'success')
+        notifications.showSync('Compra de supermercado registrada correctamente', 'success')
       }
     } catch (error) {
       console.error('Error saving purchase:', error)
-      notifications.showSync('❌ Error al guardar la compra', 'error')
+      notifications.showSync('Error al guardar la compra', 'error')
     } finally {
       setLoading(false)
     }
@@ -161,16 +161,14 @@ const Supermarket = ({ onDataAdded }) => {
     }
   }
 
-  const getSupermarketIcon = (supermercado) => {
-    const iconMap = {
-      'La Colonia': '🏪',
-      'Walmart': '🏬',
-      'Price Smart': '🏢',
-      'Maxi Despensa': '🏪',
-      'Diunsa': '🏬',
-      'Supermercado': '🏪'
+  const supermarketInitials = (name) => {
+    const n = (name || '').trim()
+    if (!n) return '?'
+    const parts = n.split(/\s+/).filter(Boolean)
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
     }
-    return iconMap[supermercado] || '🏪'
+    return n.slice(0, 2).toUpperCase()
   }
 
   // Calcular estadísticas (usando datos filtrados por año)
@@ -194,7 +192,7 @@ const Supermarket = ({ onDataAdded }) => {
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold text-zinc-100">🛒 Compras de Supermercado</h2>
+            <h2 className="text-2xl font-bold text-zinc-100">Compras de supermercado</h2>
             {yearFilter !== 'all' && (
               <p className="text-sm text-sky-400/90 mt-1">
                 Mostrando: {filterLabel}
@@ -226,7 +224,6 @@ const Supermarket = ({ onDataAdded }) => {
                 </p>
                 <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(totalGastado)}</p>
               </div>
-              <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>💰</span>
             </div>
           </div>
           
@@ -236,7 +233,6 @@ const Supermarket = ({ onDataAdded }) => {
                 <p className="text-xs text-zinc-500 mb-1">Promedio</p>
                 <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(promedioCompra)}</p>
               </div>
-              <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>📊</span>
             </div>
           </div>
 
@@ -246,7 +242,6 @@ const Supermarket = ({ onDataAdded }) => {
                 <p className="text-xs text-zinc-500 mb-1">Total compras</p>
                 <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{purchasesByYear.length}</p>
               </div>
-              <span className="text-2xl flex-shrink-0 opacity-80" aria-hidden>🛒</span>
             </div>
           </div>
 
@@ -257,7 +252,7 @@ const Supermarket = ({ onDataAdded }) => {
                   <p className="text-xs text-zinc-500 mb-1">Última compra</p>
                   <p className="text-base sm:text-lg font-bold text-zinc-100 break-words leading-tight">{formatCurrency(ultimaCompra.monto)}</p>
                 </div>
-                <span className="text-2xl flex-shrink-0">{getSupermarketIcon(ultimaCompra.supermercado)}</span>
+                <span className="text-xs font-medium text-zinc-400 max-w-[7rem] truncate text-right">{ultimaCompra.supermercado}</span>
               </div>
             </div>
           )}
@@ -267,13 +262,13 @@ const Supermarket = ({ onDataAdded }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Formulario de Compra Compacto */}
         <div className="lg:col-span-1 glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-zinc-100 mb-4">➕ Nueva Compra</h3>
+          <h3 className="text-sm font-bold text-zinc-100 mb-4">Nueva compra</h3>
           
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* Fecha */}
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">
-                📅 Fecha
+                Fecha
               </label>
               <CustomDatePicker
                 value={formData.fecha}
@@ -287,7 +282,7 @@ const Supermarket = ({ onDataAdded }) => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-300 mb-1">
-                  💰 Monto
+                  Monto
                 </label>
                 <input
                   type="number"
@@ -304,7 +299,7 @@ const Supermarket = ({ onDataAdded }) => {
 
               <div>
                 <label className="block text-xs font-medium text-zinc-300 mb-1">
-                  🏪 Tienda
+                  Tienda
                 </label>
                 <select
                   name="supermercado"
@@ -314,7 +309,7 @@ const Supermarket = ({ onDataAdded }) => {
                 >
                   {supermarkets.map((market, index) => (
                     <option key={index} value={market}>
-                      {getSupermarketIcon(market)} {market}
+                      {market}
                     </option>
                   ))}
                 </select>
@@ -324,7 +319,7 @@ const Supermarket = ({ onDataAdded }) => {
             {/* Descripción */}
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1">
-                📝 Descripción
+                Descripción
               </label>
               <textarea
                 name="descripcion"
@@ -346,10 +341,7 @@ const Supermarket = ({ onDataAdded }) => {
               {loading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               ) : (
-                <>
-                  <span>Registrar</span>
-                  <span>🛒</span>
-                </>
+                <span>Registrar</span>
               )}
             </button>
           </form>
@@ -358,7 +350,7 @@ const Supermarket = ({ onDataAdded }) => {
         {/* Lista de Compras Recientes Compacta */}
         <div className="lg:col-span-2 glass-card rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-zinc-100">📋 Compras Recientes</h3>
+            <h3 className="text-sm font-bold text-zinc-100">Compras recientes</h3>
             {purchasesByYear.length > 0 && (
               <span className="text-xs text-gray-500">{purchasesByYear.length} compras</span>
             )}
@@ -383,8 +375,8 @@ const Supermarket = ({ onDataAdded }) => {
               {purchasesByYear.slice(0, 10).map((purchase) => (
                 <div key={purchase.id} className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg hover:bg-zinc-800/60 transition-colors">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <div className="p-1.5 bg-zinc-900 rounded-lg flex-shrink-0">
-                      <span className="text-lg">{getSupermarketIcon(purchase.supermercado)}</span>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 flex-shrink-0">
+                      <span className="text-[11px] font-bold text-zinc-400">{supermarketInitials(purchase.supermercado)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-medium text-zinc-100 truncate">{purchase.descripcion}</h4>
@@ -419,7 +411,7 @@ const Supermarket = ({ onDataAdded }) => {
       {/* Estadísticas por Supermercado */}
       {purchases.length > 0 && comprasPorSupermercado.some(c => c.cantidad > 0) && (
         <div className="glass-card rounded-xl p-4">
-          <h3 className="text-sm font-bold text-zinc-100 mb-3">📊 Por Supermercado</h3>
+          <h3 className="text-sm font-bold text-zinc-100 mb-3">Por supermercado</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {comprasPorSupermercado.map((item, index) => {
               if (item.cantidad === 0) return null
@@ -435,8 +427,10 @@ const Supermarket = ({ onDataAdded }) => {
                   key={index}
                   className={`stat-card rounded-lg p-3 border-l-4 ${accent[index % accent.length]}`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xl">{getSupermarketIcon(item.nombre)}</span>
+                  <div className="flex items-center justify-between mb-2 gap-2">
+                    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-900 text-[11px] font-bold text-zinc-400">
+                      {supermarketInitials(item.nombre)}
+                    </span>
                     <span className="text-xs font-medium text-zinc-400">{item.cantidad} compras</span>
                   </div>
                   <p className="text-xs text-zinc-500 mb-1">{item.nombre}</p>

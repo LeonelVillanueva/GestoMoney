@@ -39,7 +39,7 @@ export default function useCuts(active) {
         return
       }
       await loadCuts()
-      notifications.showSync('✅ Tipo de corte agregado exitosamente', 'success')
+      notifications.showSync('Tipo de corte agregado correctamente', 'success')
     } catch (error) {
       console.error('Error adding cut type:', error)
       notifications.showSync('Error al agregar tipo de corte', 'error')
@@ -69,7 +69,7 @@ export default function useCuts(active) {
         return
       }
       await loadCuts()
-      notifications.showSync('✅ Tipo de corte eliminado', 'success')
+      notifications.showSync('Tipo de corte eliminado', 'success')
     } catch (error) {
       console.error('Error deleting cut type:', error)
       notifications.showSync('Error al eliminar tipo de corte', 'error')
@@ -97,7 +97,7 @@ export default function useCuts(active) {
         return
       }
       await loadCuts()
-      notifications.showSync('✅ Tipo de corte actualizado', 'success')
+      notifications.showSync('Tipo de corte actualizado', 'success')
     } catch (error) {
       console.error('Error updating cut type:', error)
       notifications.showSync('Error al actualizar tipo de corte', 'error')

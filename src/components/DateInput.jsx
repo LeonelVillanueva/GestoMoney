@@ -127,7 +127,7 @@ const DateInput = ({ value, onChange, label, required = false, className = "" })
       }
       setIsInitialized(true)
     }
-  }, [isInitialized, updateDate]) // ✅ Remover 'value' de las dependencias para evitar bucle
+  }, [isInitialized, updateDate])
 
   // Actualizar cuando cambie el valor externamente (solo si ya está inicializado)
   useEffect(() => {
@@ -140,7 +140,7 @@ const DateInput = ({ value, onChange, label, required = false, className = "" })
         // NO llamar onChange aquí para evitar bucles
       }
     }
-  }, [value, isInitialized]) // ✅ Dependencias más simples
+  }, [value, isInitialized])
 
   // Manejar cambios en los campos individuales
   const handleDayChange = (newDay) => {

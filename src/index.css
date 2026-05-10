@@ -25,6 +25,8 @@ html.dark body,
   width: 100%;
   min-height: 100vh;
   position: relative;
+  /* Menú nativo por pulsación larga (iOS/WebKit); complementa el bloqueo de contextmenu en App */
+  -webkit-touch-callout: none;
 }
 
 /* Variables CSS para temas */

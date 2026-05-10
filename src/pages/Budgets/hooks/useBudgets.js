@@ -109,7 +109,7 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
       // Si hay categorías que ya tienen presupuesto, informar al usuario
       if (conflictingCategories.length > 0) {
         notifications.showSync(
-          `⚠️ Las siguientes categorías ya tienen presupuesto en ${budgetForm.month}: ${conflictingCategories.join(', ')}. Elimina o edita esos presupuestos primero.`, 
+          `Las siguientes categorías ya tienen presupuesto en ${budgetForm.month}: ${conflictingCategories.join(', ')}. Elimina o edita esos presupuestos primero.`, 
           'warning'
         )
         return
@@ -134,7 +134,7 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
       if (createResult?.queued) {
         notifications.showSync(`Sin conexión: el presupuesto para ${categoriesDisplay} quedó pendiente de sincronización.`, 'warning')
       } else {
-        notifications.showSync(`✅ Presupuesto creado exitosamente para ${categoriesDisplay}`, 'success')
+        notifications.showSync(`Presupuesto creado para ${categoriesDisplay}`, 'success')
       }
       
       // Limpiar formulario
@@ -158,7 +158,7 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
           errorMessage = error.message
         }
       }
-      notifications.showSync(`❌ ${errorMessage}`, 'error')
+      notifications.showSync(errorMessage, 'error')
     }
   }, [budgetForm, currentMonth, loadBudgets, onDataChanged])
 
@@ -169,12 +169,12 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
       if (updateResult?.queued) {
         notifications.showSync('Sin conexión: la actualización del presupuesto quedó pendiente.', 'warning')
       } else {
-        notifications.showSync('✅ Presupuesto actualizado', 'success')
+        notifications.showSync('Presupuesto actualizado', 'success')
       }
       loadBudgets()
     } catch (error) {
       console.error('Error updating budget:', error)
-      notifications.showSync('❌ Error al actualizar presupuesto', 'error')
+      notifications.showSync('Error al actualizar presupuesto', 'error')
     }
   }, [loadBudgets])
 
@@ -197,12 +197,12 @@ export const useBudgets = (expenses, currentMonth, onDataChanged) => {
       if (deleteResult?.queued) {
         notifications.showSync('Sin conexión: la eliminación del presupuesto quedó pendiente.', 'warning')
       } else {
-        notifications.showSync('✅ Presupuesto eliminado', 'success')
+        notifications.showSync('Presupuesto eliminado', 'success')
       }
       loadBudgets()
     } catch (error) {
       console.error('Error deleting budget:', error)
-      notifications.showSync('❌ Error al eliminar presupuesto', 'error')
+      notifications.showSync('Error al eliminar presupuesto', 'error')
     }
   }, [loadBudgets])
 

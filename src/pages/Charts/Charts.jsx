@@ -149,14 +149,14 @@ const Charts = ({ expenses, onDataAdded }) => {
         await database.createExpense(expense)
       }
 
-      notifications.showSync('✅ Datos de prueba agregados correctamente', 'success')
+      notifications.showSync('Datos de prueba agregados correctamente', 'success')
       
       if (onDataAdded) {
         onDataAdded()
       }
     } catch (error) {
       console.error('Error adding sample data:', error)
-      notifications.showSync('❌ Error al agregar datos de prueba', 'error')
+      notifications.showSync('Error al agregar datos de prueba', 'error')
     }
   }
 
@@ -182,7 +182,7 @@ const Charts = ({ expenses, onDataAdded }) => {
       <div className="max-w-7xl mx-auto space-y-4 animate-fade-in">
         {/* Header Compacto */}
         <div className="glass-card rounded-xl p-4">
-          <h2 className="text-2xl font-bold text-zinc-100">📈 Gráficos y Análisis</h2>
+          <h2 className="text-2xl font-bold text-zinc-100">Gráficos y análisis</h2>
           <p className="text-sm text-zinc-500 mt-1">Visualiza tus patrones de gasto con gráficos interactivos</p>
         </div>
 
@@ -200,7 +200,6 @@ const Charts = ({ expenses, onDataAdded }) => {
 
         {/* Estado Vacío Compacto */}
         <div className="glass-card rounded-xl p-8 text-center">
-          <div className="text-6xl mb-4">📊</div>
           <h3 className="text-xl font-bold text-zinc-100 mb-2">No hay datos para mostrar</h3>
           <p className="text-sm text-zinc-400 mb-6 max-w-md mx-auto">
             {yearFilter !== 'all' 
@@ -213,14 +212,14 @@ const Charts = ({ expenses, onDataAdded }) => {
                 onClick={() => handleYearFilterChange('all')}
                 className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors"
               >
-                📊 Ver todos los años
+                Ver todos los años
               </button>
             )}
             <button 
               onClick={addSampleData}
               className="gradient-button text-white px-4 py-2 rounded-lg text-sm hover:scale-105 transition-transform"
             >
-              🧪 Datos de Prueba
+              Datos de prueba
             </button>
           </div>
         </div>
@@ -234,12 +233,12 @@ const Charts = ({ expenses, onDataAdded }) => {
       <div className="glass-card rounded-xl p-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h2 className="text-2xl font-bold text-zinc-100">📈 Gráficos y Análisis</h2>
+            <h2 className="text-2xl font-bold text-zinc-100">Gráficos y análisis</h2>
             <p className="text-sm text-zinc-500 mt-1">Visualiza tus patrones de gasto con gráficos interactivos</p>
           </div>
           {yearFilter !== 'all' && (
             <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full font-medium">
-              📅 {filterLabel}
+              {filterLabel}
             </span>
           )}
         </div>
@@ -260,7 +259,6 @@ const Charts = ({ expenses, onDataAdded }) => {
       {/* Estadísticas Generales Compactas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="glass-card rounded-xl p-3 text-center">
-          <div className="text-2xl mb-1">💸</div>
           <h4 className="text-xs font-medium text-zinc-400 mb-1">
             Total Gastado {yearFilter !== 'all' && <span className="text-blue-600">({filterLabel})</span>}
           </h4>
@@ -269,17 +267,15 @@ const Charts = ({ expenses, onDataAdded }) => {
         </div>
 
         <div className="glass-card rounded-xl p-3 text-center">
-          <div className="text-2xl mb-1">💰</div>
           <h4 className="text-xs font-medium text-zinc-400 mb-1">
-            Total Ingresos {yearFilter !== 'all' && <span className="text-green-600">({filterLabel})</span>}
+            Total ingresos {yearFilter !== 'all' && <span className="text-green-600">({filterLabel})</span>}
           </h4>
           <p className="text-lg font-bold text-green-600">{formatCurrency(totalIngresos)}</p>
           <p className="text-xs text-zinc-500">{ingresos.length} ingresos</p>
         </div>
 
         <div className="glass-card rounded-xl p-3 text-center">
-          <div className="text-2xl mb-1">📊</div>
-          <h4 className="text-xs font-medium text-zinc-400 mb-1">Balance Neto</h4>
+          <h4 className="text-xs font-medium text-zinc-400 mb-1">Balance neto</h4>
           <p className={`text-lg font-bold ${totalNeto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {formatCurrency(totalNeto)}
           </p>
@@ -289,7 +285,6 @@ const Charts = ({ expenses, onDataAdded }) => {
         </div>
 
         <div className="glass-card rounded-xl p-3 text-center">
-          <div className="text-2xl mb-1">📝</div>
           <h4 className="text-xs font-medium text-zinc-400 mb-1">Transacciones</h4>
           <p className="text-lg font-bold text-zinc-400">{expensesByYear.length}</p>
           <p className="text-xs text-zinc-500">

@@ -63,14 +63,13 @@ const BudgetForm = ({ budgetForm, onFormChange, onSubmit, currentMonth }) => {
                           onChange={() => handleCheckboxChange(cat.id)}
                           className="w-5 h-5 text-blue-600 border-zinc-600 rounded focus:ring-blue-500 focus:ring-2"
                         />
-                        <span className="text-xl">{cat.icon}</span>
                         <span className={`flex-1 font-medium ${
                           isSelected ? 'text-blue-700' : 'text-zinc-300'
                         }`}>
                           {cat.name}
                         </span>
                         {isSelected && (
-                          <span className="text-blue-600">✓</span>
+                          <span className="text-xs font-medium text-blue-600">Listo</span>
                         )}
                       </label>
                     )
@@ -89,19 +88,19 @@ const BudgetForm = ({ budgetForm, onFormChange, onSubmit, currentMonth }) => {
                 >
                   {CATEGORIES.map(cat => (
                     <option key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
+                      {cat.name}
                     </option>
                   ))}
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
-                  💡 Mantén presionado Ctrl (o Cmd en Mac) para seleccionar múltiples categorías
+                  Mantén presionado Ctrl (o Cmd en Mac) para seleccionar varias categorías.
                 </p>
               </>
             )}
             
             {selectedCategories.length > 0 && (
               <p className="text-xs text-blue-600 mt-1 font-medium">
-                ✓ {selectedCategories.length} categoría{selectedCategories.length > 1 ? 's' : ''} seleccionada{selectedCategories.length > 1 ? 's' : ''}
+                {selectedCategories.length} categoría{selectedCategories.length > 1 ? 's' : ''} seleccionada{selectedCategories.length > 1 ? 's' : ''}
               </p>
             )}
           </div>
@@ -145,7 +144,7 @@ const BudgetForm = ({ budgetForm, onFormChange, onSubmit, currentMonth }) => {
           type="submit"
           className="w-full gradient-button text-white py-2.5 rounded-lg font-medium text-sm"
         >
-          💾 Crear Presupuesto
+          Crear presupuesto
         </button>
       </form>
   )

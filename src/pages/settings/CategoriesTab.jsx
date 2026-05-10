@@ -18,7 +18,7 @@ export default function CategoriesTab({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">➕ Agregar Nueva Categoría</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Agregar categoría</h3>
         <div className="space-y-3 p-3 bg-zinc-800/50 dark:bg-slate-700 rounded-lg">
           <div>
             <label className="block text-xs font-medium text-zinc-300 dark:text-gray-300 mb-1">Nombre</label>
@@ -75,13 +75,13 @@ export default function CategoriesTab({
             onClick={onAddCategory}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            ➕ Agregar
+            Agregar
           </button>
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">🏷️ Categorías ({categories.length})</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Categorías ({categories.length})</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {categories.map((category) => (
             <div key={category.id} className="bg-zinc-800/50 dark:bg-slate-700 rounded-lg p-3 border border-zinc-700 dark:border-slate-600">
@@ -97,8 +97,8 @@ export default function CategoriesTab({
                   </div>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => onRequestEdit ? onRequestEdit(category.id) : setEditingCategory(editingCategory === category.id ? null : category.id)} className="text-blue-600 hover:text-blue-800 text-xs">✏️</button>
-                  <button onClick={() => onDeleteCategory(category.id)} className="text-red-600 hover:text-red-800 text-xs">🗑️</button>
+                  <button onClick={() => onRequestEdit ? onRequestEdit(category.id) : setEditingCategory(editingCategory === category.id ? null : category.id)} className="text-blue-600 hover:text-blue-800 text-xs font-medium">Editar</button>
+                  <button onClick={() => onDeleteCategory(category.id)} className="text-red-600 hover:text-red-800 text-xs font-medium">Eliminar</button>
                 </div>
               </div>
 
@@ -143,7 +143,7 @@ export default function CategoriesTab({
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">⚙️ Configuración</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Configuración</h3>
         <div>
           <label className="block text-xs font-medium text-zinc-300 dark:text-gray-300 mb-1">Categoría por defecto</label>
           <select

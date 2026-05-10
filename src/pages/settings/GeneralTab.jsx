@@ -62,7 +62,7 @@ export default function GeneralTab({ settings, onSettingChange }) {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">💱 Monedas</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Monedas</h3>
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-zinc-300 dark:text-gray-300 mb-1">
@@ -77,7 +77,7 @@ export default function GeneralTab({ settings, onSettingChange }) {
                 disabled={isUpdating}
                 className="px-3 py-2 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isUpdating ? 'Actualizando...' : '🔄 Actualizar'}
+                {isUpdating ? 'Actualizando...' : 'Actualizar'}
               </button>
             </div>
             <p className="text-xs text-zinc-400 dark:text-gray-400 mt-1">
@@ -104,7 +104,7 @@ export default function GeneralTab({ settings, onSettingChange }) {
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">🔧 Comportamiento</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Comportamiento</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 bg-zinc-800/50 dark:bg-slate-700 rounded-lg">
             <div>
@@ -125,7 +125,7 @@ export default function GeneralTab({ settings, onSettingChange }) {
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">💰 Desglose de Gastos</h3>
+        <h3 className="text-sm font-bold text-zinc-100 dark:text-slate-200 mb-3">Desglose de gastos</h3>
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-zinc-300 dark:text-gray-300 mb-1">

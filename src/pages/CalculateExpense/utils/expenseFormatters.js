@@ -43,20 +43,13 @@ export const getCategoryColor = (category) => {
   return colors[category] || '#a55eea'
 }
 
-/**
- * Obtiene ícono de categoría
- */
-export const getCategoryIcon = (category) => {
-  const icons = {
-    'Comida': '🍽️',
-    'Transporte': '🚌',
-    'Entretenimiento': '🎮',
-    'Regalos': '🎁',
-    'Utilidades': '⚡',
-    'Salud': '🏥',
-    'Educación': '📚',
-    'Tecnología': '💻',
-    'Otros': '📦'
-  }
-  return icons[category] || '📦'
+function categoryInitials(category) {
+  const c = (category || '').trim()
+  if (!c) return '?'
+  const parts = c.split(/\s+/).filter(Boolean)
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+  return c.slice(0, 2).toUpperCase()
 }
+
+/** Iniciales de categoría para listas y tarjetas */
+export const getCategoryIcon = (category) => categoryInitials(category)
